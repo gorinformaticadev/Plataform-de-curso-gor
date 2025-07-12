@@ -1,0 +1,242 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(STUDENT)
+  avatar    String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  courses     Course[]
+  purchases   Purchase[]
+  enrollments Enrollment[]
+  progress    Progress[]
+  reviews     Review[]
+  
+  // Instrutor
+  instructorProfile InstructorProfile?
+
+  @@map("users")
+}
+
+model InstructorProfile {
+  id          String @id @default(uuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  expertise   String[]
+  experience  String?
+  website     String?
+  linkedin    String?
+  approved    Boolean @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("instructor_profiles")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses Course[]
+
+  @@map("categories")
+}
+
+model Course {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String      @unique
+  description String
+  thumbnail   String?
+  price       Float
+  level       CourseLevel @default(BEGINNER)
+  duration    Int?        // em minutos
+  status      CourseStatus @default(DRAFT)
+  
+  // Relacionamentos
+  instructorId String
+  instructor   User     @relation(fields: [instructorId], references: [id])
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+  
+  modules     Module[]
+  purchases   Purchase[]
+  enrollments Enrollment[]
+  reviews     Review[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model Module {
+  id          String @id @default(uuid())
+  title       String
+  description String?
+  order       Int
+  
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  lessons Lesson[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("modules")
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  videoUrl    String?
+  duration    Int?       // em segundos
+  order       Int
+  type        LessonType @default(VIDEO)
+  content     String?    // Para aulas de texto
+  
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  progress Progress[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lessons")
+}
+
+model Purchase {
+  id            String        @id @default(uuid())
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String?
+  transactionId String?
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("purchases")
+}
+
+model Enrollment {
+  id           String           @id @default(uuid())
+  status       EnrollmentStatus @default(ACTIVE)
+  completedAt  DateTime?
+  certificateUrl String?
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model Progress {
+  id          String  @id @default(uuid())
+  completed   Boolean @default(false)
+  watchTime   Int     @default(0) // em segundos
+  completedAt DateTime?
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@map("progress")
+}
+
+model Review {
+  id      String @id @default(uuid())
+  rating  Int    // 1-5
+  comment String?
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@map("reviews")
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+  QUIZ
+  ASSIGNMENT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  SUSPENDED
+}
