@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -27,12 +27,6 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: eduplatform-api
-    environment:
-      DATABASE_URL: "postgresql://postgres:postgres123@postgres:5432/eduplatform"
-      JWT_SECRET: "seu-jwt-secret-super-seguro"
-      JWT_EXPIRES_IN: "7d"
-      PORT: 3001
-      FRONTEND_URL: "http://localhost:3000"
     ports:
       - "3001:3001"
     depends_on:
@@ -43,7 +37,7 @@ services:
       - /app/node_modules
     networks:
       - eduplatform-network
-    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+    command: npm run start:dev
 
   # Frontend
   web:
@@ -51,9 +45,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: eduplatform-web
-    environment:
-      NEXT_PUBLIC_API_URL: "http://localhost:3001/api"
-      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
     ports:
       - "3000:3000"
     depends_on:
@@ -64,6 +55,7 @@ services:
       - /app/.next
     networks:
       - eduplatform-network
+    command: npm run dev
 
 volumes:
   postgres_data:
