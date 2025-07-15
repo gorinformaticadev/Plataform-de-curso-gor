@@ -343,6 +343,11 @@ npm run dev
 
 ---
 
+- __Email:__ `admin@eduplatform.com`
+
+- __Senha:__ `admin123`
+
+
 ## 🗂️ Estrutura do Projeto
 
 ```
