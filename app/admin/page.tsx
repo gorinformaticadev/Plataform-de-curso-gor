@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -70,6 +71,7 @@ const recentActivity = [
 ];
 
 export default function AdminDashboard() {
+  const router = useRouter();
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -114,18 +116,27 @@ export default function AdminDashboard() {
             <CardTitle className="text-lg">Ações Rápidas</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">
-              <Users className="mr-2 h-4 w-4" />
-              Gerenciar Usuários
-            </Button>
-            <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white">
-              <BookOpen className="mr-2 h-4 w-4" />
-              Adicionar Curso
-            </Button>
-            <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white">
-              <Activity className="mr-2 h-4 w-4" />
-              Ver Analytics
-            </Button>
+          <Button 
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+            onClick={() => router.push('/admin/users')}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Gerenciar Usuários
+          </Button>
+          <Button 
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+            onClick={() => router.push('/admin/courses')}
+          >
+            <BookOpen className="mr-2 h-4 w-4" />
+            Gerenciar Cursos
+          </Button>
+          <Button 
+            className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+            onClick={() => router.push('/admin/analytics')}
+          >
+            <Activity className="mr-2 h-4 w-4" />
+            Ver Analytics
+          </Button>
           </CardContent>
         </Card>
 
