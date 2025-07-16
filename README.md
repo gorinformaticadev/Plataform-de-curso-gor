@@ -437,6 +437,20 @@ docker-compose exec api bash   # Acessar container da API
 - [x] Layout profissional
 
 ## 🚀 Próximas Funcionalidades
+### ✅ Interface do administrador
+### 🔄 Em Desenvolvimento
+- [ ] Dashboard interativo exclusivo de administração com Design responsivo Layout profissional
+- [ ] Menu administrativo na lateral esquerda
+- [ ] Controle de usuários
+      - [ ] Pagina de controle de alunos
+      - [ ] Pagina de controle de instrutores
+      - [ ] Pagina de controle de administradores
+- [ ] Controle de cursos
+      - [ ] Pagina de controle de cursos
+      - [ ] Controle de categorias
+      - [ ] Controle de módulos e aulas
+      - [ ] Controle de progressos
+      - [ ] Controle de compras
 
 ### 🔄 Em Desenvolvimento
 - [ ] Player de vídeo avançado
