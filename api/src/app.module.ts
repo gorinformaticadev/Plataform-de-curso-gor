@@ -9,7 +9,6 @@ import { CoursesModule } from './courses/courses.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ProgressModule } from './progress/progress.module';
-import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -32,7 +31,6 @@ import { AdminModule } from './admin/admin.module';
     CategoriesModule,
     PaymentsModule,
     ProgressModule,
-    AdminModule,
   ],
 })
 export class AppModule {}
