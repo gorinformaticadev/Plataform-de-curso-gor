@@ -55,17 +55,29 @@ docker-compose exec api npx prisma migrate dev
 ```
 *(Este comando garante que o banco de dados esteja sincronizado com o schema definido.)*
 
-### 5. Acessar a Aplicação
+### 5. Acessos da Aplicação
 Após a inicialização e migração bem-sucedidas:
 *   **Frontend:** http://localhost:3000
 *   **API:** http://localhost:3001
 *   **Documentação da API:** http://localhost:3001/api/docs
+*   **pgAdmin:** http://localhost:5050
+*   **Prisma Studio:** http://localhost:5555
+
+--- 
+Acesso do pgadmin:
+Aba Geral: dê um nome a ele
+Aba Connection:
+Host: postgres
+Port: 5432
+Maintenance Database: eduplatform
+User: postgres
+Password: postgres123
 
 ### 6. Iniciando a Aplicação (Modos de Execução)
 
 Para rodar a aplicação após a configuração, você pode escolher entre o modo de desenvolvimento ou produção.
 
-#### 🚀 Modo de Desenvolvimento (com Docker)
+#### 6.1 🚀 Modo de Desenvolvimento (com Docker)
 
 Para o desenvolvimento, o ideal é ter o backend rodando em um contêiner e o frontend rodando localmente para aproveitar o hot-reloading do Next.js.
 
@@ -79,7 +91,36 @@ Para o desenvolvimento, o ideal é ter o backend rodando em um contêiner e o fr
         ```
     *   Isso iniciará o servidor de desenvolvimento do Next.js, geralmente em `http://localhost:3000`.
 
-#### 🏭 Modo de Produção (com Docker)
+3.  **Seed do Banco de Dados:**
+    Após a configuração inicial e antes de tentar o login, é crucial garantir que o banco de dados esteja populado com dados iniciais. 
+    Rode o comando:
+    
+    `docker-compose exec api npx prisma db seed` 
+    
+    Ele irá executar o seed e popular o banco de dados, criando os usuários admin (`admin@eduplatform.com` e `admin@admin.com`). 
+    
+    Se você encontrar problemas de login, certifique-se de que este comando foi executado após iniciar os contêineres.
+
+4.  **Senhas de acesso ao sistema:**
+    
+    Usuário: `admin@eduplatform.com` 
+    Senha: `admin123`
+
+    Usuário: `admin@admin.com` 
+    Senha: `admin123`
+
+5.  **Acessando o Prisma Studio:**
+    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Para acessá-lo com o Docker:
+    1.  Execute o seguinte comando no seu terminal (na raiz do projeto):
+
+        ```bash
+        docker-compose exec api npx prisma studio
+        ```
+        
+    2.  Isso iniciará o Prisma Studio dentro do contêiner da API. Ele geralmente fica disponível em:
+        *   **Prisma Studio:** http://localhost:5555
+
+#### 7. 🏭 Modo de Produção (com Docker)
 
 Para rodar a aplicação em modo de produção usando Docker, o processo é mais direto com o `docker-compose`:
 
@@ -91,28 +132,26 @@ Para rodar a aplicação em modo de produção usando Docker, o processo é mais
     *   O frontend será iniciado em modo de produção (`npm start` após `npm run build`).
     *   A API, conforme configurado no `docker-compose.yml`, iniciará com `npm run start:dev`. Para um ambiente de produção estritamente falando, o comando da API no `docker-compose.yml` (`command: sh -c "npx prisma migrate deploy && npm run start:dev"`) poderia ser ajustado para `npm run start:prod`.
 
-## Comandos Docker Úteis
+### 8. Seed do Banco de Dados e Acesso ao Prisma Studio
 
-*   **Parar todos os serviços:**
+*   **Seed do Banco de Dados:**
+    Após a configuração inicial e antes de tentar o login, é crucial garantir que o banco de dados esteja populado com dados iniciais. O comando `docker-compose exec api npx prisma db seed` foi executado com sucesso, criando os usuários admin (`admin@eduplatform.com` e `admin@admin.com`). Se você encontrar problemas de login, certifique-se de que este comando foi executado após iniciar os contêineres.
+
+*   **Acessando o Prisma Studio:**
+    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Para acessá-lo com o Docker:
+    1.  Execute o seguinte comando no seu terminal (na raiz do projeto):
+        ```bash
+        docker-compose exec api npx prisma studio
+        ```
+    2.  Isso iniciará o Prisma Studio dentro do contêiner da API. Ele geralmente fica disponível em:
+        *   **Prisma Studio:** http://localhost:5555
+
+*   **Executando Comandos no Contêiner da API:**
+    Para executar outros comandos do npm ou do Prisma dentro do contêiner da API (por exemplo, para verificar logs específicos, rodar testes, ou executar migrações manuais), use:
     ```bash
-    docker-compose down
+    docker-compose exec api [seu-comando-aqui]
     ```
-*   **Reconstruir contêineres (útil após alterações nos Dockerfiles):**
-    ```bash
-    docker-compose build --no-cache
-    ```
-*   **Ver logs em tempo real:**
-    ```bash
-    docker-compose logs -f
-    ```
-*   **Acessar o shell do contêiner da API:**
-    ```bash
-    docker-compose exec api sh
-    ```
-*   **Resetar o banco de dados (CUIDADO: apaga todos os dados!):**
-    ```bash
-    docker-compose down -v && docker-compose up -d && docker-compose exec api npx prisma migrate dev
-    ```
+    Exemplo: `docker-compose exec api npm run test`
 
 ---
 
