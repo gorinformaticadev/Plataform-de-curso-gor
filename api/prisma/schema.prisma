@@ -30,6 +30,7 @@ model User {
   
   // Instrutor
   instructorProfile InstructorProfile?
+  studentProfile    Student?
 
   @@map("users")
 }
@@ -239,4 +240,25 @@ enum EnrollmentStatus {
   ACTIVE
   COMPLETED
   SUSPENDED
+}
+
+model Student {
+  id             String        @id @default(uuid())
+  userId         String        @unique
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentCode    String        @unique @default(cuid())
+  enrollmentDate DateTime      @default(now())
+  status         StudentStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("students")
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  DROPPED_OUT
 }
