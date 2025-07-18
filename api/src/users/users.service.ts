@@ -88,4 +88,8 @@ export class UsersService {
       where: { id },
     });
   }
+
+  async getTotalStudents() {
+    return this.prisma.student.count();
+  }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { 
   Users, 
   BookOpen, 
@@ -14,15 +15,62 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const stats = [
+const recentActivity = [
   {
-    title: "Total de Usuários",
-    value: "1,234",
-    icon: Users,
-    change: "+12%",
-    trend: "up",
-    color: "from-blue-500 to-blue-600"
+    user: "João Silva",
+    action: "Comprou o curso React Avançado",
+    time: "2 minutos atrás",
+    type: "purchase"
   },
+  {
+    user: "Maria Santos",
+    action: "Concluiu o módulo 3 de JavaScript",
+    time: "5 minutos atrás",
+    type: "progress"
+  },
+  {
+    user: "Pedro Oliveira",
+    action: "Cadastrou novo curso de Node.js",
+    time: "10 minutos atrás",
+    type: "course"
+  }
+];
+
+export default function AdminDashboard() {
+  const router = useRouter();
+  const [totalStudents, setTotalStudents] = useState(0);
+
+  useEffect(() => {
+    const fetchTotalStudents = async () => {
+      try {
+        // Assumindo que o token está armazenado no localStorage
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/users/students/count', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const count = await response.json();
+          setTotalStudents(count);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar o total de estudantes:', error);
+      }
+    };
+
+    fetchTotalStudents();
+  }, []);
+
+  const stats = [
+    {
+      title: "Total de Usuários",
+      value: totalStudents.toString(),
+      icon: Users,
+      change: "+12%",
+      trend: "up",
+      color: "from-blue-500 to-blue-600"
+    },
   {
     title: "Cursos Ativos",
     value: "45",
@@ -49,29 +97,6 @@ const stats = [
   }
 ];
 
-const recentActivity = [
-  {
-    user: "João Silva",
-    action: "Comprou o curso React Avançado",
-    time: "2 minutos atrás",
-    type: "purchase"
-  },
-  {
-    user: "Maria Santos",
-    action: "Concluiu o módulo 3 de JavaScript",
-    time: "5 minutos atrás",
-    type: "progress"
-  },
-  {
-    user: "Pedro Oliveira",
-    action: "Cadastrou novo curso de Node.js",
-    time: "10 minutos atrás",
-    type: "course"
-  }
-];
-
-export default function AdminDashboard() {
-  const router = useRouter();
   return (
     <div className="space-y-8">
       {/* Header */}

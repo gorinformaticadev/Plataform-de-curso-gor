@@ -37,6 +37,13 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('students/count')
+  @ApiOperation({ summary: 'Obter o número total de estudantes' })
+  @ApiResponse({ status: 200, description: 'Número total de estudantes' })
+  getTotalStudents() {
+    return this.usersService.getTotalStudents();
+  }
+
   @Get('profile')
   @ApiOperation({ summary: 'Obter perfil do usuário logado' })
   @ApiResponse({ status: 200, description: 'Dados do perfil' })
