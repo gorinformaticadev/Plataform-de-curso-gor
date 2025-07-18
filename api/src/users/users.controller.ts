@@ -44,6 +44,13 @@ export class UsersController {
     return this.usersService.getTotalStudents();
   }
 
+  @Get('students/new-last-month')
+  @ApiOperation({ summary: 'Obter o número de novos estudantes no último mês' })
+  @ApiResponse({ status: 200, description: 'Número de novos estudantes' })
+  getNewStudentsLastMonth() {
+    return this.usersService.getNewStudentsLastMonth();
+  }
+
   @Get('profile')
   @ApiOperation({ summary: 'Obter perfil do usuário logado' })
   @ApiResponse({ status: 200, description: 'Dados do perfil' })

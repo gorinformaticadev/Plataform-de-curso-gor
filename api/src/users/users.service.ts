@@ -92,4 +92,17 @@ export class UsersService {
   async getTotalStudents() {
     return this.prisma.student.count();
   }
+
+  async getNewStudentsLastMonth() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    return this.prisma.student.count({
+      where: {
+        createdAt: {
+          gte: thirtyDaysAgo,
+        },
+      },
+    });
+  }
 }

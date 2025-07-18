@@ -39,27 +39,44 @@ const recentActivity = [
 export default function AdminDashboard() {
   const router = useRouter();
   const [totalStudents, setTotalStudents] = useState(0);
+  const [newStudentsLastMonth, setNewStudentsLastMonth] = useState(0);
+  const [percentageChange, setPercentageChange] = useState(0);
 
   useEffect(() => {
-    const fetchTotalStudents = async () => {
+    const fetchData = async () => {
       try {
-        // Assumindo que o token está armazenado no localStorage
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/users/students/count', {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        
+        const [totalStudentsResponse, newStudentsResponse] = await Promise.all([
+          fetch('/api/users/students/count', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch('/api/users/students/new-last-month', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+        ]);
+
+        if (totalStudentsResponse.ok && newStudentsResponse.ok) {
+          const total = await totalStudentsResponse.json();
+          const news = await newStudentsResponse.json();
+          
+          setTotalStudents(total);
+          setNewStudentsLastMonth(news);
+
+          if (total > 0 && news > 0) {
+            const oldTotal = total - news;
+            if (oldTotal > 0) {
+              const change = ((news / oldTotal) * 100);
+              setPercentageChange(change);
+            }
           }
-        });
-        if (response.ok) {
-          const count = await response.json();
-          setTotalStudents(count);
         }
       } catch (error) {
-        console.error('Erro ao buscar o total de estudantes:', error);
+        console.error('Erro ao buscar dados do dashboard:', error);
       }
     };
 
-    fetchTotalStudents();
+    fetchData();
   }, []);
 
   const stats = [
@@ -67,8 +84,8 @@ export default function AdminDashboard() {
       title: "Total de Usuários",
       value: totalStudents.toString(),
       icon: Users,
-      change: "+12%",
-      trend: "up",
+      change: `${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(1)}%`,
+      trend: percentageChange >= 0 ? "up" : "down",
       color: "from-blue-500 to-blue-600"
     },
   {
