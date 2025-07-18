@@ -26,15 +26,26 @@ cd Plataform-de-curso-gor
 
 O repositório contém os arquivos necessários para a configuração Docker. Você precisará configurar as variáveis de ambiente:
 
-*   **`api/.env`**: Crie este arquivo dentro do diretório `api/`.
+*   **`api/.env`**: Crie este arquivo dentro do diretório `api/`. A `DATABASE_URL` depende de como você pretende executar o Prisma Studio.
+
+    **Para executar o Prisma Studio dentro do contêiner Docker (recomendado):**
     ```env
-    DATABASE_URL="postgresql://postgres:SUA_SENHA@postgres:5432/eduplatform"
+    DATABASE_URL="postgresql://postgres:postgres123@postgres:5432/eduplatform"
     JWT_SECRET="seu-jwt-secret-super-seguro"
     JWT_EXPIRES_IN="7d"
     PORT=3001
     FRONTEND_URL="http://localhost:3000"
     ```
-    *Substitua `SUA_SENHA` pela senha do seu usuário PostgreSQL.*
+
+    **Para executar o Prisma Studio localmente (fora do Docker):**
+    ```env
+    DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/eduplatform"
+    JWT_SECRET="seu-jwt-secret-super-seguro"
+    JWT_EXPIRES_IN="7d"
+    PORT=3001
+    FRONTEND_URL="http://localhost:3000"
+    ```
+    *A senha `postgres123` é a definida no `docker-compose.yml`.*
 
 *   **`.env.local` (na raiz do projeto)**: Crie este arquivo na raiz do projeto.
     ```env
@@ -110,13 +121,25 @@ Para o desenvolvimento, o ideal é ter o backend rodando em um contêiner e o fr
     Senha: `admin123`
 
 5.  **Acessando o Prisma Studio:**
-    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Para acessá-lo com o Docker:
-    1.  Execute o seguinte comando no seu terminal (na raiz do projeto), **após os serviços do Docker estarem rodando**:
+    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Você pode acessá-lo de duas maneiras:
+
+    **Opção 1: Dentro do Contêiner Docker (Recomendado)**
+    1.  Certifique-se de que a `DATABASE_URL` no seu arquivo `api/.env` aponta para o hostname `postgres`.
+    2.  Execute o seguinte comando no seu terminal (na raiz do projeto), **após os serviços do Docker estarem rodando**:
         ```bash
         docker-compose exec api npx prisma studio
         ```
-    2.  Isso iniciará o Prisma Studio dentro do contêiner da API. O terminal exibirá a URL onde o Prisma Studio está disponível. Geralmente, é:
+    3.  Isso iniciará o Prisma Studio dentro do contêiner da API. O terminal exibirá a URL onde o Prisma Studio está disponível. Geralmente, é:
         *   **Prisma Studio:** http://localhost:5555
+
+    **Opção 2: Localmente (Fora do Docker)**
+    1.  Certifique-se de que a `DATABASE_URL` no seu arquivo `api/.env` aponta para `localhost`.
+    2.  Execute o comando `docker-compose up -d` para garantir que o contêiner do banco de dados esteja em execução.
+    3.  Execute o seguinte comando no seu terminal (na raiz do projeto):
+        ```bash
+        npx prisma studio --schema=api/prisma/schema.prisma
+        ```
+    4.  Isso iniciará o Prisma Studio na sua máquina local, conectando-se ao banco de dados que está rodando no Docker. O terminal exibirá a URL de acesso.
 
 #### 7. 🏭 Modo de Produção (com Docker)
 
@@ -130,19 +153,7 @@ Para rodar a aplicação em modo de produção usando Docker, o processo é mais
     *   O frontend será iniciado em modo de produção (`npm start` após `npm run build`).
     *   A API, conforme configurado no `docker-compose.yml`, iniciará com `npm run start:dev`. Para um ambiente de produção estritamente falando, o comando da API no `docker-compose.yml` (`command: sh -c "npx prisma migrate deploy && npm run start:dev"`) poderia ser ajustado para `npm run start:prod`.
 
-### 8. Seed do Banco de Dados e Acesso ao Prisma Studio
-
-*   **Seed do Banco de Dados:**
-    Após a configuração inicial e antes de tentar o login, é crucial garantir que o banco de dados esteja populado com dados iniciais. O comando `docker-compose exec api npx prisma db seed` foi executado com sucesso, criando os usuários admin (`admin@eduplatform.com` e `admin@admin.com`). Se você encontrar problemas de login, certifique-se de que este comando foi executado após iniciar os contêineres.
-
-*   **Acessando o Prisma Studio:**
-    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Para acessá-lo com o Docker:
-    1.  Execute o seguinte comando no seu terminal (na raiz do projeto):
-        ```bash
-        docker-compose exec api npx prisma studio
-        ```
-    2.  Isso iniciará o Prisma Studio dentro do contêiner da API. Ele geralmente fica disponível em:
-        *   **Prisma Studio:** http://localhost:5555
+### 8. Executando Comandos Adicionais
 
 *   **Executando Comandos no Contêiner da API:**
     Para executar outros comandos do npm ou do Prisma dentro do contêiner da API (por exemplo, para verificar logs específicos, rodar testes, ou executar migrações manuais), use:
