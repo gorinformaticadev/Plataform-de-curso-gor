@@ -33,6 +33,7 @@ services:
       FRONTEND_URL: "http://localhost:3000"
     ports:
       - "3001:3001"
+      - "5556:5555" # Changed mapping for Prisma Studio to avoid port conflict
     depends_on:
       postgres:
         condition: service_healthy

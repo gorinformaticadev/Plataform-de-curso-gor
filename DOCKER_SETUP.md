@@ -111,13 +111,11 @@ Para o desenvolvimento, o ideal é ter o backend rodando em um contêiner e o fr
 
 5.  **Acessando o Prisma Studio:**
     O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Para acessá-lo com o Docker:
-    1.  Execute o seguinte comando no seu terminal (na raiz do projeto):
-
+    1.  Execute o seguinte comando no seu terminal (na raiz do projeto), **após os serviços do Docker estarem rodando**:
         ```bash
         docker-compose exec api npx prisma studio
         ```
-        
-    2.  Isso iniciará o Prisma Studio dentro do contêiner da API. Ele geralmente fica disponível em:
+    2.  Isso iniciará o Prisma Studio dentro do contêiner da API. O terminal exibirá a URL onde o Prisma Studio está disponível. Geralmente, é:
         *   **Prisma Studio:** http://localhost:5555
 
 #### 7. 🏭 Modo de Produção (com Docker)
