@@ -333,6 +333,19 @@ npx prisma db seed
 npm run start:dev
 ```
 
+**2.7. Resetar Migrações**
+```bash
+docker-compose exec --user root api npx prisma migrate reset
+```
+**2.8. Resetar Banco de Dados**
+```bash
+docker-compose exec --user root api npx prisma db reset
+```
+**2.9. Inciar prisma studio**
+```bash
+docker-compose exec --user root api npx prisma studio --hostname 0.0.0.0
+```
+
 #### 3. Configuração do Frontend
 
 **3.1. Instalar Dependências**

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,8 +9,16 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    const { ...userData } = createUserDto;
+
     return this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        ...userData,
+        role: UserRole.STUDENT, // Garante que o usuário seja um estudante
+        student: {
+          create: {}, // Cria um registro de estudante associado automaticamente
+        },
+      },
       select: {
         id: true,
         email: true,
@@ -18,6 +27,11 @@ export class UsersService {
         avatar: true,
         bio: true,
         createdAt: true,
+        student: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
