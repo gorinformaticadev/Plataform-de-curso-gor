@@ -203,6 +203,22 @@ docker-compose logs -f web
 docker-compose exec api npx prisma migrate dev
 ```
 
+**4.4. Seed do Banco tem quer ser executado na pasta da api**
+```bash
+cd api
+npx prisma db seed
+```
+
+**4.5. Instalar Dependências**
+```bash
+npm install
+```
+
+**4.6. Iniciar o Servidor**
+```bash
+npm run dev
+```
+
 #### 5. Acessar a Aplicação
 - **Frontend**: http://localhost:3000
 - **API**: http://localhost:3001
