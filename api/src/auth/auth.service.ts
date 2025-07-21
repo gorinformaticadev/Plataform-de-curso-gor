@@ -1,10 +1,9 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-
-import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -14,34 +13,21 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password, name } = registerDto;
+    const { email } = registerDto;
 
-    // Verificar se usuário já existe
     const existingUser = await this.usersService.findByEmail(email);
+
     if (existingUser) {
       throw new ConflictException('Email já está em uso');
     }
 
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // A criação do usuário, hash da senha e perfil de estudante agora é feita no UsersService
+    const user = await this.usersService.create(registerDto);
 
-    // Criar usuário
-    const user = await this.usersService.create({
-      email,
-      password: hashedPassword,
-      name,
-    });
-
-    // Gerar token
-    const token = this.generateToken(user.id, user.email);
+    const token = this.generateToken(user.id, user.email, user.role);
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      user,
       token,
     };
   }
@@ -49,43 +35,34 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    // Buscar usuário
     const user = await this.usersService.findByEmail(email);
-    if (!user) {
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    // Verificar senha
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciais inválidas');
-    }
-
-    // Gerar token
-    const token = this.generateToken(user.id, user.email);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userResult } = user;
+    const token = this.generateToken(user.id, user.email, user.role);
 
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      user: userResult,
       token,
     };
   }
 
-  async validateUser(email: string, password: string) {
+  async validateUser(email: string, password_param: string) {
     const user = await this.usersService.findByEmail(email);
-    if (user && await bcrypt.compare(password, user.password)) {
-      const { password: _, ...result } = user;
+    if (user && (await bcrypt.compare(password_param, user.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...result } = user;
       return result;
     }
     return null;
   }
 
-  private generateToken(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  private generateToken(userId: string, email: string, role: string) {
+    const payload = { sub: userId, email, role };
     return this.jwtService.sign(payload);
   }
 }

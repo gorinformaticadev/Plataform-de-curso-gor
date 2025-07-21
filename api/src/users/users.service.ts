@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,8 +10,20 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    const { name, email, password } = createUserDto;
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
     return this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: UserRole.STUDENT,
+        student: {
+          create: {}, // Cria o perfil de estudante associado
+        },
+      },
       select: {
         id: true,
         email: true,
@@ -18,6 +32,7 @@ export class UsersService {
         avatar: true,
         bio: true,
         createdAt: true,
+        student: true,
       },
     });
   }
@@ -90,14 +105,14 @@ export class UsersService {
   }
 
   async getTotalStudents() {
-    return this.prisma.student.count();
+    return this.prisma.user.count({ where: { role: UserRole.STUDENT } });
   }
 
   async getNewStudentsLastMonth() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    return this.prisma.student.count({
+    return this.prisma.user.count({
       where: {
         createdAt: {
           gte: thirtyDaysAgo,

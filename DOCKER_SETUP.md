@@ -3,7 +3,7 @@
 Este documento detalha os passos para configurar e executar a plataforma EduPlatform utilizando Docker.
 
 ## 🚀 Tecnologias Utilizadas (Contexto Docker)
-
+ 
 *   **Backend:** NestJS, Prisma, PostgreSQL
 *   **Frontend:** Next.js, Tailwind CSS, shadcn/ui
 

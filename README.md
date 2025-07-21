@@ -239,6 +239,9 @@ docker-compose logs -f
 # Executar comandos no container da API
 docker-compose exec api npm run prisma:studio
 
+#iniciar prisma studio localmente (deve estra na pasta raiz do projeto)
+npx prisma studio --schema=api/prisma/schema.prisma
+
 # Limpar tudo (cuidado: apaga dados!)
 docker-compose down -v
 docker system prune -a
