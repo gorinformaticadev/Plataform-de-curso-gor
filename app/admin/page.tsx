@@ -47,11 +47,13 @@ export default function AdminDashboard() {
       try {
         const token = localStorage.getItem('token');
         
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
         const [totalStudentsResponse, newStudentsResponse] = await Promise.all([
-          fetch('/api/users/students/count', {
+          fetch(`${apiUrl}/users/students/count`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch('/api/users/students/new-last-month', {
+          fetch(`${apiUrl}/users/students/new-last-month`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);

@@ -114,6 +114,7 @@ export class UsersService {
 
     return this.prisma.user.count({
       where: {
+        role: UserRole.STUDENT,
         createdAt: {
           gte: thirtyDaysAgo,
         },
