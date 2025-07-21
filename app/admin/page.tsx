@@ -65,12 +65,17 @@ export default function AdminDashboard() {
           setTotalStudents(total);
           setNewStudentsLastMonth(news);
 
-          if (total > 0 && news > 0) {
-            const oldTotal = total - news;
-            if (oldTotal > 0) {
-              const change = ((news / oldTotal) * 100);
-              setPercentageChange(change);
-            }
+          const oldTotal = total - news;
+          if (oldTotal > 0) {
+            // Calculate percentage increase from the previous total
+            const change = (news / oldTotal) * 100;
+            setPercentageChange(change);
+          } else if (oldTotal === 0 && news > 0) {
+            // If starting from 0, any increase is significant. Display as 100% growth.
+            setPercentageChange(100);
+          } else {
+            // No change if no new students or if total was 0.
+            setPercentageChange(0);
           }
         }
       } catch (error) {
