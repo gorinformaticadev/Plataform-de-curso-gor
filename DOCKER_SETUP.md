@@ -2,6 +2,7 @@
 
 Este documento detalha os passos para configurar e executar a plataforma EduPlatform utilizando Docker.
 
+## 🎓 EduPlatform - Plataforma de Cursos Online
 ## 🚀 Tecnologias Utilizadas (Contexto Docker)
  
 *   **Backend:** NestJS, Prisma, PostgreSQL
@@ -30,16 +31,7 @@ O repositório contém os arquivos necessários para a configuração Docker. Vo
 
     **Para executar o Prisma Studio dentro do contêiner Docker (recomendado):**
     ```env
-    DATABASE_URL="postgresql://postgres:postgres123@postgres:5432/eduplatform"
-    JWT_SECRET="seu-jwt-secret-super-seguro"
-    JWT_EXPIRES_IN="7d"
-    PORT=3001
-    FRONTEND_URL="http://localhost:3000"
-    ```
-
-    **Para executar o Prisma Studio localmente (fora do Docker):**
-    ```env
-    DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/eduplatform"
+     DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/eduplatform"
     JWT_SECRET="seu-jwt-secret-super-seguro"
     JWT_EXPIRES_IN="7d"
     PORT=3001
@@ -49,8 +41,11 @@ O repositório contém os arquivos necessários para a configuração Docker. Vo
 
 *   **`.env.local` (na raiz do projeto)**: Crie este arquivo na raiz do projeto.
     ```env
-    NEXT_PUBLIC_API_URL="http://localhost:3001/api"
-    NEXT_PUBLIC_APP_URL="http://localhost:3000"
+    DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/eduplatform"
+    JWT_SECRET="seu-jwt-secret-super-seguro"
+    JWT_EXPIRES_IN="7d"
+    PORT=3001
+    FRONTEND_URL="http://localhost:3000"
     ```
 
 ### 3. Iniciar os Serviços Docker

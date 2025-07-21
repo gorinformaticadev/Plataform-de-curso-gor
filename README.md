@@ -3,7 +3,7 @@
 Uma plataforma completa para criação, venda e consumo de cursos online, similar ao Hotmart, desenvolvida com tecnologias modernas.
 
 ## 🚀 Tecnologias Utilizadas
-
+ 
 ### Frontend
 - **Next.js 13+** - Framework React com App Router
 - **TypeScript** - Tipagem estática
@@ -45,57 +45,61 @@ cd eduplatform
 
 **2.1. Dockerfile para API:**
 ```dockerfile
-# api/Dockerfile
-FROM node:18-alpine
+# API Dockerfile
+FROM node:18 AS base
 
+# Install dependencies only when needed
+FROM base AS deps
 WORKDIR /app
 
-# Copiar package.json e package-lock.json
-COPY package*.json ./
-RUN npm ci --only=production
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Copiar código fonte
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Gerar Prisma Client
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Expor porta
-EXPOSE 3001
-
-# Comando para iniciar
-CMD ["npm", "run", "start:prod"]
-```
-
-**2.2. Dockerfile para Frontend:**
-```dockerfile
-# Dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Copiar package.json
-COPY package*.json ./
-RUN npm ci
-
-# Copiar código fonte
-COPY . .
-
-# Build da aplicação
+# Build the application
 RUN npm run build
 
-# Expor porta
-EXPOSE 3000
+# Production image, copy all the files and run nest
+FROM base AS runner
+WORKDIR /app
 
-# Comando para iniciar
-CMD ["npm", "start"]
+ENV NODE_ENV production
+
+RUN addgroup --system --gid 1001 nestjs
+RUN adduser --system --uid 1001 nestjs
+
+# Copy the bundled code from the build stage to the production image
+COPY --from=builder --chown=nestjs:nestjs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nestjs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nestjs /app/package.json ./package.json
+COPY --from=builder --chown=nestjs:nestjs /app/prisma ./prisma
+
+USER nestjs
+
+EXPOSE 3001
+
+ENV PORT 3001
+
+CMD ["npm", "run", "start:prod"]
+
 ```
 
 **2.3. Docker Compose:**
 ```yaml
-# docker-compose.yml
-version: '3.8'
-
 services:
   # Banco de dados PostgreSQL
   postgres:
@@ -111,6 +115,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - eduplatform-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # API Backend
   api:
@@ -126,8 +135,10 @@ services:
       FRONTEND_URL: "http://localhost:3000"
     ports:
       - "3001:3001"
+      - "5555:5555" # Changed mapping for Prisma Studio to avoid port conflict
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./api:/app
       - /app/node_modules
@@ -151,6 +162,23 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.next
+    networks:
+      - eduplatform-network
+    command: npm run dev
+
+  # pgAdmin - Interface gráfica para PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: eduplatform-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@eduplatform.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
     networks:
       - eduplatform-network
 
@@ -167,11 +195,11 @@ networks:
 **3.1. API (.env):**
 ```bash
 # api/.env
-DATABASE_URL="postgresql://postgres:postgres123@postgres:5432/eduplatform"
-JWT_SECRET="seu-jwt-secret-super-seguro"
-JWT_EXPIRES_IN="7d"
-PORT=3001
-FRONTEND_URL="http://localhost:3000"
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/eduplatform"
+    JWT_SECRET="seu-jwt-secret-super-seguro"
+    JWT_EXPIRES_IN="7d"
+    PORT=3001
+    FRONTEND_URL="http://localhost:3000"
 ```
 
 **3.2. Frontend (.env.local):**
@@ -203,13 +231,12 @@ docker-compose logs -f web
 docker-compose exec api npx prisma migrate dev
 ```
 
-**4.4. Seed do Banco tem quer ser executado na pasta da api**
+**4.4. Seed do Banco tem quer ser executado na pasta raiz**
 ```bash
-cd api
-npx prisma db seed
+docker-compose exec api npx prisma db seed
 ```
 
-**4.5. Instalar Dependências**
+**4.5. Instalar Dependências na pasta raiz**
 ```bash
 npm install
 ```
@@ -219,10 +246,50 @@ npm install
 npm run dev
 ```
 
-#### 5. Acessar a Aplicação
+#### Acessar a Aplicação
 - **Frontend**: http://localhost:3000
 - **API**: http://localhost:3001
 - **Documentação**: http://localhost:3001/api/docs
+
+**5. Acessando o Prisma Studio( se a primeita opção não der, tente a segunda):**
+    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Você pode acessá-lo de duas maneiras:
+
+- **Opção 1: Dentro do Contêiner Docker (Recomendado)**
+- 1.  Certifique-se de que a `DATABASE_URL` no seu arquivo `api/.env` aponta para o hostname `postgres`.
+- 2.  Execute o seguinte comando no seu terminal (na raiz do projeto),
+- **após os serviços do Docker estarem rodando**:
+```bash
+docker-compose exec api npx prisma studio
+```
+- 3.  Isso iniciará o Prisma Studio dentro do contêiner da API. O terminal exibirá a URL onde o Prisma Studio está disponível. Geralmente, é:
+*   **Prisma Studio:** http://localhost:5555
+
+**Opção 2: Localmente (Fora do Docker)**
+1.  Certifique-se de que a `DATABASE_URL` no seu arquivo `api/.env` aponta para `localhost`.
+2.  Execute o comando `docker-compose up -d` para garantir que o contêiner do banco de dados esteja em execução.
+3.  Execute o seguinte comando no seu terminal (na raiz do projeto):
+```bash
+npx prisma studio --schema=api/prisma/schema.prisma
+```
+4.  Isso iniciará o Prisma Studio na sua máquina local, conectando-se ao banco de dados que está rodando no Docker. O terminal exibirá a URL de acesso.
+
+#### Acessos da Aplicação
+Após a inicialização e migração bem-sucedidas:
+*   **Frontend:** http://localhost:3000
+*   **API:** http://localhost:3001
+*   **Documentação da API:** http://localhost:3001/api/docs
+*   **pgAdmin:** http://localhost:5050
+*   **Prisma Studio:** http://localhost:5555
+
+--- 
+Acesso do pgadmin:
+Aba Geral: dê um nome a ele
+Aba Connection:
+Host: postgres
+Port: 5432
+Maintenance Database: eduplatform
+User: postgres
+Password: postgres123
 
 #### 6. Comandos Úteis Docker
 
