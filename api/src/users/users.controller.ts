@@ -7,7 +7,8 @@ import {
   Param, 
   Delete, 
   UseGuards,
-  Request 
+  Request,
+  Query
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -33,8 +34,8 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiResponse({ status: 200, description: 'Lista de usuários' })
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('role') role?: any, @Query('searchTerm') searchTerm?: string) {
+    return this.usersService.findAll(role, searchTerm);
   }
 
   @Get('students/count')

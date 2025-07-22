@@ -14,6 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -36,15 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      const storedToken = localStorage.getItem('token');
+      if (!storedToken) {
         setLoading(false);
         return;
       }
+      setToken(storedToken);
 
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${storedToken}`,
         },
       });
 
@@ -53,10 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
       } else {
         localStorage.removeItem('token');
+        setToken(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('token');
+      setToken(null);
     } finally {
       setLoading(false);
     }
@@ -79,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json();
       localStorage.setItem('token', data.token);
+      setToken(data.token);
       setUser(data.user);
       
       toast({
@@ -135,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setToken(null);
     router.push('/');
     
     toast({
@@ -145,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = {
     user,
+    token,
     loading,
     login,
     register,

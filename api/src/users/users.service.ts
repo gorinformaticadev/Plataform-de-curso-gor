@@ -37,16 +37,31 @@ export class UsersService {
     });
   }
 
-  async findAll() {
+  async findAll(role?: UserRole, searchTerm?: string) {
+    const where: any = {};
+
+    if (role) {
+      where.role = role;
+    }
+
+    if (searchTerm) {
+      where.OR = [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { email: { contains: searchTerm, mode: 'insensitive' } },
+      ];
+    }
+
     return this.prisma.user.findMany({
+      where,
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
-        avatar: true,
-        bio: true,
         createdAt: true,
+        _count: {
+          select: { enrollments: true },
+        },
       },
     });
   }

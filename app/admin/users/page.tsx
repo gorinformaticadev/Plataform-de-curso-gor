@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MoreHorizontal, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
 
 interface User {
   id: string;
@@ -36,47 +37,58 @@ interface User {
   email: string;
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   createdAt: string;
-  coursesCount: number;
+  _count: {
+    enrollments: number;
+  };
 }
 
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao@example.com",
-    role: "STUDENT",
-    createdAt: "2024-01-15",
-    coursesCount: 3,
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria@example.com",
-    role: "INSTRUCTOR",
-    createdAt: "2024-01-10",
-    coursesCount: 5,
-  },
-  {
-    id: "3",
-    name: "Pedro Oliveira",
-    email: "pedro@example.com",
-    role: "ADMIN",
-    createdAt: "2024-01-05",
-    coursesCount: 0,
-  },
-];
-
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const { token } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      let url = `http://localhost:3001/api/users?`;
+      if (roleFilter !== "all") {
+        url += `role=${roleFilter}&`;
+      }
+      if (searchTerm) {
+        url += `searchTerm=${searchTerm}&`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao buscar usuários");
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchUsers();
+    }
+  }, [token]);
+
+  const handleFilter = () => {
+    fetchUsers();
+  };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -124,7 +136,7 @@ export default function UsersPage() {
               <SelectItem value="STUDENT">Alunos</SelectItem>
             </SelectContent>
           </Select>
-          <Button>
+          <Button onClick={handleFilter}>
             <Filter className="mr-2 h-4 w-4" />
             Aplicar Filtros
           </Button>
@@ -149,40 +161,54 @@ export default function UsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{user.coursesCount}</TableCell>
-                  <TableCell>
-                    {new Date(user.createdAt).toLocaleDateString("pt-BR")}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                        <DropdownMenuItem>Editar usuário</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          Desativar conta
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    Carregando...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-red-600">
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={getRoleBadgeVariant(user.role)}>
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{user._count?.enrollments || 0}</TableCell>
+                    <TableCell>
+                      {new Date(user.createdAt).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Abrir menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
+                          <DropdownMenuItem>Editar usuário</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-red-600">
+                            Desativar conta
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
