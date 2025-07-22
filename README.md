@@ -316,12 +316,12 @@ docker system prune -a
 
 ---
 
-### 💻 **OPÇÃO 2: Instalação Local (Windows/Linux/Mac)**
+### 💻 **OPÇÃO 2: Instalação Local (Sem Docker)**
 
 #### 1. Clone o Repositório
 ```bash
-git clone https://github.com/seu-usuario/eduplatform.git
-cd eduplatform
+git clone https://github.com/gorinformaticadev/Plataform-de-curso-gor.git
+cd Plataform-de-curso-gor
 ```
 
 #### 2. Configuração do Backend (API)
@@ -332,30 +332,62 @@ cd api
 npm install
 ```
 
-**2.2. Configurar Banco de Dados**
+**2.2. Configuração do Banco de Dados PostgreSQL**
 
-**No Windows:**
-1. Baixe e instale PostgreSQL: https://www.postgresql.org/download/windows/
-2. Durante a instalação, defina senha para o usuário `postgres`
-3. Abra o pgAdmin ou psql e crie o banco:
+Siga os passos abaixo para configurar o banco de dados PostgreSQL em seu sistema operacional.
 
-```sql
-CREATE DATABASE eduplatform;
-```
+**Passo 1: Instalar o PostgreSQL**
 
-**No Linux/Mac:**
-```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install postgresql postgresql-contrib
+- **Windows:** Baixe o instalador a partir do [site oficial do PostgreSQL](https://www.postgresql.org/download/windows/). Durante a instalação, você será solicitado a definir uma senha para o superusuário `postgres`. **Anote esta senha**, pois você precisará dela para conectar a API ao banco.
 
-# macOS (com Homebrew)
-brew install postgresql
-brew services start postgresql
+- **Linux (Ubuntu/Debian):**
+  ```bash
+  sudo apt update
+  sudo apt install postgresql postgresql-contrib
+  ```
 
-# Criar banco
-sudo -u postgres createdb eduplatform
-```
+- **macOS (usando Homebrew):**
+  ```bash
+  brew install postgresql
+  brew services start postgresql
+  ```
+
+**Passo 2: Criar o Banco de Dados**
+
+Após a instalação, você precisa criar o banco de dados que será usado pela aplicação.
+
+- **Opção A: Usando `psql` (Terminal)**
+
+  1.  **Acesse o shell do PostgreSQL:**
+      - **Windows:** Abra o "SQL Shell (psql)" que foi instalado junto com o PostgreSQL. Pressione Enter para os valores padrão (servidor, banco, porta, usuário) e digite a senha do usuário `postgres` que você definiu na instalação.
+      - **Linux/Mac:**
+        ```bash
+        sudo -u postgres psql
+        ```
+
+  2.  **Execute o comando SQL para criar o banco:**
+      Dentro do shell `psql`, digite o seguinte comando e pressione Enter:
+      ```sql
+      CREATE DATABASE eduplatform;
+      ```
+
+  3.  **(Opcional) Verifique se o banco foi criado:**
+      ```sql
+      \l
+      ```
+      Você deverá ver `eduplatform` na lista de bancos de dados.
+
+  4.  **Saia do psql:**
+      ```sql
+      \q
+      ```
+
+- **Opção B: Usando pgAdmin (Interface Gráfica)**
+
+  1.  Abra o pgAdmin (instalado junto com o PostgreSQL).
+  2.  Conecte-se ao seu servidor local (geralmente criado por padrão). Você precisará da senha do usuário `postgres`.
+  3.  Na árvore de navegação à esquerda, clique com o botão direito em **Databases** -> **Create** -> **Database...**.
+  4.  No campo **Database**, digite `eduplatform` e clique em **Save**.
 
 **2.3. Configurar Variáveis de Ambiente**
 ```bash
