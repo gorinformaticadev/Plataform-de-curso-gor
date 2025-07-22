@@ -54,18 +54,4 @@ export class PaymentsController {
   getInstructorSales(@Request() req) {
     return this.paymentsService.getInstructorSales(req.user.id);
   }
-
-  @Get('revenue/total')
-  @ApiOperation({ summary: 'Obter receita total' })
-  @ApiResponse({ status: 200, description: 'Receita total' })
-  getTotalRevenue() {
-    return this.paymentsService.getTotalRevenue();
-  }
-
-  @Get('revenue/new-last-month')
-  @ApiOperation({ summary: 'Obter nova receita no último mês' })
-  @ApiResponse({ status: 200, description: 'Nova receita no último mês' })
-  getNewRevenueLastMonth() {
-    return this.paymentsService.getNewRevenueLastMonth();
-  }
 }

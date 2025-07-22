@@ -121,8 +121,4 @@ export class UsersService {
       },
     });
   }
-
-  async countAllUsers() {
-    return this.prisma.user.count();
-  }
 }

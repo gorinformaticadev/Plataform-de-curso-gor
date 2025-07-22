@@ -164,34 +164,4 @@ export class PaymentsService {
     // Retornar link de pagamento
     return 'https://mercadopago.com/payment-link';
   }
-
-  async getTotalRevenue() {
-    const result = await this.prisma.purchase.aggregate({
-      _sum: {
-        amount: true,
-      },
-      where: {
-        status: PaymentStatus.COMPLETED,
-      },
-    });
-    return result._sum.amount || 0;
-  }
-
-  async getNewRevenueLastMonth() {
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-    const result = await this.prisma.purchase.aggregate({
-      _sum: {
-        amount: true,
-      },
-      where: {
-        status: PaymentStatus.COMPLETED,
-        createdAt: {
-          gte: oneMonthAgo,
-        },
-      },
-    });
-    return result._sum.amount || 0;
-  }
 }

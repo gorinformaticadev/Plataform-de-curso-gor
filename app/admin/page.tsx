@@ -44,9 +44,6 @@ export default function AdminDashboard() {
   const [activeCourses, setActiveCourses] = useState(0);
   const [newCoursesLastMonth, setNewCoursesLastMonth] = useState(0);
   const [coursesPercentageChange, setCoursesPercentageChange] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [newRevenueLastMonth, setNewRevenueLastMonth] = useState(0);
-  const [revenuePercentageChange, setRevenuePercentageChange] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,14 +56,12 @@ export default function AdminDashboard() {
           totalStudentsResponse, 
           newStudentsResponse, 
           activeCoursesResponse,
-          newCoursesResponse,
-          totalRevenueResponse,
-          newRevenueResponse
+          newCoursesResponse
         ] = await Promise.all([
-          fetch(`${apiUrl}/users/count`, {
+          fetch(`${apiUrl}/users/students/count`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch(`${apiUrl}/users/new-last-month`, {
+          fetch(`${apiUrl}/users/students/new-last-month`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
           fetch(`${apiUrl}/courses/active/count`, {
@@ -74,36 +69,19 @@ export default function AdminDashboard() {
           }),
           fetch(`${apiUrl}/courses/new-last-month`, {
             headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch(`${apiUrl}/payments/revenue/total`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch(`${apiUrl}/payments/revenue/new-last-month`, {
-            headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
 
-        if (
-          totalStudentsResponse.ok && 
-          newStudentsResponse.ok && 
-          activeCoursesResponse.ok && 
-          newCoursesResponse.ok &&
-          totalRevenueResponse.ok &&
-          newRevenueResponse.ok
-        ) {
+        if (totalStudentsResponse.ok && newStudentsResponse.ok && activeCoursesResponse.ok && newCoursesResponse.ok) {
           const total = await totalStudentsResponse.json();
           const news = await newStudentsResponse.json();
           const courses = await activeCoursesResponse.json();
           const newCourses = await newCoursesResponse.json();
-          const revenue = await totalRevenueResponse.json();
-          const newRevenue = await newRevenueResponse.json();
           
           setTotalStudents(total);
           setNewStudentsLastMonth(news);
           setActiveCourses(courses);
           setNewCoursesLastMonth(newCourses);
-          setTotalRevenue(revenue);
-          setNewRevenueLastMonth(newRevenue);
 
           const oldTotal = total - news;
           if (oldTotal > 0) {
@@ -126,16 +104,6 @@ export default function AdminDashboard() {
             setCoursesPercentageChange(100);
           } else {
             setCoursesPercentageChange(0);
-          }
-
-          const oldRevenueTotal = revenue - newRevenue;
-          if (oldRevenueTotal > 0) {
-            const revenueChange = (newRevenue / oldRevenueTotal) * 100;
-            setRevenuePercentageChange(revenueChange);
-          } else if (oldRevenueTotal === 0 && newRevenue > 0) {
-            setRevenuePercentageChange(100);
-          } else {
-            setRevenuePercentageChange(0);
           }
         }
       } catch (error) {
@@ -165,10 +133,10 @@ export default function AdminDashboard() {
   },
   {
     title: "Receita Total",
-    value: `R$ ${totalRevenue.toLocaleString('pt-BR')}`,
+    value: "R$ 45,678",
     icon: DollarSign,
-    change: `${revenuePercentageChange >= 0 ? '+' : ''}${revenuePercentageChange.toFixed(1)}%`,
-    trend: revenuePercentageChange >= 0 ? "up" : "down",
+    change: "+23%",
+    trend: "up",
     color: "from-purple-500 to-purple-600"
   },
   {
