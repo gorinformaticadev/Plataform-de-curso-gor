@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -37,10 +37,10 @@ export class UsersService {
     });
   }
 
-  async findAll(role?: UserRole, searchTerm?: string) {
-    const where: any = {};
+  async findAll(role?: UserRole | 'TODOS', searchTerm?: string) {
+    const where: Prisma.UserWhereInput = {};
 
-    if (role) {
+    if (role && role !== 'TODOS') {
       where.role = role;
     }
 
@@ -94,29 +94,39 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.findById(id);
-    
-    return this.prisma.user.update({
-      where: { id },
-      data: updateUserDto,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        avatar: true,
-        bio: true,
-        updatedAt: true,
-      },
-    });
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: updateUserDto,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          avatar: true,
+          bio: true,
+          updatedAt: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Usuário com ID "${id}" não encontrado`);
+      }
+      throw error;
+    }
   }
 
   async remove(id: string) {
-    const user = await this.findById(id);
-    
-    return this.prisma.user.delete({
-      where: { id },
-    });
+    try {
+      return await this.prisma.user.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Usuário com ID "${id}" não encontrado`);
+      }
+      throw error;
+    }
   }
 
   async getTotalStudents() {

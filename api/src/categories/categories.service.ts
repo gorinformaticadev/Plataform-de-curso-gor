@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -43,108 +44,42 @@ export class CategoriesService {
   }
 
   async findOne(id: string) {
-    const category = await this.prisma.category.findUnique({
-      where: { id },
-      include: {
-        courses: {
-          where: {
-            status: 'PUBLISHED',
-          },
-          include: {
-            instructor: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-            _count: {
-              select: {
-                enrollments: true,
-                reviews: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        _count: {
-          select: {
-            courses: true,
-          },
-        },
-      },
-    });
-
-    if (!category) {
-      throw new NotFoundException('Categoria não encontrada');
-    }
-
-    return category;
+    return this._getCategoryDetails({ id });
   }
 
   async findBySlug(slug: string) {
-    const category = await this.prisma.category.findUnique({
-      where: { slug },
-      include: {
-        courses: {
-          where: {
-            status: 'PUBLISHED',
-          },
-          include: {
-            instructor: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-            _count: {
-              select: {
-                enrollments: true,
-                reviews: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        _count: {
-          select: {
-            courses: true,
-          },
-        },
-      },
-    });
-
-    if (!category) {
-      throw new NotFoundException('Categoria não encontrada');
-    }
-
-    return category;
+    return this._getCategoryDetails({ slug });
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    const category = await this.prisma.category.findUnique({
-      where: { id },
-    });
-
-    if (!category) {
-      throw new NotFoundException('Categoria não encontrada');
-    }
-
     const updateData: any = { ...updateCategoryDto };
-    
+
     if (updateCategoryDto.name) {
-      updateData.slug = this.generateSlug(updateCategoryDto.name);
+      const newSlug = this.generateSlug(updateCategoryDto.name);
+      const existingCategoryWithSlug = await this.prisma.category.findFirst({
+        where: {
+          slug: newSlug,
+          id: { not: id }, // Exclui a categoria atual da verificação
+        },
+      });
+
+      if (existingCategoryWithSlug) {
+        throw new ConflictException('Já existe uma categoria com este nome');
+      }
+      updateData.slug = newSlug;
     }
 
-    return this.prisma.category.update({
-      where: { id },
-      data: updateData,
-    });
+    try {
+      return await this.prisma.category.update({
+        where: { id },
+        data: updateData,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Categoria com ID "${id}" não encontrada`);
+      }
+      throw error;
+    }
   }
 
   async remove(id: string) {
@@ -170,6 +105,46 @@ export class CategoriesService {
     return this.prisma.category.delete({
       where: { id },
     });
+  }
+
+  private async _getCategoryDetails(where: Prisma.CategoryWhereUniqueInput) {
+    const category = await this.prisma.category.findUnique({
+      where,
+      include: {
+        courses: {
+          where: { status: 'PUBLISHED' },
+          include: {
+            instructor: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+            _count: {
+              select: {
+                enrollments: true,
+                reviews: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        _count: {
+          select: {
+            courses: true,
+          },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException('Categoria não encontrada');
+    }
+
+    return category;
   }
 
   private generateSlug(name: string): string {
