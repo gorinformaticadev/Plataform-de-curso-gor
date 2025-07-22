@@ -19,7 +19,8 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "db:setup": "npx prisma migrate dev && npx prisma db seed"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

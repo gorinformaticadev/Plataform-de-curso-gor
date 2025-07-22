@@ -419,13 +419,26 @@ STRIPE_SECRET_KEY="sk_test_..."
 MERCADOPAGO_ACCESS_TOKEN="TEST-..."
 ```
 
-**2.4. Executar Migrações**
+**2.4. Configuração Automatizada do Banco (Recomendado)**
+
+Depois de configurar suas variáveis de ambiente, você pode rodar um único comando para executar as migrações do banco de dados e popular com dados iniciais (seed).
+
+Dentro da pasta `api`, execute:
 ```bash
-npx prisma generate
+npm run db:setup
+```
+Este comando irá:
+1.  Aplicar todas as migrações pendentes para criar as tabelas (`prisma migrate dev`).
+2.  Executar o script de seed para popular o banco com dados iniciais (`prisma db seed`).
+
+Se preferir executar os passos manualmente, siga as seções 2.5 e 2.6.
+
+**2.5. Executar Migrações (Manualmente)**
+```bash
 npx prisma migrate dev
 ```
 
-**2.5. Seed do Banco (Opcional)**
+**2.6. Seed do Banco (Opcional, se não usou `db:setup`)**
 ```bash
 npx prisma db seed
 ```
@@ -458,6 +471,38 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```bash
 npm run dev
 ```
+
+---
+
+### 🚀 Executando a Aplicação Completa
+
+Para rodar a aplicação localmente, você precisará de **dois terminais** abertos.
+
+**Terminal 1: Backend (API)**
+
+1.  Navegue até a pasta da API:
+    ```bash
+    cd api
+    ```
+2.  Inicie o servidor de desenvolvimento do NestJS:
+    ```bash
+    npm run start:dev
+    ```
+    A API estará disponível em `http://localhost:3001`.
+
+**Terminal 2: Frontend (Interface Web)**
+
+1.  Navegue de volta para a pasta raiz do projeto (se você estava na pasta `api`):
+    ```bash
+    cd ..
+    ```
+2.  Inicie o servidor de desenvolvimento do Next.js:
+    ```bash
+    npm run dev
+    ```
+    O frontend estará acessível em `http://localhost:3000`.
+
+Com os dois servidores rodando, você pode abrir `http://localhost:3000` no seu navegador para usar a plataforma.
 
 ---
 
