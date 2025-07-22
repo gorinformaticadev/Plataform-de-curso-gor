@@ -61,6 +61,24 @@ export class CoursesController {
     return this.coursesService.getInstructorCourses(req.user.id);
   }
 
+  @Get('active/count')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Contar cursos ativos' })
+  @ApiResponse({ status: 200, description: 'Número de cursos ativos' })
+  countActiveCourses() {
+    return this.coursesService.countActiveCourses();
+  }
+
+  @Get('new-last-month')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Contar novos cursos no último mês' })
+  @ApiResponse({ status: 200, description: 'Número de novos cursos' })
+  countNewCoursesLastMonth() {
+    return this.coursesService.countNewCoursesLastMonth();
+  }
+
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Buscar curso por slug' })
   @ApiResponse({ status: 200, description: 'Dados do curso' })
