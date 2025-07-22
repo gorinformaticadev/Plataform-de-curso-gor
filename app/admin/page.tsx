@@ -41,9 +41,6 @@ export default function AdminDashboard() {
   const [totalStudents, setTotalStudents] = useState(0);
   const [newStudentsLastMonth, setNewStudentsLastMonth] = useState(0);
   const [percentageChange, setPercentageChange] = useState(0);
-  const [activeCourses, setActiveCourses] = useState(0);
-  const [newCoursesLastMonth, setNewCoursesLastMonth] = useState(0);
-  const [coursesPercentageChange, setCoursesPercentageChange] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,36 +49,21 @@ export default function AdminDashboard() {
         
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-        const [
-          totalStudentsResponse, 
-          newStudentsResponse, 
-          activeCoursesResponse,
-          newCoursesResponse
-        ] = await Promise.all([
+        const [totalStudentsResponse, newStudentsResponse] = await Promise.all([
           fetch(`${apiUrl}/users/students/count`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
           fetch(`${apiUrl}/users/students/new-last-month`, {
             headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch(`${apiUrl}/courses/active/count`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }),
-          fetch(`${apiUrl}/courses/new-last-month`, {
-            headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
 
-        if (totalStudentsResponse.ok && newStudentsResponse.ok && activeCoursesResponse.ok && newCoursesResponse.ok) {
+        if (totalStudentsResponse.ok && newStudentsResponse.ok) {
           const total = await totalStudentsResponse.json();
           const news = await newStudentsResponse.json();
-          const courses = await activeCoursesResponse.json();
-          const newCourses = await newCoursesResponse.json();
           
           setTotalStudents(total);
           setNewStudentsLastMonth(news);
-          setActiveCourses(courses);
-          setNewCoursesLastMonth(newCourses);
 
           const oldTotal = total - news;
           if (oldTotal > 0) {
@@ -94,16 +76,6 @@ export default function AdminDashboard() {
           } else {
             // No change if no new students or if total was 0.
             setPercentageChange(0);
-          }
-
-          const oldCoursesTotal = courses - newCourses;
-          if (oldCoursesTotal > 0) {
-            const courseChange = (newCourses / oldCoursesTotal) * 100;
-            setCoursesPercentageChange(courseChange);
-          } else if (oldCoursesTotal === 0 && newCourses > 0) {
-            setCoursesPercentageChange(100);
-          } else {
-            setCoursesPercentageChange(0);
           }
         }
       } catch (error) {
@@ -125,10 +97,10 @@ export default function AdminDashboard() {
     },
   {
     title: "Cursos Ativos",
-    value: activeCourses.toString(),
+    value: "45",
     icon: BookOpen,
-    change: `${coursesPercentageChange >= 0 ? '+' : ''}${coursesPercentageChange.toFixed(1)}%`,
-    trend: coursesPercentageChange >= 0 ? "up" : "down",
+    change: "+5%",
+    trend: "up",
     color: "from-green-500 to-green-600"
   },
   {

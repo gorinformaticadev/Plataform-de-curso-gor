@@ -323,27 +323,6 @@ export class CoursesService {
     });
   }
 
-  async countActiveCourses() {
-    return this.prisma.course.count({
-      where: {
-        status: CourseStatus.PUBLISHED,
-      },
-    });
-  }
-
-  async countNewCoursesLastMonth() {
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-    return this.prisma.course.count({
-      where: {
-        createdAt: {
-          gte: oneMonthAgo,
-        },
-      },
-    });
-  }
-
   private generateSlug(title: string): string {
     return title
       .toLowerCase()
