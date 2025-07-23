@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MoreHorizontal, Search, Filter } from "lucide-react";
+import { MoreHorizontal, Search, Filter, Eye } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -197,7 +198,12 @@ export default function UsersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/users/${user.id}`} className="flex items-center cursor-pointer">
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver detalhes
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem>Editar usuário</DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600">

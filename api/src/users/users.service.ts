@@ -71,6 +71,15 @@ export class UsersService {
       where: { id },
       include: {
         instructorProfile: true,
+        enrollments: {
+          include: {
+            course: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             courses: true,
