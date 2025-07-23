@@ -46,7 +46,7 @@ interface User {
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   createdAt: string;
   bio: string | null;
-  avatar: string | null; // Add avatar property
+  avatar: string | null;
   _count: {
     enrollments: number;
   };
@@ -61,6 +61,46 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [userRole, setUserRole] = useState<"ADMIN" | "INSTRUCTOR" | "STUDENT">("STUDENT");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:3001/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          cpf,
+          role: userRole,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao criar usuário");
+      }
+
+      setIsCreateModalOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -118,9 +158,12 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuários</h1>
-        <p className="text-gray-600 mt-2">Visualize e gerencie todos os usuários da plataforma</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuários</h1>
+          <p className="text-gray-600 mt-2">Visualize e gerencie todos os usuários da plataforma</p>
+        </div>
+        <Button onClick={() => setIsCreateModalOpen(true)}>Adicionar Usuário</Button>
       </div>
 
       {/* Filters */}
@@ -212,7 +255,7 @@ export default function UsersPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/admin/users/${user.id}`} className="flex items-center cursor-pointer">
                               <Eye className="mr-2 h-4 w-4" />
-                              Ver detalhes
+                            Ver detalhes
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -245,6 +288,97 @@ export default function UsersPage() {
               onCancel={() => setIsEditDialogOpen(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Criar Usuário</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="name"
+                  className="text-right text-sm font-medium leading-none text-gray-800"
+                >
+                  Nome
+                </label>
+                <Input
+                  id="name"
+                  className="col-span-3"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="email"
+                  className="text-right text-sm font-medium leading-none text-gray-800"
+                >
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  className="col-span-3"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="role"
+                  className="text-right text-sm font-medium leading-none text-gray-800"
+                >
+                  Função
+                </label>
+                <Select onValueChange={(value) => setUserRole(value as "ADMIN" | "INSTRUCTOR" | "STUDENT")}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Selecione uma função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ADMIN">Administrador</SelectItem>
+                    <SelectItem value="INSTRUCTOR">Instrutor</SelectItem>
+                    <SelectItem value="STUDENT">Aluno</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="cpf"
+                  className="text-right text-sm font-medium leading-none text-gray-800"
+                >
+                  CPF
+                </label>
+                <Input
+                  id="cpf"
+                  className="col-span-3"
+                  type="text"
+                  value={cpf}
+                  onChange={(e) => setCpf(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label
+                  htmlFor="password"
+                  className="text-right text-sm font-medium leading-none text-gray-800"
+                >
+                  Senha
+                </label>
+                <Input
+                  id="password"
+                  className="col-span-3"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button type="submit">Salvar</Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
