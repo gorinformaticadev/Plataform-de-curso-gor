@@ -33,8 +33,8 @@ export default function RegisterPage() {
       newErrors.email = 'Email inválido';
     }
 
-    if (cpf.length !== 11) {
-      newErrors.cpf = 'CPF deve ter 11 dígitos';
+    if (cpf && !validateCpf(cpf)) {
+      newErrors.cpf = 'CPF inválido';
     }
 
     if (password.length < 6) {
@@ -47,6 +47,16 @@ export default function RegisterPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const validateCpf = (cpf: string) => {
+    cpf = cpf.replace(/[^\d]+/g, '');
+    if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) {
+      return false;
+    }
+    const digits = cpf.split('').map(Number);
+    const validator = (n: number) => (digits.slice(0, n).reduce((sum, digit, i) => sum + digit * (n + 1 - i), 0) * 10) % 11 % 10;
+    return validator(9) === digits[9] && validator(10) === digits[10];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,13 +139,15 @@ export default function RegisterPage() {
                   placeholder="Seu CPF (somente números)"
                   value={cpf}
                   onChange={(e) => setCpf(e.target.value)}
-                  required
                   disabled={loading}
                   maxLength={11}
                 />
                 {errors.cpf && (
                   <p className="text-sm text-red-600">{errors.cpf}</p>
                 )}
+                <p className="text-xs text-gray-500 mt-1">
+                  O CPF é opcional, mas necessário para a emissão de certificados.
+                </p>
               </div>
               
               <div className="space-y-2">

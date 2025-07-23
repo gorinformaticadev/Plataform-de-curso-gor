@@ -14,19 +14,27 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    return this.prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        cpf,
-        role: UserRole.STUDENT,
-        student: {
-          create: {
-            cpf,
-          },
-        },
+    const data: Prisma.UserCreateInput = {
+      name,
+      email,
+      password: hashedPassword,
+      role: UserRole.STUDENT,
+      student: {
+        create: {},
       },
+    };
+
+    if (cpf) {
+      data.cpf = cpf;
+      data.student = {
+        create: {
+          cpf,
+        },
+      };
+    }
+
+    return this.prisma.user.create({
+      data,
       select: {
         id: true,
         email: true,
