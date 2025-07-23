@@ -46,6 +46,7 @@ interface User {
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   createdAt: string;
   bio: string | null;
+  avatar: string | null; // Add avatar property
   _count: {
     enrollments: number;
   };
@@ -213,15 +214,6 @@ export default function UsersPage() {
                               <Eye className="mr-2 h-4 w-4" />
                               Ver detalhes
                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setIsEditDialogOpen(true);
-                            }}
-                            className="cursor-pointer"
-                          >
-                            Editar usuário
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600">
