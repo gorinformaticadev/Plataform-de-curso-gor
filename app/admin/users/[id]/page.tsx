@@ -13,7 +13,22 @@ interface User {
   email: string;
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   createdAt: string;
+  updatedAt: string;
+  avatar: string | null;
+  bio: string | null;
   enrollments: { course: { title: string } }[];
+  student: {
+    studentCode: string;
+    enrollmentDate: string;
+    status: string;
+  } | null;
+  instructorProfile: {
+    expertise: string[];
+    experience: string | null;
+    website: string | null;
+    linkedin: string | null;
+    approved: boolean;
+  } | null;
 }
 
 export default function UserDetailsPage({ params }: { params: { id: string } }) {
@@ -96,17 +111,95 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
             <p className="text-gray-500">{user.email}</p>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h3 className="font-semibold">Função</h3>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Função</h3>
             <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
           </div>
-          <div>
-            <h3 className="font-semibold">Data de Cadastro</h3>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Data de Cadastro</h3>
             <p>{new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
           </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Última Atualização</h3>
+            <p>{new Date(user.updatedAt).toLocaleDateString("pt-BR")}</p>
+          </div>
+          {user.bio && (
+            <div className="space-y-2 md:col-span-2">
+              <h3 className="font-semibold text-gray-500">Biografia</h3>
+              <p>{user.bio}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {user.student && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações do Aluno</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">Código do Aluno</h3>
+              <p>{user.student.studentCode}</p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">Data de Matrícula</h3>
+              <p>{new Date(user.student.enrollmentDate).toLocaleDateString("pt-BR")}</p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">Status</h3>
+              <Badge>{user.student.status}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {user.instructorProfile && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Informações do Instrutor</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">Aprovado</h3>
+              <Badge variant={user.instructorProfile.approved ? "default" : "destructive"}>
+                {user.instructorProfile.approved ? "Sim" : "Não"}
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">Especialidades</h3>
+              <div className="flex flex-wrap gap-2">
+                {user.instructorProfile.expertise.map((exp, i) => (
+                  <Badge key={i} variant="secondary">{exp}</Badge>
+                ))}
+              </div>
+            </div>
+            {user.instructorProfile.experience && (
+              <div className="space-y-2 md:col-span-2">
+                <h3 className="font-semibold text-gray-500">Experiência</h3>
+                <p>{user.instructorProfile.experience}</p>
+              </div>
+            )}
+            {user.instructorProfile.website && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-gray-500">Website</h3>
+                <a href={user.instructorProfile.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                  {user.instructorProfile.website}
+                </a>
+              </div>
+            )}
+            {user.instructorProfile.linkedin && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-gray-500">LinkedIn</h3>
+                <a href={user.instructorProfile.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                  {user.instructorProfile.linkedin}
+                </a>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

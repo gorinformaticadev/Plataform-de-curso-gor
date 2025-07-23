@@ -71,6 +71,7 @@ export class UsersService {
       where: { id },
       include: {
         instructorProfile: true,
+        student: true,
         enrollments: {
           include: {
             course: {
@@ -78,12 +79,6 @@ export class UsersService {
                 title: true,
               },
             },
-          },
-        },
-        _count: {
-          select: {
-            courses: true,
-            enrollments: true,
           },
         },
       },
