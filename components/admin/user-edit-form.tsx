@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -25,6 +25,46 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
+// Function to validate CPF
+const validateCPF = (cpf: string): boolean => {
+  cpf = cpf.replace(/[^\d]+/g, ""); // Remove non-numeric characters
+
+  if (cpf.length !== 11) return false; // CPF must have 11 digits
+  // Check for known invalid CPFs (all digits are the same)
+  if (cpf === "00000000000" ||
+      cpf === "11111111111" ||
+      cpf === "22222222222" ||
+      cpf === "33333333333" ||
+      cpf === "44444444444" ||
+      cpf === "55555555555" ||
+      cpf === "66666666666" ||
+      cpf === "77777777777" ||
+      cpf === "88888888888" ||
+      cpf === "99999999999") {
+    return false;
+  }
+
+  // Validate first digit
+  let sum = 0;
+  let remainder;
+  for (let i = 1; i <= 9; i++) {
+    sum = sum + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if ((remainder === 10) || (remainder === 11)) remainder = 0;
+  if (remainder !== parseInt(cpf.substring(9, 10))) return false;
+
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum = sum + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if ((remainder === 10) || (remainder === 11)) remainder = 0;
+  if (remainder !== parseInt(cpf.substring(10, 11))) return false;
+
+  return true;
+};
+
 const formSchema = z
   .object({
     name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres."),
@@ -34,7 +74,10 @@ const formSchema = z
     avatar: z.string().url("URL do avatar inválida.").optional().or(z.literal("")),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").optional().or(z.literal("")),
     confirmPassword: z.string().optional().or(z.literal("")),
-    cpf: z.string().optional().or(z.literal("")),
+    cpf: z.string().optional().or(z.literal("")).refine(
+      (val) => !val || validateCPF(val),
+      "CPF inválido."
+    ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem.",
@@ -75,6 +118,20 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       cpf: user.cpf || "",
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      name: user.name,
+      email: user.email,
+      bio: user.bio || "",
+      role: user.role,
+      avatar: user.avatar || "",
+      password: "",
+      confirmPassword: "",
+      cpf: user.cpf || "",
+    });
+  }, [user, form]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
