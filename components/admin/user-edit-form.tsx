@@ -79,17 +79,26 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
+      const dataToSend = { ...values };
+      if (!dataToSend.password) {
+        delete dataToSend.password;
+        delete dataToSend.confirmPassword;
+      } else {
+        delete dataToSend.confirmPassword;
+      }
+
       const response = await fetch(`http://localhost:3001/api/users/${user.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {
-        throw new Error("Falha ao atualizar o usuário.");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Falha ao atualizar o usuário.");
       }
 
       toast({
@@ -109,21 +118,22 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome completo" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="max-h-screen overflow-y-auto p-4">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full max-w-lg mx-auto">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nome completo" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         <FormField
           control={form.control}
           name="email"
@@ -234,5 +244,6 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
         </div>
       </form>
     </Form>
+    </div>
   );
 }
