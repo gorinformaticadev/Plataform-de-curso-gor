@@ -20,6 +20,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  cpf: string | null;
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   createdAt: string;
   updatedAt: string;
@@ -156,6 +157,12 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
             <CardTitle>Informações do Aluno</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {user.cpf && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-gray-500">CPF</h3>
+                <p>{user.cpf}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <h3 className="font-semibold text-gray-500">Código do Aluno</h3>
               <p>{user.student.studentCode}</p>

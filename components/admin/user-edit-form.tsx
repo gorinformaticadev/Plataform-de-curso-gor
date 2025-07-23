@@ -25,12 +25,20 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
-const formSchema = z.object({
-  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres."),
-  email: z.string().email("Email inválido."),
-  bio: z.string().optional(),
-  role: z.enum(["ADMIN", "INSTRUCTOR", "STUDENT"]),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres."),
+    email: z.string().email("Email inválido."),
+    bio: z.string().optional(),
+    role: z.enum(["ADMIN", "INSTRUCTOR", "STUDENT"]),
+    avatar: z.string().url("URL do avatar inválida.").optional().or(z.literal("")),
+    password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").optional().or(z.literal("")),
+    confirmPassword: z.string().optional().or(z.literal("")),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem.",
+    path: ["confirmPassword"],
+  });
 
 interface User {
   id: string;
@@ -38,6 +46,7 @@ interface User {
   email: string;
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   bio: string | null;
+  avatar: string | null;
 }
 
 interface UserEditFormProps {
@@ -58,6 +67,9 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       email: user.email,
       bio: user.bio || "",
       role: user.role,
+      avatar: user.avatar || "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -130,6 +142,45 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
               <FormLabel>Biografia</FormLabel>
               <FormControl>
                 <Textarea placeholder="Fale um pouco sobre o usuário..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="avatar"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Avatar (URL)</FormLabel>
+              <FormControl>
+                <Input type="url" placeholder="https://exemplo.com/avatar.png" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nova Senha</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="Deixe em branco para não alterar" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirmar Nova Senha</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="Confirme a nova senha" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

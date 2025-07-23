@@ -1,7 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType } from '@nestjs/swagger';
 import { CreateUserDto } from './create-user.dto';
-import { OmitType } from '@nestjs/swagger';
 
-export class UpdateUserDto extends PartialType(
-  OmitType(CreateUserDto, ['password'] as const)
-) {}
+export class UpdateUserDto extends PartialType(CreateUserDto) {
+  password?: string;
+  avatar?: string;
+  cpf?: string;
+}

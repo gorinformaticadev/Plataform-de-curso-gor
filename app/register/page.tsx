@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/auth-context';
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +31,10 @@ export default function RegisterPage() {
 
     if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Email inválido';
+    }
+
+    if (cpf.length !== 11) {
+      newErrors.cpf = 'CPF deve ter 11 dígitos';
     }
 
     if (password.length < 6) {
@@ -54,7 +59,7 @@ export default function RegisterPage() {
     setLoading(true);
     
     try {
-      await register(name, email, password);
+      await register(name, email, cpf, password);
     } catch (error) {
       // Error is handled in the auth context
     } finally {
@@ -113,6 +118,23 @@ export default function RegisterPage() {
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cpf">CPF</Label>
+                <Input
+                  id="cpf"
+                  type="text"
+                  placeholder="Seu CPF (somente números)"
+                  value={cpf}
+                  onChange={(e) => setCpf(e.target.value)}
+                  required
+                  disabled={loading}
+                  maxLength={11}
+                />
+                {errors.cpf && (
+                  <p className="text-sm text-red-600">{errors.cpf}</p>
                 )}
               </div>
               

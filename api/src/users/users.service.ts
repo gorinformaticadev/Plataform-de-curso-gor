@@ -10,7 +10,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const { name, email, password } = createUserDto;
+    const { name, email, password, cpf } = createUserDto;
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -19,9 +19,12 @@ export class UsersService {
         name,
         email,
         password: hashedPassword,
+        cpf,
         role: UserRole.STUDENT,
         student: {
-          create: {}, // Cria o perfil de estudante associado
+          create: {
+            cpf,
+          },
         },
       },
       select: {
@@ -33,6 +36,7 @@ export class UsersService {
         bio: true,
         createdAt: true,
         student: true,
+        cpf: true,
       },
     });
   }
@@ -99,10 +103,30 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
+    const { password, cpf, ...restOfDto } = updateUserDto;
+
+    const data: Prisma.UserUpdateInput = { ...restOfDto };
+
+    if (password) {
+      data.password = await bcrypt.hash(password, 12);
+    }
+
+    if (cpf) {
+      data.cpf = cpf;
+      // Also update the student's CPF if the user is a student
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (user && user.role === 'STUDENT') {
+        await this.prisma.student.update({
+          where: { userId: id },
+          data: { cpf },
+        });
+      }
+    }
+
     try {
       return await this.prisma.user.update({
         where: { id },
-        data: updateUserDto,
+        data,
         select: {
           id: true,
           email: true,
@@ -111,6 +135,7 @@ export class UsersService {
           avatar: true,
           bio: true,
           updatedAt: true,
+          cpf: true,
         },
       });
     } catch (error) {
