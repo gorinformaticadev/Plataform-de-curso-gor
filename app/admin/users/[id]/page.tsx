@@ -6,6 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Edit } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UserEditForm } from "@/components/admin/user-edit-form";
 
 interface User {
   id: string;
@@ -36,40 +45,41 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const fetchUser = async () => {
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/users/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          notFound();
+        }
+        throw new Error("Falha ao buscar detalhes do usuário");
+      }
+
+      const data = await response.json();
+      setUser(data);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch(`http://localhost:3001/api/users/${params.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            notFound();
-          }
-          throw new Error("Falha ao buscar detalhes do usuário");
-        }
-
-        const data = await response.json();
-        setUser(data);
-      } catch (error: any) {
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchUser();
   }, [token, params.id]);
 
@@ -100,18 +110,25 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center space-x-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={`https://github.com/shadcn.png`} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle className="text-2xl">{user.name}</CardTitle>
-            <p className="text-gray-500">{user.email}</p>
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-x-4">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={user.avatar || `https://github.com/shadcn.png`} alt={user.name} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-2xl">{user.name}</CardTitle>
+                <p className="text-gray-500">{user.email}</p>
+              </div>
+            </div>
+            <Button onClick={() => setIsEditDialogOpen(true)}>
+              <Edit className="mr-2 h-4 w-4" />
+              Editar
+            </Button>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
           <div className="space-y-2">
             <h3 className="font-semibold text-gray-500">Função</h3>
             <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
@@ -219,6 +236,21 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
           )}
         </CardContent>
       </Card>
+
+      <DialogContent className="sm:max-w-[625px]">
+        <DialogHeader>
+          <DialogTitle>Editar Usuário</DialogTitle>
+        </DialogHeader>
+        <UserEditForm
+          user={user}
+          onSuccess={() => {
+            setIsEditDialogOpen(false);
+            fetchUser();
+          }}
+          onCancel={() => setIsEditDialogOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }

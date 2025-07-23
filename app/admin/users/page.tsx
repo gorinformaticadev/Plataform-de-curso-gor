@@ -4,6 +4,13 @@ import { useState, useEffect } from "react";
 import { MoreHorizontal, Search, Filter, Eye } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UserEditForm } from "@/components/admin/user-edit-form";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -38,6 +45,7 @@ interface User {
   email: string;
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   createdAt: string;
+  bio: string | null;
   _count: {
     enrollments: number;
   };
@@ -50,6 +58,8 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -204,7 +214,15 @@ export default function UsersPage() {
                               Ver detalhes
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Editar usuário</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setIsEditDialogOpen(true);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            Editar usuário
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600">
                             Desativar conta
@@ -219,6 +237,24 @@ export default function UsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <UserEditForm
+              user={selectedUser}
+              onSuccess={() => {
+                setIsEditDialogOpen(false);
+                fetchUsers();
+              }}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

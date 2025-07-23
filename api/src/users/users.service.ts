@@ -59,6 +59,7 @@ export class UsersService {
         name: true,
         role: true,
         createdAt: true,
+        bio: true,
         _count: {
           select: { enrollments: true },
         },
