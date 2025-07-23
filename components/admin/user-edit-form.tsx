@@ -34,6 +34,7 @@ const formSchema = z
     avatar: z.string().url("URL do avatar inválida.").optional().or(z.literal("")),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").optional().or(z.literal("")),
     confirmPassword: z.string().optional().or(z.literal("")),
+    cpf: z.string().optional().or(z.literal("")),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem.",
@@ -47,6 +48,7 @@ interface User {
   role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
   bio: string | null;
   avatar: string | null;
+  cpf?: string | null;
 }
 
 interface UserEditFormProps {
@@ -70,6 +72,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       avatar: user.avatar || "",
       password: "",
       confirmPassword: "",
+      cpf: user.cpf || "",
     },
   });
 
@@ -129,6 +132,19 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="email@exemplo.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="cpf"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>CPF</FormLabel>
+              <FormControl>
+                <Input placeholder="000.000.000-00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
