@@ -67,16 +67,20 @@ export function UserListTable({
   const [isDeactivateAlertOpen, setIsDeactivateAlertOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const handleDeactivateClick = (user: User) => {
+  const handleToggleActive = (user: User) => {
     setSelectedUser(user);
     setIsDeactivateAlertOpen(true);
   };
 
-  const handleDeactivateConfirm = async () => {
+  const handleToggleActiveConfirm = async () => {
     if (!selectedUser || !token) return;
 
+    const endpoint = selectedUser.isActive 
+      ? `deactivate` 
+      : `activate`;
+
     const promise = fetch(
-      `http://localhost:3001/api/users/${selectedUser.id}/deactivate`,
+      `http://localhost:3001/api/users/${selectedUser.id}/${endpoint}`,
       {
         method: "PATCH",
         headers: {
@@ -85,18 +89,24 @@ export function UserListTable({
       }
     ).then((res) => {
       if (!res.ok) {
-        throw new Error("Falha ao desativar usuário.");
+        throw new Error(`Falha ao ${endpoint === 'deactivate' ? 'desativar' : 'ativar'} usuário.`);
       }
       return res.json();
     });
 
     toast.promise(promise, {
-      loading: "Desativando usuário...",
+      loading: selectedUser.isActive 
+        ? "Desativando usuário..." 
+        : "Ativando usuário...",
       success: () => {
         onActionSuccess();
-        return "Usuário desativado com sucesso!";
+        return selectedUser.isActive 
+          ? "Usuário desativado com sucesso!" 
+          : "Usuário ativado com sucesso!";
       },
-      error: "Erro ao desativar usuário.",
+      error: selectedUser.isActive 
+        ? "Erro ao desativar usuário." 
+        : "Erro ao ativar usuário.",
     });
 
     setIsDeactivateAlertOpen(false);
@@ -131,7 +141,7 @@ export function UserListTable({
             </TableRow>
           ) : (
             users.map((user) => (
-              <TableRow key={user.id}>
+              <TableRow key={user.id} className={!user.isActive ? "bg-gray-100" : ""}>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
@@ -171,11 +181,22 @@ export function UserListTable({
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-red-600 flex items-center cursor-pointer"
-                        onClick={() => handleDeactivateClick(user)}
+                        className={`flex items-center cursor-pointer ${
+                          user.isActive ? 'text-red-600' : 'text-green-600'
+                        }`}
+                        onClick={() => handleToggleActive(user)}
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Desativar conta
+                        {user.isActive ? (
+                          <>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Desativar conta
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ativar conta
+                          </>
+                        )}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -191,21 +212,26 @@ export function UserListTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação irá desativar a conta do usuário. Ele não poderá mais
-              acessar a plataforma.
-            </AlertDialogDescription>
+        <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+        <AlertDialogDescription>
+          {selectedUser?.isActive
+            ? "Esta ação irá desativar a conta do usuário. Ele não poderá mais acessar a plataforma."
+            : "Esta ação irá reativar a conta do usuário. Ele poderá acessar a plataforma novamente."}
+        </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeactivateAlertOpen(false)}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeactivateConfirm}
-              className="bg-red-600 hover:bg-red-700"
+              onClick={handleToggleActiveConfirm}
+              className={selectedUser?.isActive 
+                ? "bg-red-600 hover:bg-red-700" 
+                : "bg-green-600 hover:bg-green-700"}
             >
-              Confirmar Desativação
+              {selectedUser?.isActive 
+                ? "Confirmar Desativação" 
+                : "Confirmar Ativação"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

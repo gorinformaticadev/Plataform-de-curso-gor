@@ -55,7 +55,12 @@ export function useUsers() {
           throw new Error('Falha ao buscar usuários');
         }
         const data = await response.json();
-        setUsers(data.data);
+        // Garantir que cada usuário tenha isActive (default true se não existir)
+        const usersWithActive = data.data.map((user: any) => ({
+          ...user,
+          isActive: user.isActive !== undefined ? user.isActive : true
+        }));
+        setUsers(usersWithActive);
         setPagination({
           total: data.total,
           page: data.page,

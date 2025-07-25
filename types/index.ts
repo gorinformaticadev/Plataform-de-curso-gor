@@ -7,6 +7,7 @@ export interface User {
   bio: string | null;
   avatar: string | null;
   cpf?: string | null;
+  isActive: boolean;
   _count: {
     enrollments: number;
   };

@@ -55,9 +55,7 @@ export class UsersService {
     page = 1,
     pageSize = 10,
   ) {
-    const where: Prisma.UserWhereInput = {
-      isActive: true,
-    };
+    const where: Prisma.UserWhereInput = {};
 
     if (role && role !== 'all') {
       where.role = role;
@@ -185,6 +183,28 @@ export class UsersService {
       return await this.prisma.user.update({
         where: { id },
         data: { isActive: false },
+        select: {
+          id: true,
+          isActive: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Usuário com ID "${id}" não encontrado`);
+      }
+      throw error;
+    }
+  }
+
+  async activate(id: string) {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: { isActive: true },
+        select: {
+          id: true,
+          isActive: true,
+        },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {

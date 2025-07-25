@@ -96,6 +96,15 @@ export class UsersController {
     return this.usersService.deactivate(id);
   }
 
+  @Patch(':id/activate')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Ativar usuário (Admin)' })
+  @ApiResponse({ status: 200, description: 'Usuário ativado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  activate(@Param('id') id: string) {
+    return this.usersService.activate(id);
+  }
+
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Deletar usuário (Admin)' })
