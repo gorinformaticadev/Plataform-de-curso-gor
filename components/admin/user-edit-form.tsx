@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Function to validate CPF
 const validateCPF = (cpf: string): boolean => {
@@ -94,7 +94,6 @@ interface UserEditFormProps {
 
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   const { token } = useAuth();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -127,43 +126,44 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    try {
-      const dataToSend = { ...values };
-      if (!dataToSend.password) {
-        delete dataToSend.password;
-        delete dataToSend.confirmPassword;
-      } else {
-        delete dataToSend.confirmPassword;
-      }
 
-      const response = await fetch(`http://localhost:3001/api/users/${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(dataToSend),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Falha ao atualizar o usuário.");
-      }
-
-      toast({
-        title: "Sucesso!",
-        description: "Usuário atualizado com sucesso.",
-      });
-      onSuccess();
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+    const dataToSend = { ...values };
+    if (!dataToSend.password) {
+      delete dataToSend.password;
+      delete dataToSend.confirmPassword;
+    } else {
+      delete dataToSend.confirmPassword;
     }
+
+    const promise = fetch(`http://localhost:3001/api/users/${user.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(dataToSend),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Falha ao atualizar o usuário.' }));
+        throw new Error(errorData.message || 'Falha ao atualizar o usuário.');
+      }
+      return res.json();
+    });
+
+    toast.promise(promise, {
+      loading: "Salvando alterações...",
+      success: () => {
+        onSuccess();
+        return "Usuário atualizado com sucesso!";
+      },
+      error: (err) => {
+        form.setError("root", { message: err.message });
+        return err.message;
+      },
+      finally: () => {
+        setIsSubmitting(false);
+      },
+    });
   }
 
   return (

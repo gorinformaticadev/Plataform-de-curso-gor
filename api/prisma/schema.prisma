@@ -17,6 +17,7 @@ model User {
   name      String
   cpf       String?  @unique
   role      UserRole @default(STUDENT)
+  isActive  Boolean  @default(true)
   avatar    String?
   bio       String?
   createdAt DateTime @default(now())

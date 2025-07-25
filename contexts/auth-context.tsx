@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/hooks/use-toast';
 
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -101,9 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw error;
     }
-  };
+  }, [router, API_URL]);
 
-  const register = async (name: string, email: string, cpf: string, password: string) => {
+  const register = useCallback(async (name: string, email: string, cpf: string, password: string) => {
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -136,9 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw error;
     }
-  };
+  }, [router, API_URL]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
     setToken(null);
@@ -148,9 +148,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       title: 'Logout realizado',
       description: 'Você foi desconectado com sucesso.',
     });
-  };
+  }, [router]);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     token,
     loading,
@@ -158,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     isAuthenticated: !!user,
-  };
+  }), [user, token, loading, login, register, logout]);
 
   return (
     <AuthContext.Provider value={value}>

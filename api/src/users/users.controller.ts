@@ -16,16 +16,20 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Usuários')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar usuário' })
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Criar usuário (Admin)' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -34,8 +38,15 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Listar todos os usuários' })
   @ApiResponse({ status: 200, description: 'Lista de usuários' })
-  findAll(@Query('role') role?: any, @Query('searchTerm') searchTerm?: string) {
-    return this.usersService.findAll(role, searchTerm);
+  findAll(
+    @Query('role') role?: any,
+    @Query('searchTerm') searchTerm?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const pageSizeNumber = pageSize ? parseInt(pageSize, 10) : 10;
+    return this.usersService.findAll(role, searchTerm, pageNumber, pageSizeNumber);
   }
 
   @Get('students/count')
@@ -68,15 +79,26 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar usuário' })
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Atualizar usuário (Admin)' })
   @ApiResponse({ status: 200, description: 'Usuário atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
+  @Patch(':id/deactivate')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Desativar usuário (Admin)' })
+  @ApiResponse({ status: 200, description: 'Usuário desativado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  deactivate(@Param('id') id: string) {
+    return this.usersService.deactivate(id);
+  }
+
   @Delete(':id')
-  @ApiOperation({ summary: 'Deletar usuário' })
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Deletar usuário (Admin)' })
   @ApiResponse({ status: 200, description: 'Usuário deletado com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   remove(@Param('id') id: string) {

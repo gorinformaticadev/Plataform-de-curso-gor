@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
+import { toast } from "sonner";
 
 interface UserCreateFormProps {
   onSuccess: () => void;
@@ -32,32 +33,41 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch("http://localhost:3001/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          cpf,
-          role: userRole,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Falha ao criar usuário");
+    const promise = fetch("http://localhost:3001/api/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        cpf,
+        role: userRole,
+      }),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Falha ao criar usuário' }));
+        throw new Error(errorData.message || 'Falha ao criar usuário');
       }
+      return res.json();
+    });
 
-      onSuccess();
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    toast.promise(promise, {
+      loading: "Criando usuário...",
+      success: () => {
+        onSuccess();
+        return "Usuário criado com sucesso!";
+      },
+      error: (err) => {
+        setError(err.message);
+        return err.message;
+      },
+      finally: () => {
+        setIsLoading(false);
+      }
+    });
   };
 
   return (

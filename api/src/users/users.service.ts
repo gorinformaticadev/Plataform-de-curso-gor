@@ -49,10 +49,17 @@ export class UsersService {
     });
   }
 
-  async findAll(role?: UserRole | 'TODOS', searchTerm?: string) {
-    const where: Prisma.UserWhereInput = {};
+  async findAll(
+    role?: UserRole | 'all',
+    searchTerm?: string,
+    page = 1,
+    pageSize = 10,
+  ) {
+    const where: Prisma.UserWhereInput = {
+      isActive: true,
+    };
 
-    if (role && role !== 'TODOS') {
+    if (role && role !== 'all') {
       where.role = role;
     }
 
@@ -63,20 +70,39 @@ export class UsersService {
       ];
     }
 
-    return this.prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        bio: true,
-        _count: {
-          select: { enrollments: true },
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+          bio: true,
+          _count: {
+            select: { enrollments: true },
+          },
         },
-      },
-    });
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      data: users,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async findById(id: string) {
@@ -145,6 +171,20 @@ export class UsersService {
           updatedAt: true,
           cpf: true,
         },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Usuário com ID "${id}" não encontrado`);
+      }
+      throw error;
+    }
+  }
+
+  async deactivate(id: string) {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data: { isActive: false },
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
