@@ -199,3 +199,30 @@ Com os dois servidores rodando, você pode abrir `http://localhost:3000` no seu 
   - Se necessário, reinicie o banco com `npx prisma migrate reset`.
 - **Erro de Dependências:** Delete `node_modules` e `package-lock.json` e rode `npm install` novamente.
 - **Erro de Porta em Uso:** Verifique qual processo está usando a porta (ex: `3000` ou `3001`) e finalize-o.
+
+### 🗃️ Gerenciamento do Banco de Dados (Comandos Úteis)
+
+Execute estes comandos de dentro da pasta `api`.
+
+- **Resetar o Banco de Dados:**
+  Este comando irá **apagar todos os dados**, remover todas as tabelas e executar as migrações e o seed novamente. É útil para começar do zero.
+  ```bash
+  npx prisma migrate reset
+  ```
+
+- **Remover o Banco de Dados (Drop):**
+  Se você deseja remover completamente o banco de dados do seu servidor PostgreSQL.
+  1. Acesse o `psql`:
+     ```bash
+     sudo -u postgres psql
+     ```
+  2. Execute o comando para apagar o banco:
+     ```sql
+     DROP DATABASE eduplatform;
+     ```
+
+- **Acessar o Prisma Studio:**
+  Para visualizar e editar os dados do seu banco através de uma interface gráfica.
+  ```bash
+  npx prisma studio
+  ```
