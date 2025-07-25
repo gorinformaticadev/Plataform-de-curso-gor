@@ -84,15 +84,7 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "ADMIN" | "INSTRUCTOR" | "STUDENT";
-  bio: string | null;
-  avatar: string | null;
-  cpf?: string | null;
-}
+import { User } from "@/types";
 
 interface UserEditFormProps {
   user: User;

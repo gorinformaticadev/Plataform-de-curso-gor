@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { GraduationCap, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { validateCpf } from '@/lib/cpfValidator';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -47,16 +48,6 @@ export default function RegisterPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const validateCpf = (cpf: string) => {
-    cpf = cpf.replace(/[^\d]+/g, '');
-    if (cpf.length !== 11 || !!cpf.match(/(\d)\1{10}/)) {
-      return false;
-    }
-    const digits = cpf.split('').map(Number);
-    const validator = (n: number) => (digits.slice(0, n).reduce((sum, digit, i) => sum + digit * (n + 1 - i), 0) * 10) % 11 % 10;
-    return validator(9) === digits[9] && validator(10) === digits[10];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

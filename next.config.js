@@ -9,6 +9,15 @@ const nextConfig = {
   },
   // Enable standalone output for Docker
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.BACKEND_API_URL}/api/:path*`,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
