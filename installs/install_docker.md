@@ -1,107 +1,275 @@
-# 🐳 Instalação com Docker (Recomendado)
 
-Siga os passos abaixo para configurar e executar o ambiente de desenvolvimento completo usando Docker.
+#### 2. Crie os arquivos Docker
 
-## 📋 Pré-requisitos
-- **Docker Desktop** - [Download](https://www.docker.com/products/docker-desktop/)
-- **Git** - [Download](https://git-scm.com/)
+**2.1. Dockerfile para API:**
+```dockerfile
+# API Dockerfile
+FROM node:18 AS base
 
-## 🛠️ Passos de Instalação
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
 
-### 1. Clone o Repositório
-```bash
-git clone https://github.com/gorinformaticadev/Plataform-de-curso-gor.git
-cd Plataform-de-curso-gor
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build the application
+RUN npm run build
+
+# Production image, copy all the files and run nest
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+
+RUN addgroup --system --gid 1001 nestjs
+RUN adduser --system --uid 1001 nestjs
+
+# Copy the bundled code from the build stage to the production image
+COPY --from=builder --chown=nestjs:nestjs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nestjs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nestjs /app/package.json ./package.json
+COPY --from=builder --chown=nestjs:nestjs /app/prisma ./prisma
+
+USER nestjs
+
+EXPOSE 3001
+
+ENV PORT 3001
+
+CMD ["npm", "run", "start:prod"]
+
 ```
 
-### 2. Crie os arquivos de configuração
-O projeto já inclui os `Dockerfile` necessários para a API e para o Frontend, assim como o `docker-compose.yml`. Você não precisa criá-los.
+**2.3. Docker Compose:**
+```yaml
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: eduplatform-db
+    environment:
+      POSTGRES_DB: eduplatform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eduplatform-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-### 3. Configurar Variáveis de Ambiente
+  # API Backend
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: eduplatform-api
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres123@postgres:5432/eduplatform"
+      JWT_SECRET: "seu-jwt-secret-super-seguro"
+      JWT_EXPIRES_IN: "7d"
+      PORT: 3001
+      FRONTEND_URL: "http://localhost:3000"
+    ports:
+      - "3001:3001"
+      - "5555:5555" # Changed mapping for Prisma Studio to avoid port conflict
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    networks:
+      - eduplatform-network
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
 
-Crie os arquivos `.env` necessários a partir dos exemplos fornecidos.
+  # Frontend
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eduplatform-web
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3001/api"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - eduplatform-network
+    command: npm run dev
 
-**3.1. API (`api/.env`):**
-Crie um arquivo chamado `.env` dentro da pasta `api` e adicione o seguinte conteúdo:
+  # pgAdmin - Interface gráfica para PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: eduplatform-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@eduplatform.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - eduplatform-network
+
+volumes:
+  postgres_data:
+
+networks:
+  eduplatform-network:
+    driver: bridge
+```
+
+#### 3. Configurar Variáveis de Ambiente
+
+**3.1. API (.env):**
 ```bash
 # api/.env
-DATABASE_URL="postgresql://postgres:postgres123@postgres:5432/eduplatform"
-JWT_SECRET="seu-jwt-secret-super-seguro"
-JWT_EXPIRES_IN="7d"
-PORT=3001
-FRONTEND_URL="http://localhost:3000"
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/eduplatform"
+    JWT_SECRET="seu-jwt-secret-super-seguro"
+    JWT_EXPIRES_IN="7d"
+    PORT=3001
+    FRONTEND_URL="http://localhost:3000"
 ```
 
-**3.2. Frontend (`.env.local`):**
-Na raiz do projeto, crie um arquivo chamado `.env.local` e adicione:
+**3.2. Frontend (.env.local):**
 ```bash
 # .env.local
 NEXT_PUBLIC_API_URL="http://localhost:3001/api"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-### 4. Executar com Docker
+#### 4. Executar com Docker
 
 **4.1. Iniciar todos os serviços:**
-Este comando irá construir as imagens e iniciar os contêineres em segundo plano.
 ```bash
-docker-compose up -d --build
+docker-compose up -d
 ```
 
-**4.2. Verificar se os contêineres estão rodando:**
+**4.2. Verificar se está funcionando:**
 ```bash
+# Verificar containers
 docker-compose ps
-```
-Você deve ver os contêineres `eduplatform-db`, `eduplatform-api`, `eduplatform-web`, e `eduplatform-pgadmin` com o status "Up" ou "running".
 
-**4.3. Executar as migrações do banco de dados (apenas na primeira vez):**
-Este comando executa o `prisma migrate dev` dentro do contêiner da API para criar as tabelas no banco de dados.
+# Ver logs
+docker-compose logs -f api
+docker-compose logs -f web
+```
+
+**4.3. Executar migrações (primeira vez):**
 ```bash
 docker-compose exec api npx prisma migrate dev
 ```
 
-**4.4. Popular o banco de dados com dados iniciais (seed):**
-Este comando executa o script de seed para adicionar dados de exemplo, como o usuário administrador.
+**4.4. Seed do Banco tem quer ser executado na pasta raiz**
 ```bash
 docker-compose exec api npx prisma db seed
 ```
 
-### 5. Acessar a Aplicação
-Após a inicialização bem-sucedida:
-- **Frontend**: [http://localhost:3000](http://localhost:3000)
-- **API**: [http://localhost:3001](http://localhost:3001)
-- **Documentação da API (Swagger)**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
-- **pgAdmin (Admin do Banco)**: [http://localhost:5050](http://localhost:5050)
-  - **Email:** `admin@eduplatform.com`
-  - **Senha:** `admin123`
-- **Prisma Studio (Visualizador de Dados)**: [http://localhost:5555](http://localhost:5555)
+**4.5. Instalar Dependências na pasta raiz**
+```bash
+npm install
+```
 
-Para acessar o Prisma Studio, execute o comando:
+**4.6. Iniciar o Servidor**
+```bash
+npm run dev
+```
+
+#### Acessar a Aplicação
+- **Frontend**: http://localhost:3000
+- **API**: http://localhost:3001
+- **Documentação**: http://localhost:3001/api/docs
+
+**5. Acessando o Prisma Studio( se a primeita opção não der, tente a segunda):**
+    O Prisma Studio oferece uma interface gráfica para visualizar e manipular seus dados. Você pode acessá-lo de duas maneiras:
+
+- **Opção 1: Dentro do Contêiner Docker (Recomendado)**
+- 1.  Certifique-se de que a `DATABASE_URL` no seu arquivo `api/.env` aponta para o hostname `postgres`.
+- 2.  Execute o seguinte comando no seu terminal (na raiz do projeto),
+- **após os serviços do Docker estarem rodando**:
 ```bash
 docker-compose exec api npx prisma studio
 ```
+- 3.  Isso iniciará o Prisma Studio dentro do contêiner da API. O terminal exibirá a URL onde o Prisma Studio está disponível. Geralmente, é:
+*   **Prisma Studio:** http://localhost:5555
 
-### 6. Comandos Úteis do Docker
+**Opção 2: Localmente (Fora do Docker)**
+1.  Certifique-se de que a `DATABASE_URL` no seu arquivo `api/.env` aponta para `localhost`.
+2.  Execute o comando `docker-compose up -d` para garantir que o contêiner do banco de dados esteja em execução.
+3.  Execute o seguinte comando no seu terminal (na raiz do projeto):
+```bash
+npx prisma studio --schema=api/prisma/schema.prisma
+```
+4.  Isso iniciará o Prisma Studio na sua máquina local, conectando-se ao banco de dados que está rodando no Docker. O terminal exibirá a URL de acesso.
 
-- **Parar todos os serviços:**
-  ```bash
-  docker-compose down
-  ```
-- **Ver logs em tempo real (ex: da API):**
-  ```bash
-  docker-compose logs -f api
-  ```
-- **Acessar o terminal de um contêiner (ex: da API):**
-  ```bash
-  docker-compose exec api bash
-  ```
-- **Limpar tudo (cuidado: apaga os dados do banco!):**
-  ```bash
-  docker-compose down -v
-  ```
+#### Acessos da Aplicação
+Após a inicialização e migração bem-sucedidas:
+*   **Frontend:** http://localhost:3000
+*   **API:** http://localhost:3001
+*   **Documentação da API:** http://localhost:3001/api/docs
+*   **pgAdmin:** http://localhost:5050
+*   **Prisma Studio:** http://localhost:5555
 
-### 🐛 Solução de Problemas Comuns
+--- 
+Acesso do pgadmin:
+Aba Geral: dê um nome a ele
+Aba Connection:
+Host: postgres
+Port: 5432
+Maintenance Database: eduplatform
+User: postgres
+Password: postgres123
 
-- **Erro de porta em uso:** Verifique se nenhuma outra aplicação está usando as portas `3000`, `3001`, `5432`, ou `5050`. Você pode parar os contêineres com `docker-compose down`.
-- **Erro de permissão (Windows):** Execute o terminal (PowerShell/CMD) como Administrador.
-- **API não conecta com o banco:** Verifique os logs do contêiner `postgres` e `api` com `docker-compose logs postgres` e `docker-compose logs api`. Certifique-se que o contêiner do `postgres` está saudável antes da `api` iniciar.
+#### 6. Comandos Úteis Docker
+
+```bash
+# Parar todos os serviços
+docker-compose down
+
+# Rebuild e restart
+docker-compose up --build
+
+# Ver logs em tempo real
+docker-compose logs -f
+
+# Executar comandos no container da API
+docker-compose exec api npm run prisma:studio
+
+#iniciar prisma studio localmente (deve estra na pasta raiz do projeto)
+npx prisma studio --schema=api/prisma/schema.prisma
+
+# Limpar tudo (cuidado: apaga dados!)
+docker-compose down -v
+docker system prune -a
+```
+
+---

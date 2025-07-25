@@ -61,6 +61,83 @@ eduplatform/
 ├── Dockerfile                   # Docker para Frontend
 └── README.md
 ```
+## 🐛 Solução de Problemas
+
+### Docker
+
+**Erro de porta em uso:**
+```bash
+# Verificar o que está usando a porta
+netstat -ano | findstr :3000
+netstat -ano | findstr :3001
+
+# Parar containers
+docker-compose down
+```
+
+**Erro de permissão (Windows):**
+```bash
+# Executar PowerShell como Administrador
+# Verificar se Docker Desktop está rodando
+```
+
+**Banco não conecta:**
+```bash
+# Verificar se PostgreSQL container está rodando
+docker-compose ps
+
+# Ver logs do banco
+docker-compose logs postgres
+```
+
+### Instalação Local
+
+**Erro de Conexão com Banco:**
+```bash
+# Windows - verificar se PostgreSQL está rodando
+services.msc # Procurar por PostgreSQL
+
+# Linux/Mac
+sudo service postgresql status
+
+# Recriar banco se necessário
+npx prisma migrate reset
+```
+
+**Erro de Dependências:**
+```bash
+# Limpar cache e reinstalar
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Erro de CORS:**
+Verifique se `FRONTEND_URL` está configurado corretamente no `.env` da API.
+
+**Erro de Porta em Uso (Windows):**
+```bash
+# Verificar o que está usando a porta
+netstat -ano | findstr :3000
+
+# Matar processo (substitua PID)
+taskkill /PID 1234 /F
+```
+
+## 📚 Documentação Adicional
+
+- [Documentação do NestJS](https://nestjs.com/)
+- [Documentação do Next.js](https://nextjs.org/docs)
+- [Documentação do Prisma](https://www.prisma.io/docs)
+- [Documentação do Docker](https://docs.docker.com/)
+- [Documentação do Tailwind CSS](https://tailwindcss.com/docs)
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
 ## 🔧 Scripts Disponíveis
 
@@ -170,7 +247,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 👥 Equipe
 
-- **Desenvolvedor ** - [Gilson Oliveira](https://github.com/gorinformaticadev)
+- **Desenvolvedor** - [Gilson Oliveira](https://github.com/gorinformaticadev)
 
 ## 📞 Suporte
 
