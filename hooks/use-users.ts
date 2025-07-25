@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { User } from '@/types';
 
@@ -9,6 +9,7 @@ export function useUsers() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async (searchTerm = '', roleFilter = 'all') => {
+    if (!token) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -37,12 +38,6 @@ export function useUsers() {
       setIsLoading(false);
     }
   }, [token]);
-
-  useEffect(() => {
-    if (token) {
-      fetchUsers();
-    }
-  }, [token, fetchUsers]);
 
   return { users, isLoading, error, fetchUsers };
 }

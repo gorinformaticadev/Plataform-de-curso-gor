@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -8,8 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
 
 interface UserFiltersProps {
   searchTerm: string;
@@ -26,6 +25,16 @@ export function UserFilters({
   setRoleFilter,
   onFilter,
 }: UserFiltersProps) {
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      onFilter();
+    }, 500); 
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm, roleFilter, onFilter]);
+
   return (
     <div className="flex gap-4">
       <div className="flex-1">
@@ -47,10 +56,6 @@ export function UserFilters({
           <SelectItem value="STUDENT">Alunos</SelectItem>
         </SelectContent>
       </Select>
-      <Button onClick={onFilter}>
-        <Filter className="mr-2 h-4 w-4" />
-        Aplicar Filtros
-      </Button>
     </div>
   );
 }
