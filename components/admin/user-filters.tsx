@@ -36,15 +36,13 @@ export function UserFilters({
   }, [searchTerm, roleFilter, onFilter]);
 
   return (
-    <div className="flex gap-4">
-      <div className="flex-1">
-        <Input
-          placeholder="Buscar por nome ou email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
+    <div className="flex gap-4 items-center">
+      <Input
+        placeholder="Buscar por nome ou email..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="max-w-sm"
+      />
       <Select value={roleFilter} onValueChange={setRoleFilter}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Filtrar por função" />
