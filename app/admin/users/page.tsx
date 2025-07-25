@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,9 +24,13 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  useEffect(() => {
+  const handleFilter = useCallback(() => {
     fetchUsers(searchTerm, roleFilter);
   }, [searchTerm, roleFilter, fetchUsers]);
+
+  useEffect(() => {
+    handleFilter();
+  }, [handleFilter]);
 
   const handleEdit = (user: User) => {
     setSelectedUser(user);
@@ -53,7 +57,7 @@ export default function UsersPage() {
             setSearchTerm={setSearchTerm}
             roleFilter={roleFilter}
             setRoleFilter={setRoleFilter}
-            onFilter={() => fetchUsers(searchTerm, roleFilter)}
+            onFilter={handleFilter}
           />
         </CardContent>
       </Card>
