@@ -18,7 +18,42 @@ Siga os passos abaixo para configurar o banco de dados PostgreSQL em seu sistema
 
 **Passo 1: Instalar o PostgreSQL**
 
-- **Windows:** Baixe o instalador a partir do [site oficial do PostgreSQL](https://www.postgresql.org/download/windows/). Durante a instalação, você será solicitado a definir uma senha para o superusuário `postgres`. **Anote esta senha**, pois você precisará dela para conectar a API ao banco.
+- **Windows:** 
+  Baixe o instalador a partir do [site oficial do PostgreSQL](https://www.postgresql.org/download/windows/). Durante a instalação:
+  1. Selecione os componentes padrão
+  2. Defina o diretório de instalação (mantenha o padrão se não souber)
+  3. Defina uma senha para o superusuário `postgres` - **ANOTE ESTA SENHA**
+  4. Mantenha a porta padrão (5432)
+  5. Complete a instalação
+
+**Gerenciamento do PostgreSQL no Windows:**
+
+1. **Parar/Iniciar o serviço PostgreSQL:**
+   - Abra o "Services" (services.msc)
+   - Localize "postgresql-x64-XX"
+   - Botão direito -> Stop/Start
+
+2. **Remover completamente o banco de dados:**
+   - Abra o "SQL Shell (psql)"
+   - Conecte-se com usuário `postgres` e sua senha
+   - Execute:
+     ```sql
+     DROP DATABASE eduplatform;
+     ```
+
+3. **Recriar o banco de dados:**
+   - No psql, execute:
+     ```sql
+     CREATE DATABASE eduplatform;
+     \q
+     ```
+   - Volte para a pasta `api` e execute:
+     ```bash
+     npx prisma migrate dev
+     npx prisma db seed
+     ```
+
+4. **Reiniciar o serviço se necessário**
 
 - **Linux (Ubuntu/Debian):**
   ```bash
@@ -199,6 +234,14 @@ Com os dois servidores rodando, você pode abrir `http://localhost:3000` no seu 
   - Se necessário, reinicie o banco com `npx prisma migrate reset`.
 - **Erro de Dependências:** Delete `node_modules` e `package-lock.json` e rode `npm install` novamente.
 - **Erro de Porta em Uso:** Verifique qual processo está usando a porta (ex: `3000` ou `3001`) e finalize-o.
+- **Erro EPERM do Prisma:**
+  - Feche todos os terminais e editores
+  - Execute o terminal como administrador
+  - Limpe o cache do Prisma:
+    ```bash
+    npx prisma generate --force
+    ```
+  - Se persistir, reinicie o computador
 
 ### 🗃️ Gerenciamento do Banco de Dados (Comandos Úteis)
 
