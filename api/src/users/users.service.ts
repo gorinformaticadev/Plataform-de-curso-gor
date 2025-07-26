@@ -54,11 +54,16 @@ export class UsersService {
     searchTerm?: string,
     page = 1,
     pageSize = 10,
+    isActive?: string,
   ) {
     const where: Prisma.UserWhereInput = {};
 
     if (role && role !== 'all') {
       where.role = role;
+    }
+
+    if (isActive && isActive !== 'all') {
+      where.isActive = isActive === 'true';
     }
 
     if (searchTerm) {
@@ -81,6 +86,7 @@ export class UsersService {
           role: true,
           createdAt: true,
           bio: true,
+          isActive: true,
           _count: {
             select: { enrollments: true },
           },

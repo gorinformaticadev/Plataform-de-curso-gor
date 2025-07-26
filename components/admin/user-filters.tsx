@@ -15,6 +15,8 @@ interface UserFiltersProps {
   setSearchTerm: (value: string) => void;
   roleFilter: string;
   setRoleFilter: (value: string) => void;
+  statusFilter: string;
+  setStatusFilter: (value: string) => void;
   onFilter: () => void;
 }
 
@@ -23,17 +25,19 @@ export function UserFilters({
   setSearchTerm,
   roleFilter,
   setRoleFilter,
+  statusFilter,
+  setStatusFilter,
   onFilter,
 }: UserFiltersProps) {
   useEffect(() => {
     const handler = setTimeout(() => {
       onFilter();
-    }, 500); 
+    }, 500);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm, roleFilter, onFilter]);
+  }, [searchTerm, roleFilter, statusFilter, onFilter]);
 
   return (
     <div className="flex gap-4 items-center">
@@ -52,6 +56,16 @@ export function UserFilters({
           <SelectItem value="ADMIN">Administradores</SelectItem>
           <SelectItem value="INSTRUCTOR">Instrutores</SelectItem>
           <SelectItem value="STUDENT">Alunos</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Filtrar por status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="true">Ativo</SelectItem>
+          <SelectItem value="false">Inativo</SelectItem>
         </SelectContent>
       </Select>
     </div>

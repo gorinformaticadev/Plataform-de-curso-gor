@@ -43,10 +43,11 @@ export class UsersController {
     @Query('searchTerm') searchTerm?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('isActive') isActive?: string,
   ) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const pageSizeNumber = pageSize ? parseInt(pageSize, 10) : 10;
-    return this.usersService.findAll(role, searchTerm, pageNumber, pageSizeNumber);
+    return this.usersService.findAll(role, searchTerm, pageNumber, pageSizeNumber, isActive);
   }
 
   @Get('students/count')

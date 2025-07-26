@@ -27,6 +27,7 @@ export default function UsersPage() {
   const { users, pagination, isLoading, error, fetchUsers } = useUsers();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -38,8 +39,8 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    fetchUsersRef.current(searchTerm, roleFilter, currentPage);
-  }, [searchTerm, roleFilter, currentPage]);
+    fetchUsersRef.current(searchTerm, roleFilter, currentPage, 10, statusFilter);
+  }, [searchTerm, roleFilter, currentPage, statusFilter]);
 
   const handleEdit = (user: User) => {
     setSelectedUser(user);
@@ -78,6 +79,8 @@ export default function UsersPage() {
             setSearchTerm={setSearchTerm}
             roleFilter={roleFilter}
             setRoleFilter={setRoleFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
             onFilter={() => setCurrentPage(1)}
           />
         </CardContent>

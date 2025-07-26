@@ -27,6 +27,7 @@ export function useUsers() {
       roleFilter = 'all',
       page = 1,
       pageSize = 10,
+      statusFilter = 'all',
     ) => {
       if (!token) return;
       setIsLoading(true);
@@ -37,10 +38,14 @@ export function useUsers() {
           role: roleFilter,
           page: String(page),
           pageSize: String(pageSize),
+          isActive: statusFilter,
         });
 
         if (roleFilter === 'all') {
           params.delete('role');
+        }
+        if (statusFilter === 'all') {
+          params.delete('isActive');
         }
 
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
