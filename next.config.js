@@ -1,20 +1,24 @@
-/** @type {import('next').NextConfig} */
+const backendUrl = process.env.BACKEND_API_URL;
+
+if (!backendUrl) {
+  throw new Error('❌ A variável de ambiente BACKEND_API_URL não está definida.');
+}
+
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { 
+  images: {
     unoptimized: true,
-    domains: ['images.pexels.com']
+    domains: ['images.pexels.com'],
   },
-  // Enable standalone output for Docker
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
 
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.BACKEND_API_URL}/api/:path*`,
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },

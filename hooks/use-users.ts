@@ -43,7 +43,8 @@ export function useUsers() {
           params.delete('role');
         }
 
-        const url = `http://localhost:3001/api/users?${params.toString()}`;
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const url = `${baseUrl}/users?${params.toString()}`;
 
         const response = await fetch(url, {
           headers: {
