@@ -93,9 +93,9 @@ interface UserEditFormProps {
 }
 
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
-  const { token } = useAuth();
+  const { token, reloadUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar ? `http://localhost:3001${user.avatar}` : null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -180,7 +180,8 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
 
     toast.promise(promise, {
       loading: "Salvando alterações...",
-      success: () => {
+      success: async () => {
+        await reloadUser();
         onSuccess();
         return "Usuário atualizado com sucesso!";
       },

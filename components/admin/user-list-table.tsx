@@ -118,6 +118,7 @@ export function UserListTable({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[80px]">Avatar</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Função</TableHead>
@@ -142,6 +143,21 @@ export function UserListTable({
           ) : (
             users.map((user) => (
               <TableRow key={user.id} className={!user.isActive ? "bg-gray-100" : ""}>
+                <TableCell>
+                  {user.avatar ? (
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}`}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-sm font-medium text-gray-500">
+                        {user.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>

@@ -20,6 +20,7 @@ interface AuthContextType {
   register: (name: string, email: string, cpf: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  reloadUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const storedToken = localStorage.getItem('token');
       if (!storedToken) {
@@ -65,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -158,7 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     isAuthenticated: !!user,
-  }), [user, token, loading, login, register, logout]);
+    reloadUser: checkAuth,
+  }), [user, token, loading, login, register, logout, checkAuth]);
 
   return (
     <AuthContext.Provider value={value}>

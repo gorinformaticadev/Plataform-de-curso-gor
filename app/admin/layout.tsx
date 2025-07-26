@@ -118,11 +118,19 @@ export default function AdminLayout({
           {/* User Info */}
           <div className="p-4 border-t border-blue-800">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">
-                  {user.name?.charAt(0) || "A"}
-                </span>
-              </div>
+              {user.avatar ? (
+                <img
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}`}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg font-bold">
+                    {user.name?.charAt(0) || "A"}
+                  </span>
+                </div>
+              )}
               {sidebarOpen && (
                 <div>
                   <p className="text-sm font-medium text-white">{user.name}</p>

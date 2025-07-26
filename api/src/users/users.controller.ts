@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as fs from 'fs';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -99,12 +100,16 @@ export class UsersController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './public/uploads/avatars',
-        filename: (req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
+        filename: (req: any, file, cb) => {
+          const userId = req.params.id;
+          // Deleta o avatar antigo se existir
+          const oldAvatarPath = `./public/uploads/avatars/${userId}.*`;
+          fs.readdirSync('./public/uploads/avatars').forEach(f => {
+            if (f.startsWith(userId)) {
+              fs.unlinkSync(`./public/uploads/avatars/${f}`);
+            }
+          });
+          cb(null, `${userId}${extname(file.originalname)}`);
         },
       }),
       fileFilter: (req, file, cb) => {
