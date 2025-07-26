@@ -87,6 +87,7 @@ export class UsersService {
           createdAt: true,
           bio: true,
           isActive: true,
+          cpf: true,
           _count: {
             select: { enrollments: true },
           },
