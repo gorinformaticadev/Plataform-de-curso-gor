@@ -71,7 +71,7 @@ const formSchema = z
     email: z.string().email("Email inválido."),
     bio: z.string().optional(),
     role: z.enum(["ADMIN", "INSTRUCTOR", "STUDENT"]),
-    avatar: z.string().url("URL do avatar inválida.").optional().or(z.literal("")),
+    avatar: z.any(),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").optional().or(z.literal("")),
     confirmPassword: z.string().optional().or(z.literal("")),
     cpf: z.string().optional().or(z.literal("")).refine(
@@ -95,6 +95,7 @@ interface UserEditFormProps {
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   const { token } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar ? `http://localhost:3001${user.avatar}` : null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -103,7 +104,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       email: user.email,
       bio: user.bio || "",
       role: user.role,
-      avatar: user.avatar || "",
+      avatar: null,
       password: "",
       confirmPassword: "",
       cpf: user.cpf || "",
@@ -116,7 +117,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       email: user.email,
       bio: user.bio || "",
       role: user.role,
-      avatar: user.avatar || "",
+      avatar: null,
       password: "",
       confirmPassword: "",
       cpf: user.cpf || "",
@@ -127,7 +128,34 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
-    const dataToSend = { ...values };
+    const { avatar, ...otherValues } = values;
+
+    // 1. Upload avatar if a new one is selected
+    if (avatar && avatar[0]) {
+      const formData = new FormData();
+      formData.append('file', avatar[0]);
+
+      try {
+        const avatarRes = await fetch(`http://localhost:3001/api/users/${user.id}/avatar`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (!avatarRes.ok) {
+          throw new Error('Falha ao fazer upload do avatar.');
+        }
+      } catch (error: any) {
+        toast.error(error.message);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
+    // 2. Update other user data
+    const dataToSend = { ...otherValues };
     if (!dataToSend.password) {
       delete dataToSend.password;
       delete dataToSend.confirmPassword;
@@ -144,8 +172,8 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       body: JSON.stringify(dataToSend),
     }).then(async (res) => {
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: 'Falha ao atualizar o usuário.' }));
-        throw new Error(errorData.message || 'Falha ao atualizar o usuário.');
+        const errorData = await res.json().catch(() => ({ message: 'Falha ao atualizar os dados do usuário.' }));
+        throw new Error(errorData.message || 'Falha ao atualizar os dados do usuário.');
       }
       return res.json();
     });
@@ -222,14 +250,29 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
             </FormItem>
           )}
         />
+        {avatarPreview && (
+          <div className="flex flex-col items-center">
+            <img src={avatarPreview} alt="Avatar Preview" className="w-32 h-32 rounded-full object-cover" />
+          </div>
+        )}
         <FormField
           control={form.control}
           name="avatar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Avatar (URL)</FormLabel>
+              <FormLabel>Novo Avatar</FormLabel>
               <FormControl>
-                <Input type="url" placeholder="https://exemplo.com/avatar.png" {...field} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      field.onChange(e.target.files);
+                      setAvatarPreview(URL.createObjectURL(file));
+                    }
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
