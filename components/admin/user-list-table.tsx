@@ -174,7 +174,7 @@ export function UserListTable({
                     {user.role}
                   </Badge>
                 </TableCell>
-                <TableCell>{user._count?.enrollments || 0}</TableCell>
+                <TableCell>{user._count?.inscricoes || 0}</TableCell>
                 <TableCell>
                   {new Date(user.createdAt).toLocaleDateString("pt-BR")}
                 </TableCell>

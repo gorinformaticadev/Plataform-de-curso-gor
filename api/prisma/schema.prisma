@@ -32,7 +32,7 @@ model User {
 
   // Instrutor
   instructorProfile InstructorProfile?
-  student           StudentProfile?
+  student           StudentProfile?    @relation("student")
 
   @@map("users")
 }
