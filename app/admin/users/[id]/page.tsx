@@ -26,6 +26,7 @@ interface User {
   updatedAt: string;
   avatar: string | null;
   bio: string | null;
+  isActive: boolean;
   enrollments: { course: { title: string } }[];
   student: {
     studentCode: string;
@@ -39,6 +40,9 @@ interface User {
     linkedin: string | null;
     approved: boolean;
   } | null;
+  _count: {
+    enrollments: number;
+  };
 }
 
 export default function UserDetailsPage({ params }: { params: { id: string } }) {
@@ -116,7 +120,14 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
           <CardHeader className="flex flex-row items-center justify-between space-x-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : undefined} alt={user.name} />
+                <AvatarImage 
+                  src={user.avatar ? 
+                      user.avatar.startsWith('http') ? 
+                      user.avatar : 
+                      `http://localhost:3001${user.avatar.replace('/api', '')}`
+                      : undefined} 
+                  alt={user.name} 
+                />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
