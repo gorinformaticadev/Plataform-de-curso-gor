@@ -116,7 +116,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
           <CardHeader className="flex flex-row items-center justify-between space-x-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user.avatar || `https://github.com/shadcn.png`} alt={user.name} />
+                <AvatarImage src={user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : undefined} alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>

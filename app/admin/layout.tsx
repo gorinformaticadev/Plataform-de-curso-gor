@@ -82,7 +82,10 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b border-blue-800">
             {sidebarOpen && (
-              <h1 className="text-xl font-bold text-white">Admin</h1>
+              <div>
+                <h1 className="text-xl font-bold text-white">{user.name}</h1>
+                <p className="text-xs text-blue-300">{user.role}</p>
+              </div>
             )}
             <Button
               variant="ghost"
@@ -133,8 +136,8 @@ export default function AdminLayout({
               )}
               {sidebarOpen && (
                 <div>
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-blue-300">{user.role}</p>
+                  <p className="text-sm font-medium text-white">Admin</p>
+                  <p className="text-xs text-blue-300">Painel Administrativo</p>
                 </div>
               )}
             </div>
