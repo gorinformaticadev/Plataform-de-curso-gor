@@ -95,7 +95,13 @@ interface UserEditFormProps {
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   const { token, reloadUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar ? user.avatar.replace('/api', '') : null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    user.avatar ? 
+      user.avatar.startsWith('http') ? 
+        user.avatar : 
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
+      : null
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -136,7 +142,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       formData.append('file', avatar[0]);
 
       try {
-        const avatarRes = await fetch(`http://localhost:3001/api/users/${user.id}/avatar`, {
+        const avatarRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/${user.id}/avatar`, {
           method: 'PATCH',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -163,7 +169,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       delete dataToSend.confirmPassword;
     }
 
-    const promise = fetch(`http://localhost:3001/api/users/${user.id}`, {
+    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -256,7 +262,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
             <img 
               src={avatarPreview.startsWith('blob:') ? 
                    avatarPreview : 
-                   `http://localhost:3001${avatarPreview}`}
+                   `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${avatarPreview}`}
               alt="Avatar Preview" 
               className="w-32 h-32 rounded-full object-cover" 
             />
