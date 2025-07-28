@@ -142,7 +142,7 @@ export class UsersController {
       }
     }
 
-    const avatarUrl = `/uploads/avatars/${file.filename}`;
+    const avatarUrl = `http://localhost:3001/public/uploads/avatars/${file.filename}`;
     return this.usersService.update(id, { avatar: avatarUrl });
   }
 

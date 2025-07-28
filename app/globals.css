@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos para tabelas */
+table {
+  @apply w-full border-collapse;
+}
+
+th {
+  @apply bg-gray-100 dark:bg-gray-800 text-left p-3;
+}
+
+td {
+  @apply border-t border-gray-200 dark:border-gray-700 p-3;
+}
+
+tr:hover td {
+  @apply bg-gray-50 dark:bg-gray-800;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

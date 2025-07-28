@@ -30,6 +30,10 @@ import { ProgressModule } from './progress/progress.module';
       rootPath: join(process.cwd(), 'public'),
       serveRoot: '/public',
       exclude: ['/api*'],
+      serveStaticOptions: {
+        index: false,
+        redirect: false
+      }
     }),
 
     // Módulos da aplicação
