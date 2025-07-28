@@ -144,19 +144,28 @@ export function UserListTable({
             users.map((user) => (
               <TableRow key={user.id} className={!user.isActive ? "bg-gray-100" : ""}>
                 <TableCell>
-                  {user.avatar ? (
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}`}
-                      alt={user.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-200">
+                    {user.avatar ? (
+                      <img
+                        src={
+                          user.avatar.startsWith('http') 
+                            ? user.avatar 
+                            : `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
+                        }
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    {!user.avatar && (
                       <span className="text-sm font-medium text-gray-500">
                         {user.name.charAt(0)}
                       </span>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>

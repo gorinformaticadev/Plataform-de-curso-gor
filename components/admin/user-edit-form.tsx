@@ -162,6 +162,15 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
 
     // 2. Update other user data
     const dataToSend = { ...otherValues };
+    
+    // Handle empty CPF
+    if (!dataToSend.cpf || dataToSend.cpf.trim() === '') {
+      dataToSend.cpf = undefined;
+    } else {
+      // Remove formatting from CPF before sending
+      dataToSend.cpf = dataToSend.cpf.replace(/\D/g, '');
+    }
+
     if (!dataToSend.password) {
       delete dataToSend.password;
       delete dataToSend.confirmPassword;
@@ -277,7 +286,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
           name="avatar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Novo Avatar</FormLabel>
+              <FormLabel>NovosAvatar</FormLabel>
               <FormControl>
                 <Input
                   type="file"
