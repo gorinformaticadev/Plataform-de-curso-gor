@@ -101,7 +101,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './public/uploads/avatars',
+        destination: join(process.cwd(), 'public', 'uploads', 'avatars'),
         filename: (req, file, cb) => {
           const randomName = uuidv4();
           cb(null, `${randomName}${extname(file.originalname)}`);
@@ -130,14 +130,15 @@ export class UsersController {
 
     // Deleta o avatar antigo se existir
     if (user.avatar) {
-      // O caminho salvo no banco é relativo (ex: /uploads/avatars/...).
-      // Remove o '/' inicial para juntar corretamente com o caminho base.
       const relativeAvatarPath = user.avatar.startsWith('/') ? user.avatar.substring(1) : user.avatar;
-      const oldAvatarPath = join(process.cwd(), 'api', 'public', relativeAvatarPath);
+      const oldAvatarPath = join(process.cwd(), 'public', relativeAvatarPath);
       try {
         await fs.unlink(oldAvatarPath);
       } catch (error) {
-        console.error(`Falha ao deletar avatar antigo: ${oldAvatarPath}`, error);
+        // Ignora o erro se o arquivo não existir, mas loga outros erros.
+        if (error.code !== 'ENOENT') {
+          console.error(`Falha ao deletar avatar antigo: ${oldAvatarPath}`, error);
+        }
       }
     }
 

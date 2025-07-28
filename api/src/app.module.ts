@@ -27,8 +27,9 @@ import { ProgressModule } from './progress/progress.module';
 
     // Servir arquivos estáticos (ex: avatares)
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'api', 'public'),
-      serveRoot: '/',
+      rootPath: join(process.cwd(), 'public'),
+      serveRoot: '/public',
+      exclude: ['/api*'],
     }),
 
     // Módulos da aplicação

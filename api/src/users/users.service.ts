@@ -144,15 +144,18 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const { password, cpf, ...restOfDto } = updateUserDto;
 
+    // Garante que o CPF não seja atualizado na tabela User
     const data: Prisma.UserUpdateInput = { ...restOfDto };
+    if (data.cpf) {
+      delete data.cpf;
+    }
 
     if (password) {
       data.password = await bcrypt.hash(password, 12);
     }
 
+    // Atualiza o CPF apenas na tabela Student, se aplicável
     if (cpf) {
-      data.cpf = cpf;
-      // Also update the student's CPF if the user is a student
       const user = await this.prisma.user.findUnique({ where: { id } });
       if (user && user.role === 'STUDENT') {
         await this.prisma.student.update({
