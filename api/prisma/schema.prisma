@@ -248,7 +248,6 @@ model Student {
   id             String        @id @default(uuid())
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String        @unique
-  cpf            String?       @unique
   studentCode    String        @unique @default(cuid())
   enrollmentDate DateTime      @default(now())
   status         StudentStatus @default(ACTIVE)

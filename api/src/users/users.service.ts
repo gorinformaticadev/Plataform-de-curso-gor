@@ -27,9 +27,7 @@ export class UsersService {
     if (cpf) {
       data.cpf = cpf;
       data.student = {
-        create: {
-          cpf,
-        },
+        create: {},
       };
     }
 
@@ -154,15 +152,9 @@ export class UsersService {
       data.password = await bcrypt.hash(password, 12);
     }
 
-    // Atualiza o CPF apenas na tabela Student, se aplicável
+    // Atualiza o CPF na tabela User
     if (cpf) {
-      const user = await this.prisma.user.findUnique({ where: { id } });
-      if (user && user.role === 'STUDENT') {
-        await this.prisma.student.update({
-          where: { userId: id },
-          data: { cpf },
-        });
-      }
+      data.cpf = cpf;
     }
 
     try {
