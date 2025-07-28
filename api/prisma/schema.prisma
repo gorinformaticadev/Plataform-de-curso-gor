@@ -24,15 +24,15 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
-  courses     Course[]
-  purchases   Purchase[]
-  enrollments Enrollment[]
+  cursos      Course[]
+  compras     Purchase[]
+  inscricoes  Enrollment[]
   progress    Progress[]
   reviews     Review[]
 
   // Instrutor
   instructorProfile InstructorProfile?
-  student           Student?
+  student           StudentProfile?
 
   @@map("users")
 }
@@ -46,7 +46,7 @@ model InstructorProfile {
   experience String?
   website    String?
   linkedin   String?
-  approved   Boolean  @default(false)
+  isActive   Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -244,22 +244,14 @@ enum EnrollmentStatus {
   SUSPENDED
 }
 
-model Student {
-  id             String        @id @default(uuid())
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         String        @unique
-  studentCode    String        @unique @default(cuid())
-  enrollmentDate DateTime      @default(now())
-  status         StudentStatus @default(ACTIVE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+model StudentProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade, name: "student")
+  studentCode    String   @unique @default(cuid())
+  enrollmentDate DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  @@map("students")
-}
-
-enum StudentStatus {
-  ACTIVE
-  INACTIVE
-  GRADUATED
-  DROPPED_OUT
+  @@map("student_profiles")
 }

@@ -9,6 +9,6 @@ export interface User {
   cpf?: string | null;
   isActive: boolean;
   _count: {
-    enrollments: number;
+    inscricoes: number;
   };
 }

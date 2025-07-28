@@ -241,7 +241,7 @@ Com os dois servidores rodando, você pode abrir `http://localhost:3000` no seu 
     ```bash
     npx prisma generate --force
     ```
-  - Se persistir, reinicie o computador
+  - Se persistir, reinicie o computador 
 
 ### 🗃️ Gerenciamento do Banco de Dados (Comandos Úteis)
 

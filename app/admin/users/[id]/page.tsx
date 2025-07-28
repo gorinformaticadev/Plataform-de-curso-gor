@@ -27,7 +27,7 @@ interface User {
   avatar: string | null;
   bio: string | null;
   isActive: boolean;
-  enrollments: { course: { title: string } }[];
+  inscricoes: { course: { title: string } }[];
   student: {
     studentCode: string;
     enrollmentDate: string;
@@ -41,7 +41,7 @@ interface User {
     approved: boolean;
   } | null;
   _count: {
-    enrollments: number;
+    inscricoes: number;
   };
 }
 
@@ -238,19 +238,19 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
 
       <Card>
         <CardHeader>
-          <CardTitle>Cursos Matriculados</CardTitle>
+          <CardTitle>Inscrições em Cursos</CardTitle>
         </CardHeader>
         <CardContent>
-          {user.enrollments && user.enrollments.length > 0 ? (
+          {user.inscricoes && user.inscricoes.length > 0 ? (
             <ul className="space-y-2">
-              {user.enrollments.map((enrollment, index) => (
+              {user.inscricoes.map((inscricao, index) => (
                 <li key={index} className="rounded-md border p-3">
-                  {enrollment.course.title}
+                  {inscricao.course.title}
                 </li>
               ))}
             </ul>
           ) : (
-            <p>Este usuário não está matriculado em nenhum curso.</p>
+            <p>Este usuário não está inscrito em nenhum curso.</p>
           )}
         </CardContent>
       </Card>
