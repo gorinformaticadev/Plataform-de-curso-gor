@@ -95,7 +95,7 @@ interface UserEditFormProps {
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   const { token, reloadUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar ? user.avatar.replace('/api', '') : null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -253,7 +253,13 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
         />
         {avatarPreview && (
           <div className="flex flex-col items-center">
-            <img src={avatarPreview} alt="Avatar Preview" className="w-32 h-32 rounded-full object-cover" />
+            <img 
+              src={avatarPreview.startsWith('blob:') ? 
+                   avatarPreview : 
+                   `http://localhost:3001${avatarPreview}`}
+              alt="Avatar Preview" 
+              className="w-32 h-32 rounded-full object-cover" 
+            />
           </div>
         )}
         <FormField

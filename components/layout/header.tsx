@@ -90,7 +90,14 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarImage 
+                        src={user?.avatar ? 
+                            user.avatar.startsWith('http') ? 
+                            user.avatar : 
+                            `http://localhost:3001${user.avatar.replace('/api', '')}` 
+                            : ''} 
+                        alt={user?.name} 
+                      />
                       <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
                     </Avatar>
                   </Button>

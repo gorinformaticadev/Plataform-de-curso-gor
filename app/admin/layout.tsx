@@ -85,7 +85,9 @@ export default function AdminLayout({
               <div className="flex items-center space-x-3">
                 {user.avatar ? (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}`}
+                    src={user.avatar.startsWith('http') ? 
+                         user.avatar : 
+                         `http://localhost:3001${user.avatar.replace('/api', '')}`}
                     alt={user.name}
                     className="w-10 h-10 rounded-full object-cover"
                   />
