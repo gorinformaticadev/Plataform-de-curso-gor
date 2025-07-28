@@ -11,12 +11,14 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
-import * as fs from 'fs';
+import { extname, join } from 'path';
+import * as fs from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -100,21 +102,14 @@ export class UsersController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './public/uploads/avatars',
-        filename: (req: any, file, cb) => {
-          const userId = req.params.id;
-          // Deleta o avatar antigo se existir
-          const oldAvatarPath = `./public/uploads/avatars/${userId}.*`;
-          fs.readdirSync('./public/uploads/avatars').forEach(f => {
-            if (f.startsWith(userId)) {
-              fs.unlinkSync(`./public/uploads/avatars/${f}`);
-            }
-          });
-          cb(null, `${userId}${extname(file.originalname)}`);
+        filename: (req, file, cb) => {
+          const randomName = uuidv4();
+          cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
       fileFilter: (req, file, cb) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-          return cb(new Error('Only image files are allowed!'), false);
+          return cb(new Error('Apenas arquivos de imagem são permitidos!'), false);
         }
         cb(null, true);
       },
@@ -124,10 +119,28 @@ export class UsersController {
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 200, description: 'Avatar atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  uploadAvatar(
+  async uploadAvatar(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    const user = await this.usersService.findById(id);
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Deleta o avatar antigo se existir
+    if (user.avatar) {
+      // O caminho salvo no banco é relativo (ex: /uploads/avatars/...).
+      // Remove o '/' inicial para juntar corretamente com o caminho base.
+      const relativeAvatarPath = user.avatar.startsWith('/') ? user.avatar.substring(1) : user.avatar;
+      const oldAvatarPath = join(process.cwd(), 'api', 'public', relativeAvatarPath);
+      try {
+        await fs.unlink(oldAvatarPath);
+      } catch (error) {
+        console.error(`Falha ao deletar avatar antigo: ${oldAvatarPath}`, error);
+      }
+    }
+
     const avatarUrl = `/uploads/avatars/${file.filename}`;
     return this.usersService.update(id, { avatar: avatarUrl });
   }

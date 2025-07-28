@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -22,6 +24,12 @@ import { ProgressModule } from './progress/progress.module';
       ttl: 60000, // 1 minuto
       limit: 100, // 100 requests por minuto
     }]),
+
+    // Servir arquivos estáticos (ex: avatares)
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'api', 'public'),
+      serveRoot: '/',
+    }),
 
     // Módulos da aplicação
     PrismaModule,

@@ -82,9 +82,24 @@ export default function AdminLayout({
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b border-blue-800">
             {sidebarOpen && (
-              <div>
-                <h1 className="text-xl font-bold text-white">{user.name}</h1>
-                <p className="text-xs text-blue-300">{user.role}</p>
+              <div className="flex items-center space-x-3">
+                {user.avatar ? (
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}`}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">
+                      {user.name?.charAt(0) || "A"}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-xl font-bold text-white">{user.name}</h1>
+                  <p className="text-xs text-blue-300">{user.role}</p>
+                </div>
               </div>
             )}
             <Button
@@ -121,22 +136,8 @@ export default function AdminLayout({
           {/* User Info */}
           <div className="p-4 border-t border-blue-800">
             <div className="flex items-center space-x-3">
-              {user.avatar ? (
-                <img
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}`}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg font-bold">
-                    {user.name?.charAt(0) || "A"}
-                  </span>
-                </div>
-              )}
               {sidebarOpen && (
                 <div>
-                  <p className="text-sm font-medium text-white">Admin</p>
                   <p className="text-xs text-blue-300">Painel Administrativo</p>
                 </div>
               )}
