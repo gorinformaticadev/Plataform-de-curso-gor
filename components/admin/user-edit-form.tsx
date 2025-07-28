@@ -257,17 +257,21 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
             </FormItem>
           )}
         />
-        {avatarPreview && (
-          <div className="flex flex-col items-center">
-            <img 
-              src={avatarPreview.startsWith('blob:') ? 
-                   avatarPreview : 
-                   `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${avatarPreview}`}
-              alt="Avatar Preview" 
-              className="w-32 h-32 rounded-full object-cover" 
-            />
-          </div>
-        )}
+        <div className="flex flex-col items-center">
+          <img 
+            src={
+              avatarPreview?.startsWith('blob:') 
+                ? avatarPreview 
+                : user.avatar 
+                  ? user.avatar.startsWith('http') 
+                    ? user.avatar 
+                    : `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
+                  : undefined
+            }
+            alt="Avatar" 
+            className="w-32 h-32 rounded-full object-cover" 
+          />
+        </div>
         <FormField
           control={form.control}
           name="avatar"
