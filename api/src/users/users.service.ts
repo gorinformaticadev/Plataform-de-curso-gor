@@ -87,7 +87,7 @@ export class UsersService {
           isActive: true,
           cpf: true,
           _count: {
-            select: { enrollments: true },
+            select: { inscricoes: true },
           },
         },
         skip,
@@ -114,7 +114,7 @@ export class UsersService {
       include: {
         instructorProfile: true,
         student: true,
-        enrollments: {
+        inscricoes: {
           include: {
             course: {
               select: {

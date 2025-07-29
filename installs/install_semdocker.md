@@ -148,7 +148,7 @@ Este comando irá:
 
 Se preferir executar os passos manualmente, siga as seções 2.5 e 2.6.
 
-**2.5. Executar Migrações (Manualmente)**
+**2.5. Executar Migrações (Manualmente)** 
 ```bash
 npx prisma migrate dev
 ```
