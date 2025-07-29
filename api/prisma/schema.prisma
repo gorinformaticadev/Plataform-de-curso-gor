@@ -12,6 +12,9 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade, name: "student")
+  studentCode    String   @unique @default(cuid())
   email     String   @unique
   password  String
   name      String
@@ -21,6 +24,7 @@ model User {
   avatar    String?
   bio       String?
   createdAt DateTime @default(now())
+  registrationDate DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relacionamentos
@@ -32,7 +36,8 @@ model User {
 
   // Instrutor
   instructorProfile InstructorProfile?
-  student           StudentProfile?    @relation("student")
+  // student           StudentProfile?    @relation("student")
+  students         User[]               @relation("student")
 
   @@map("users")
 }
@@ -242,16 +247,4 @@ enum EnrollmentStatus {
   ACTIVE
   COMPLETED
   SUSPENDED
-}
-
-model StudentProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade, name: "student")
-  studentCode    String   @unique @default(cuid())
-  enrollmentDate DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@map("student_profiles")
 }

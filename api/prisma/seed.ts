@@ -22,9 +22,12 @@ async function main() {
   // Hash da senha
   const hashedPassword = await hash(adminPassword, 12);
 
-  // Criar o usuário admin
-  await prisma.user.create({
+  // Criar o usuário root admin (sem referência)
+  const rootAdmin = await prisma.user.create({
     data: {
+      userId: 'root-admin', // ID único
+      user: { connect: { id: 'root-admin' } }, // Auto-relação
+      studentCode: 'root-admin-code', // Código único
       email: adminEmail,
       password: hashedPassword,
       name: 'Admin User',
@@ -45,6 +48,9 @@ async function main() {
     const secondHashedPassword = await hash(secondAdminPassword, 12);
     await prisma.user.create({
       data: {
+        userId: 'second-admin', // ID único
+        user: { connect: { id: rootAdmin.id } }, // Relaciona com o root admin
+        studentCode: 'second-admin-code', // Código único
         email: secondAdminEmail,
         password: secondHashedPassword,
         name: 'Second Admin',
