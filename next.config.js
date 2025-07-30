@@ -13,6 +13,16 @@ const nextConfig = {
     domains: ['images.pexels.com'],
   },
   output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  
+  // Otimizações para reduzir avisos de preload
+  experimental: {
+    optimizeCss: true,
+  },
+  
+  // Configuração para melhor performance de CSS
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 
   async rewrites() {
     return [

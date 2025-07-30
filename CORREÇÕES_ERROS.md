@@ -85,7 +85,27 @@ export function NoSSR({ children, fallback = null }: NoSSRProps) {
 }
 ```
 
-### 3. ℹ️ React DevTools (Informativo)
+### 3. ❌ Warning de Preload de CSS
+**Erro:** `The resource http://localhost:3000/_next/static/css/app/layout.css was preloaded using link preload but not used within a few seconds`
+
+**Causa:** Next.js estava fazendo preload de CSS que não era utilizado imediatamente, causando avisos de performance.
+
+**Solução Implementada:**
+- ✅ Otimizado [`next.config.js`](next.config.js:1) com configurações experimentais
+- ✅ Criado componente [`CSSOptimizer`](components/css-optimizer.tsx:1) para gerenciar preloads
+- ✅ Adicionado otimizações de CSS e remoção de console em produção
+
+```javascript
+// next.config.js - Configurações adicionadas
+experimental: {
+  optimizeCss: true,
+},
+compiler: {
+  removeConsole: process.env.NODE_ENV === 'production',
+},
+```
+
+### 4. ℹ️ React DevTools (Informativo)
 **Aviso:** `Download the React DevTools for a better development experience`
 
 **Status:** Este é um aviso informativo normal em desenvolvimento. Não requer correção.
@@ -93,20 +113,24 @@ export function NoSSR({ children, fallback = null }: NoSSRProps) {
 ## Arquivos Criados/Modificados
 
 ### Arquivos Criados:
-- `public/favicon.ico` - Favicon principal
+- `public/favicon.ico` - Favicon principal válido
 - `public/favicon.svg` - Favicon em SVG (moderno)
 - `public/apple-touch-icon.png` - Ícone para dispositivos Apple
 - `components/no-ssr.tsx` - Componente utilitário para evitar SSR
+- `components/css-optimizer.tsx` - Componente para otimizar preload de CSS
 - `CORREÇÕES_ERROS.md` - Esta documentação
 
 ### Arquivos Modificados:
-- `app/layout.tsx` - Adicionado metadata de ícones e suppressHydrationWarning
+- `app/layout.tsx` - Metadata de ícones, suppressHydrationWarning e CSSOptimizer
+- `next.config.js` - Otimizações experimentais e configurações de performance
 
 ## Resultado Final
 
 ✅ **Todos os erros críticos foram resolvidos:**
 - Favicon 404: **RESOLVIDO**
 - Warning de hidratação: **RESOLVIDO**
+- Warning de preload de CSS: **RESOLVIDO**
+- Erro de sintaxe no favicon: **RESOLVIDO**
 - Aviso do React DevTools: **Normal em desenvolvimento**
 
 ## Testes Realizados

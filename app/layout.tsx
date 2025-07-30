@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth-context';
 import { Providers } from './providers';
+import { CSSOptimizer } from '@/components/css-optimizer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning={true}>
       <body className={inter.className} suppressHydrationWarning={true}>
+        <CSSOptimizer />
         <AuthProvider>
           <Providers>
             {children}
