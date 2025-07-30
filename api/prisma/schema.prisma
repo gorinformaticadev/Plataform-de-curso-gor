@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
-  userId         String   @unique // Mantido como identificador de negócio
+  userId         String   @unique @default(uuid()) // Mantido como identificador de negócio
   studentCode    String   @unique @default(cuid())
   email     String   @unique
   password  String

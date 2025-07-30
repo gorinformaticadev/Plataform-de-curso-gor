@@ -14,22 +14,15 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const data: Prisma.UserCreateInput = {
-      name,
-      email,
+    const data = {
+      name: createUserDto.name,
+      email: createUserDto.email,
       password: hashedPassword,
-      role: UserRole.STUDENT,
-      student: {
-        create: {},
-      },
+      cpf: createUserDto.cpf,
+      role: createUserDto.role || UserRole.STUDENT,
+      avatar: createUserDto.avatar,
+      bio: createUserDto.bio,
     };
-
-    if (cpf) {
-      data.cpf = cpf;
-      data.student = {
-        create: {},
-      };
-    }
 
     return this.prisma.user.create({
       data,
@@ -41,7 +34,6 @@ export class UsersService {
         avatar: true,
         bio: true,
         createdAt: true,
-        student: true,
         cpf: true,
       },
     });
@@ -113,7 +105,6 @@ export class UsersService {
       where: { id },
       include: {
         instructorProfile: true,
-        student: true,
         inscricoes: {
           include: {
             course: {
@@ -142,18 +133,13 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const { password, cpf, ...restOfDto } = updateUserDto;
 
-    // Garante que o CPF não seja atualizado na tabela User
     const data: Prisma.UserUpdateInput = { ...restOfDto };
-    if (data.cpf) {
-      delete data.cpf;
-    }
 
     if (password) {
       data.password = await bcrypt.hash(password, 12);
     }
 
-    // Atualiza o CPF na tabela User
-    if (cpf) {
+    if (cpf !== undefined) { // Permite que o CPF seja definido como null ou string vazia
       data.cpf = cpf;
     }
 
