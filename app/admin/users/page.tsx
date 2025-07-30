@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -126,6 +127,9 @@ export default function UsersPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Criar Usuário</DialogTitle>
+            <DialogDescription>
+              Preencha os campos abaixo para criar um novo usuário na plataforma.
+            </DialogDescription>
           </DialogHeader>
           <UserCreateForm
             onSuccess={handleSuccess}
@@ -138,6 +142,9 @@ export default function UsersPage() {
         <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Modifique as informações do usuário {selectedUser?.name} conforme necessário.
+            </DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <UserEditForm

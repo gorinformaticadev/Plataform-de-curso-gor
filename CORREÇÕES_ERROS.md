@@ -105,7 +105,28 @@ compiler: {
 },
 ```
 
-### 4. ℹ️ React DevTools (Informativo)
+### 4. ❌ Warning de Acessibilidade no DialogContent
+**Erro:** `Warning: Missing Description or aria-describedby={undefined} for {DialogContent}`
+
+**Causa:** Os modais de criação e edição de usuários não tinham descrições adequadas para acessibilidade.
+
+**Solução Implementada:**
+- ✅ Adicionado [`DialogDescription`](app/admin/users/page.tsx:6) às importações
+- ✅ Incluído descrições contextuais nos modais de criar e editar usuário
+- ✅ Melhorada acessibilidade para leitores de tela
+
+```typescript
+// app/admin/users/page.tsx - Descrições adicionadas
+<DialogDescription>
+  Preencha os campos abaixo para criar um novo usuário na plataforma.
+</DialogDescription>
+
+<DialogDescription>
+  Modifique as informações do usuário {selectedUser?.name} conforme necessário.
+</DialogDescription>
+```
+
+### 5. ℹ️ React DevTools (Informativo)
 **Aviso:** `Download the React DevTools for a better development experience`
 
 **Status:** Este é um aviso informativo normal em desenvolvimento. Não requer correção.
@@ -123,6 +144,7 @@ compiler: {
 ### Arquivos Modificados:
 - `app/layout.tsx` - Metadata de ícones, suppressHydrationWarning e CSSOptimizer
 - `next.config.js` - Otimizações experimentais e configurações de performance
+- `app/admin/users/page.tsx` - Adicionado DialogDescription para acessibilidade
 
 ## Resultado Final
 
@@ -131,6 +153,7 @@ compiler: {
 - Warning de hidratação: **RESOLVIDO**
 - Warning de preload de CSS: **RESOLVIDO**
 - Erro de sintaxe no favicon: **RESOLVIDO**
+- Warning de acessibilidade no DialogContent: **RESOLVIDO**
 - Aviso do React DevTools: **Normal em desenvolvimento**
 
 ## Testes Realizados
