@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,25 +19,36 @@ export class UsersService {
       name: createUserDto.name,
       email: createUserDto.email,
       password: hashedPassword,
-      cpf: createUserDto.cpf,
+      cpf: createUserDto.cpf || null, // Tratar string vazia como null
       role: createUserDto.role || UserRole.STUDENT,
       avatar: createUserDto.avatar,
       bio: createUserDto.bio,
+      studentCode: createUserDto.studentCode,
+      userId: uuidv4(), // Garantir que userId seja único
     };
 
-    return this.prisma.user.create({
-      data,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        avatar: true,
-        bio: true,
-        createdAt: true,
-        cpf: true,
-      },
-    });
+    console.log('Creating user with data:', data);
+
+    try {
+      const user = await this.prisma.user.create({
+        data,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          avatar: true,
+          bio: true,
+          createdAt: true,
+          cpf: true,
+        },
+      });
+      console.log('User created successfully:', user);
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
   }
 
   async findAll(

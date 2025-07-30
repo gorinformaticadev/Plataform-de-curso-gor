@@ -53,20 +53,8 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
     setError(null);
 
     try {
-      // Primeiro, buscar o próximo número sequencial
-      const countResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/count-by-role/${userRole}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      let sequencial = 1;
-      if (countResponse.ok) {
-        const countData = await countResponse.json();
-        sequencial = (countData.count || 0) + 1;
-      }
-
-      // Gerar o código de estudante
+      // Usar sequencial padrão 1 já que não temos contagem
+      const sequencial = 1;
       const studentCode = generateStudentCode(userRole, sequencial);
 
       const promise = fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
@@ -81,6 +69,7 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
           password,
           cpf,
           role: userRole,
+          studentCode, // Incluir o código gerado
         }),
       }).then(async (res) => {
         if (!res.ok) {

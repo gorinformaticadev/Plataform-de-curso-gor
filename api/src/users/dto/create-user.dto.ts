@@ -34,4 +34,9 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @ApiPropertyOptional({ example: 'RAES20240001' })
+  @IsOptional()
+  @IsString()
+  studentCode?: string;
 }
