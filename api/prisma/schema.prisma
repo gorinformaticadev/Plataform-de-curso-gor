@@ -12,8 +12,7 @@ datasource db {
 
 model User {
   id        String   @id @default(uuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade, name: "student")
+  userId         String   @unique // Mantido como identificador de negócio
   studentCode    String   @unique @default(cuid())
   email     String   @unique
   password  String
@@ -36,8 +35,6 @@ model User {
 
   // Instrutor
   instructorProfile InstructorProfile?
-  // student           StudentProfile?    @relation("student")
-  students         User[]               @relation("student")
 
   @@map("users")
 }
