@@ -4,6 +4,8 @@ import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from '../users/users.service';
+import { generateStudentCode } from '../../../lib/studentCodeGenerator';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -21,8 +23,15 @@ export class AuthService {
       throw new ConflictException('Email já está em uso');
     }
 
+    // Garantir que usuários públicos sejam criados como STUDENT com studentCode
+    const userData = {
+      ...registerDto,
+      role: UserRole.STUDENT,
+      studentCode: generateStudentCode('STUDENT', await this.usersService.getTotalStudents() + 1)
+    };
+
     // A criação do usuário, hash da senha e perfil de estudante agora é feita no UsersService
-    const user = await this.usersService.create(registerDto);
+    const user = await this.usersService.create(userData);
 
     const token = this.generateToken(user.id, user.email, user.role);
 
