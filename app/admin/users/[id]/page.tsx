@@ -19,6 +19,8 @@ import { UserEditForm } from "@/components/admin/user-edit-form";
 
 interface User {
   id: string;
+  userId: string;
+  studentCode: string | null;
   name: string;
   email: string;
   cpf: string | null;
@@ -28,7 +30,16 @@ interface User {
   avatar: string | null;
   bio: string | null;
   isActive: boolean;
-  inscricoes: { course: { title: string } }[];
+  inscricoes: {
+    id: string;
+    course: {
+      id: string;
+      title: string;
+      description?: string;
+    };
+    enrolledAt: string;
+    status: string;
+  }[];
   student: {
     studentCode: string;
     enrollmentDate: string;
@@ -41,8 +52,38 @@ interface User {
     linkedin: string | null;
     approved: boolean;
   } | null;
+  compras: {
+    id: string;
+    amount: number;
+    status: string;
+    createdAt: string;
+    course: {
+      title: string;
+    };
+  }[];
+  progress: {
+    id: string;
+    courseId: string;
+    progress: number;
+    completedAt: string | null;
+    course: {
+      title: string;
+    };
+  }[];
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    course: {
+      title: string;
+    };
+  }[];
   _count: {
     inscricoes: number;
+    compras: number;
+    progress: number;
+    reviews: number;
   };
 }
 
@@ -142,8 +183,30 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
         <div className="space-y-2">
+          <h3 className="font-semibold text-gray-500">ID do Usuário</h3>
+          <p className="font-mono text-sm">{user.userId}</p>
+        </div>
+        {user.studentCode && (
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Código de Estudante</h3>
+            <p className="font-mono text-sm">{user.studentCode}</p>
+          </div>
+        )}
+        <div className="space-y-2">
           <h3 className="font-semibold text-gray-500">Função</h3>
           <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+        </div>
+        {user.cpf && (
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">CPF</h3>
+            <p>{user.cpf}</p>
+          </div>
+        )}
+        <div className="space-y-2">
+          <h3 className="font-semibold text-gray-500">Status do Cadastro</h3>
+          <Badge variant={user.isActive ? "default" : "destructive"}>
+            {user.isActive ? "Ativo" : "Inativo"}
+          </Badge>
         </div>
         <div className="space-y-2">
           <h3 className="font-semibold text-gray-500">Data de Cadastro</h3>
@@ -155,8 +218,8 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
         </div>
         {user.bio && (
           <div className="space-y-2 md:col-span-2">
-            <h3 className="font-semibold text-gray-500">Biografia</h3>
-            <p>{user.bio}</p>
+            <h3 className="font-semibold text-gray-500">Informações (Bio)</h3>
+            <p className="text-sm leading-relaxed">{user.bio}</p>
           </div>
         )}
       </CardContent>
@@ -168,23 +231,17 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
           <CardTitle>Informações do Aluno</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {user.cpf && (
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-500">CPF</h3>
-              <p>{user.cpf}</p>
-            </div>
-          )}
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-500">Código do Aluno</h3>
-            <p>{user.student.studentCode}</p>
+            <h3 className="font-semibold text-gray-500">Código do Estudante</h3>
+            <p className="font-mono text-sm">{user.student.studentCode}</p>
           </div>
           <div className="space-y-2">
             <h3 className="font-semibold text-gray-500">Data de Matrícula</h3>
             <p>{new Date(user.student.enrollmentDate).toLocaleDateString("pt-BR")}</p>
           </div>
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-500">Status</h3>
-            <Badge>{user.student.status}</Badge>
+            <h3 className="font-semibold text-gray-500">Status do Aluno</h3>
+            <Badge variant="secondary">{user.student.status}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -238,19 +295,135 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
 
     <Card>
       <CardHeader>
-        <CardTitle>Inscrições em Cursos</CardTitle>
+        <CardTitle>Cursos Inscritos</CardTitle>
       </CardHeader>
       <CardContent>
         {user.inscricoes && user.inscricoes.length > 0 ? (
-          <ul className="space-y-2">
+          <div className="space-y-3">
             {user.inscricoes.map((inscricao, index) => (
-              <li key={index} className="rounded-md border p-3">
-                {inscricao.course.title}
-              </li>
+              <div key={index} className="rounded-md border p-4 bg-gray-50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium">{inscricao.course.title}</h4>
+                    {inscricao.course.description && (
+                      <p className="text-sm text-gray-600 mt-1">{inscricao.course.description}</p>
+                    )}
+                  </div>
+                  <Badge variant="outline">{inscricao.status}</Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Inscrito em: {new Date(inscricao.enrolledAt).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>Este usuário não está inscrito em nenhum curso.</p>
+          <p className="text-gray-500">Este usuário não está inscrito em nenhum curso.</p>
+        )}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Compras Realizadas</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {user.compras && user.compras.length > 0 ? (
+          <div className="space-y-3">
+            {user.compras.map((compra, index) => (
+              <div key={index} className="rounded-md border p-4 bg-blue-50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium">{compra.course.title}</h4>
+                    <p className="text-lg font-bold text-green-600 mt-1">
+                      R$ {compra.amount.toFixed(2)}
+                    </p>
+                  </div>
+                  <Badge variant={compra.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                    {compra.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Comprado em: {new Date(compra.createdAt).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">Este usuário não realizou nenhuma compra.</p>
+        )}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Progressos</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {user.progress && user.progress.length > 0 ? (
+          <div className="space-y-3">
+            {user.progress.map((progresso, index) => (
+              <div key={index} className="rounded-md border p-4 bg-green-50">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium">{progresso.course.title}</h4>
+                  <span className="text-sm font-bold text-green-600">
+                    {progresso.progress}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                  <div
+                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${progresso.progress}%` }}
+                  ></div>
+                </div>
+                {progresso.completedAt && (
+                  <p className="text-xs text-gray-500">
+                    Concluído em: {new Date(progresso.completedAt).toLocaleDateString("pt-BR")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">Este usuário não possui progresso registrado.</p>
+        )}
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Avaliações</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {user.reviews && user.reviews.length > 0 ? (
+          <div className="space-y-3">
+            {user.reviews.map((review, index) => (
+              <div key={index} className="rounded-md border p-4 bg-yellow-50">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium">{review.course.title}</h4>
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        className={`text-lg ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                    <span className="ml-2 text-sm font-bold">{review.rating}/5</span>
+                  </div>
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-gray-700 mb-2 italic">"{review.comment}"</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Avaliado em: {new Date(review.createdAt).toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">Este usuário não fez nenhuma avaliação.</p>
         )}
       </CardContent>
     </Card>
