@@ -10,6 +10,7 @@
 export function generateStudentCode(role: 'STUDENT' | 'ADMIN' | 'INSTRUCTOR', sequencial: number): string {
   const currentYear = new Date().getFullYear().toString();
   const sequentialPadded = sequencial.toString().padStart(4, '0');
+  const randomSuffix = Math.floor(Math.random() * 100).toString().padStart(2, '0');
   
   let prefix: string;
   
@@ -27,20 +28,20 @@ export function generateStudentCode(role: 'STUDENT' | 'ADMIN' | 'INSTRUCTOR', se
       prefix = 'ES'; // fallback para STUDENT
   }
   
-  return `RA${prefix}${currentYear}${sequentialPadded}`;
+  return `RA${prefix}${currentYear}${sequentialPadded}${randomSuffix}`;
 }
 
 /**
  * Extrai informações do código de estudante
  */
 export function parseStudentCode(studentCode: string) {
-  const match = studentCode.match(/^RA(ES|PRO|IN)(\d{4})(\d{4})$/);
+  const match = studentCode.match(/^RA(ES|PRO|IN)(\d{4})(\d{4})(\d{2})$/);
   
   if (!match) {
     return null;
   }
   
-  const [, prefix, year, sequential] = match;
+  const [, prefix, year, sequential, randomSuffix] = match;
   
   let role: 'STUDENT' | 'ADMIN' | 'INSTRUCTOR';
   switch (prefix) {
@@ -61,6 +62,7 @@ export function parseStudentCode(studentCode: string) {
     role,
     year: parseInt(year),
     sequential: parseInt(sequential),
+    randomSuffix: parseInt(randomSuffix),
     prefix
   };
 }
@@ -69,5 +71,5 @@ export function parseStudentCode(studentCode: string) {
  * Valida se o código de estudante está no formato correto
  */
 export function validateStudentCode(studentCode: string): boolean {
-  return /^RA(ES|PRO|IN)\d{8}$/.test(studentCode);
+  return /^RA(ES|PRO|IN)\d{10}$/.test(studentCode);
 }
