@@ -10,6 +10,15 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'EduPlatform - Plataforma de Cursos Online',
   description: 'A melhor plataforma para criar e vender cursos online',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -18,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="pt-BR" suppressHydrationWarning={true}>
+      <body className={inter.className} suppressHydrationWarning={true}>
         <AuthProvider>
           <Providers>
             {children}
