@@ -126,7 +126,26 @@ compiler: {
 </DialogDescription>
 ```
 
-### 5. ℹ️ React DevTools (Informativo)
+### 5. ❌ Problemas na Página de Detalhes dos Usuários
+**Problemas:** Estrutura HTML incorreta, URLs hardcoded, falta de acessibilidade
+
+**Causa:** A página [`app/admin/users/[id]/page.tsx`](app/admin/users/[id]/page.tsx:1) tinha múltiplos problemas estruturais e de configuração.
+
+**Soluções Implementadas:**
+- ✅ Corrigida estrutura HTML do Dialog (estava mal posicionado)
+- ✅ Adicionado [`DialogDescription`](app/admin/users/[id]/page.tsx:13) para acessibilidade
+- ✅ Substituído URLs hardcoded por variáveis de ambiente
+- ✅ Reorganizada estrutura de componentes para melhor legibilidade
+
+```typescript
+// Antes: URL hardcoded
+const response = await fetch(`http://localhost:3001/api/users/${params.id}`, {
+
+// Depois: Variável de ambiente
+const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}`, {
+```
+
+### 6. ℹ️ React DevTools (Informativo)
 **Aviso:** `Download the React DevTools for a better development experience`
 
 **Status:** Este é um aviso informativo normal em desenvolvimento. Não requer correção.
@@ -145,6 +164,7 @@ compiler: {
 - `app/layout.tsx` - Metadata de ícones, suppressHydrationWarning e CSSOptimizer
 - `next.config.js` - Otimizações experimentais e configurações de performance
 - `app/admin/users/page.tsx` - Adicionado DialogDescription para acessibilidade
+- `app/admin/users/[id]/page.tsx` - Corrigida estrutura, URLs e acessibilidade
 
 ## Resultado Final
 
@@ -154,6 +174,7 @@ compiler: {
 - Warning de preload de CSS: **RESOLVIDO**
 - Erro de sintaxe no favicon: **RESOLVIDO**
 - Warning de acessibilidade no DialogContent: **RESOLVIDO**
+- Problemas na página de detalhes dos usuários: **RESOLVIDO**
 - Aviso do React DevTools: **Normal em desenvolvimento**
 
 ## Testes Realizados

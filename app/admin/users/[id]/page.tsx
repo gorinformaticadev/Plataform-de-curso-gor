@@ -11,6 +11,7 @@ import { Edit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -62,7 +63,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:3001/api/users/${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -115,149 +116,152 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="space-y-6">
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-x-4">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage 
-                  src={user.avatar ? 
-                      user.avatar.startsWith('http') ? 
-                      user.avatar : 
-                      `http://localhost:3001${user.avatar.replace('/api', '')}`
-                      : undefined} 
-                  alt={user.name} 
-                />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-2xl">{user.name}</CardTitle>
-                <p className="text-gray-500">{user.email}</p>
-              </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-x-4">
+          <div className="flex items-center space-x-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage
+                src={user.avatar ?
+                    user.avatar.startsWith('http') ?
+                    user.avatar :
+                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
+                    : undefined}
+                alt={user.name}
+              />
+              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="text-2xl">{user.name}</CardTitle>
+              <p className="text-gray-500">{user.email}</p>
             </div>
-            <Button onClick={() => setIsEditDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Editar
-            </Button>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-gray-500">Função</h3>
-            <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
           </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold text-gray-500">Data de Cadastro</h3>
-            <p>{new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
+          <Button onClick={() => setIsEditDialogOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Editar
+          </Button>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+        <div className="space-y-2">
+          <h3 className="font-semibold text-gray-500">Função</h3>
+          <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-gray-500">Data de Cadastro</h3>
+          <p>{new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
+        </div>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-gray-500">Última Atualização</h3>
+          <p>{new Date(user.updatedAt).toLocaleDateString("pt-BR")}</p>
+        </div>
+        {user.bio && (
+          <div className="space-y-2 md:col-span-2">
+            <h3 className="font-semibold text-gray-500">Biografia</h3>
+            <p>{user.bio}</p>
           </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold text-gray-500">Última Atualização</h3>
-            <p>{new Date(user.updatedAt).toLocaleDateString("pt-BR")}</p>
-          </div>
-          {user.bio && (
-            <div className="space-y-2 md:col-span-2">
-              <h3 className="font-semibold text-gray-500">Biografia</h3>
-              <p>{user.bio}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </CardContent>
+    </Card>
 
-      {user.student && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações do Aluno</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {user.cpf && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-500">CPF</h3>
-                <p>{user.cpf}</p>
-              </div>
-            )}
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-500">Código do Aluno</h3>
-              <p>{user.student.studentCode}</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-500">Data de Matrícula</h3>
-              <p>{new Date(user.student.enrollmentDate).toLocaleDateString("pt-BR")}</p>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-500">Status</h3>
-              <Badge>{user.student.status}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {user.instructorProfile && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações do Instrutor</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-500">Aprovado</h3>
-              <Badge variant={user.instructorProfile.approved ? "default" : "destructive"}>
-                {user.instructorProfile.approved ? "Sim" : "Não"}
-              </Badge>
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-gray-500">Especialidades</h3>
-              <div className="flex flex-wrap gap-2">
-                {user.instructorProfile.expertise.map((exp, i) => (
-                  <Badge key={i} variant="secondary">{exp}</Badge>
-                ))}
-              </div>
-            </div>
-            {user.instructorProfile.experience && (
-              <div className="space-y-2 md:col-span-2">
-                <h3 className="font-semibold text-gray-500">Experiência</h3>
-                <p>{user.instructorProfile.experience}</p>
-              </div>
-            )}
-            {user.instructorProfile.website && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-500">Website</h3>
-                <a href={user.instructorProfile.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                  {user.instructorProfile.website}
-                </a>
-              </div>
-            )}
-            {user.instructorProfile.linkedin && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-500">LinkedIn</h3>
-                <a href={user.instructorProfile.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                  {user.instructorProfile.linkedin}
-                </a>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
+    {user.student && (
       <Card>
         <CardHeader>
-          <CardTitle>Inscrições em Cursos</CardTitle>
+          <CardTitle>Informações do Aluno</CardTitle>
         </CardHeader>
-        <CardContent>
-          {user.inscricoes && user.inscricoes.length > 0 ? (
-            <ul className="space-y-2">
-              {user.inscricoes.map((inscricao, index) => (
-                <li key={index} className="rounded-md border p-3">
-                  {inscricao.course.title}
-                </li>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {user.cpf && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">CPF</h3>
+              <p>{user.cpf}</p>
+            </div>
+          )}
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Código do Aluno</h3>
+            <p>{user.student.studentCode}</p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Data de Matrícula</h3>
+            <p>{new Date(user.student.enrollmentDate).toLocaleDateString("pt-BR")}</p>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Status</h3>
+            <Badge>{user.student.status}</Badge>
+          </div>
+        </CardContent>
+      </Card>
+    )}
+
+    {user.instructorProfile && (
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações do Instrutor</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Aprovado</h3>
+            <Badge variant={user.instructorProfile.approved ? "default" : "destructive"}>
+              {user.instructorProfile.approved ? "Sim" : "Não"}
+            </Badge>
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-gray-500">Especialidades</h3>
+            <div className="flex flex-wrap gap-2">
+              {user.instructorProfile.expertise.map((exp, i) => (
+                <Badge key={i} variant="secondary">{exp}</Badge>
               ))}
-            </ul>
-          ) : (
-            <p>Este usuário não está inscrito em nenhum curso.</p>
+            </div>
+          </div>
+          {user.instructorProfile.experience && (
+            <div className="space-y-2 md:col-span-2">
+              <h3 className="font-semibold text-gray-500">Experiência</h3>
+              <p>{user.instructorProfile.experience}</p>
+            </div>
+          )}
+          {user.instructorProfile.website && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">Website</h3>
+              <a href={user.instructorProfile.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                {user.instructorProfile.website}
+              </a>
+            </div>
+          )}
+          {user.instructorProfile.linkedin && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-500">LinkedIn</h3>
+              <a href={user.instructorProfile.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                {user.instructorProfile.linkedin}
+              </a>
+            </div>
           )}
         </CardContent>
       </Card>
+    )}
 
+    <Card>
+      <CardHeader>
+        <CardTitle>Inscrições em Cursos</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {user.inscricoes && user.inscricoes.length > 0 ? (
+          <ul className="space-y-2">
+            {user.inscricoes.map((inscricao, index) => (
+              <li key={index} className="rounded-md border p-3">
+                {inscricao.course.title}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Este usuário não está inscrito em nenhum curso.</p>
+        )}
+      </CardContent>
+    </Card>
+
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
+          <DialogDescription>
+            Modifique as informações do usuário {user.name} conforme necessário.
+          </DialogDescription>
         </DialogHeader>
         <UserEditForm
           user={user}
