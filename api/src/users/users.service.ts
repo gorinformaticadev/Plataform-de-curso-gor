@@ -27,7 +27,8 @@ export class UsersService {
       userId: uuidv4(), // Garantir que userId seja único
     };
 
-    console.log('Creating user with data:', data);
+    // DEBUG: Log removido por questões de segurança - manter como referência
+    // console.log('Creating user with data:', data);
 
     try {
       const user = await this.prisma.user.create({
@@ -43,10 +44,12 @@ export class UsersService {
           cpf: true,
         },
       });
-      console.log('User created successfully:', user);
+      // DEBUG: Log removido por questões de segurança - manter como referência
+      // console.log('User created successfully:', user);
       return user;
     } catch (error) {
-      console.error('Error creating user:', error);
+      // Manter apenas o log de erro sem detalhes sensíveis
+      console.error('Error creating user');
       throw error;
     }
   }
