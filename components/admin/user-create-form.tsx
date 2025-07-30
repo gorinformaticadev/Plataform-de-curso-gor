@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
+import { generateStudentCode } from "@/lib/studentCodeGenerator";
 
 interface UserCreateFormProps {
   onSuccess: () => void;
@@ -28,46 +29,87 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Gerar prévia do código de estudante
+  const getPreviewStudentCode = () => {
+    const currentYear = new Date().getFullYear();
+    let prefix = '';
+    switch (userRole) {
+      case 'STUDENT':
+        prefix = 'ES';
+        break;
+      case 'ADMIN':
+        prefix = 'PRO';
+        break;
+      case 'INSTRUCTOR':
+        prefix = 'IN';
+        break;
+    }
+    return `RA${prefix}${currentYear}XXXX`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    const promise = fetch("http://localhost:3001/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        cpf,
-        role: userRole,
-      }),
-    }).then(async (res) => {
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: 'Falha ao criar usuário' }));
-        throw new Error(errorData.message || 'Falha ao criar usuário');
-      }
-      return res.json();
-    });
+    try {
+      // Primeiro, buscar o próximo número sequencial
+      const countResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/count-by-role/${userRole}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    toast.promise(promise, {
-      loading: "Criando usuário...",
-      success: () => {
-        onSuccess();
-        return "Usuário criado com sucesso!";
-      },
-      error: (err) => {
-        setError(err.message);
-        return err.message;
-      },
-      finally: () => {
-        setIsLoading(false);
+      let sequencial = 1;
+      if (countResponse.ok) {
+        const countData = await countResponse.json();
+        sequencial = (countData.count || 0) + 1;
       }
-    });
+
+      // Gerar o código de estudante
+      const studentCode = generateStudentCode(userRole, sequencial);
+
+      const promise = fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          cpf,
+          role: userRole,
+        }),
+      }).then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: 'Falha ao criar usuário' }));
+          throw new Error(errorData.message || 'Falha ao criar usuário');
+        }
+        return res.json();
+      });
+
+      toast.promise(promise, {
+        loading: "Criando usuário...",
+        success: (data) => {
+          onSuccess();
+          return `Usuário criado com sucesso! Código: ${studentCode}`;
+        },
+        error: (err) => {
+          setError(err.message);
+          return err.message;
+        },
+      });
+
+      await promise;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -110,16 +152,21 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
           >
             Função
           </label>
-          <Select onValueChange={(value) => setUserRole(value as "ADMIN" | "INSTRUCTOR" | "STUDENT")}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Selecione uma função" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ADMIN">Administrador</SelectItem>
-              <SelectItem value="INSTRUCTOR">Instrutor</SelectItem>
-              <SelectItem value="STUDENT">Aluno</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="col-span-3 space-y-2">
+            <Select onValueChange={(value) => setUserRole(value as "ADMIN" | "INSTRUCTOR" | "STUDENT")}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma função" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ADMIN">Administrador</SelectItem>
+                <SelectItem value="INSTRUCTOR">Instrutor</SelectItem>
+                <SelectItem value="STUDENT">Aluno</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="text-xs text-gray-500">
+              Código será gerado: <span className="font-mono font-medium">{getPreviewStudentCode()}</span>
+            </div>
+          </div>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <label
