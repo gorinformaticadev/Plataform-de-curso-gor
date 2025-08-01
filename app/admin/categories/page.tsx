@@ -49,6 +49,7 @@ const categorySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
   icon: z.string().min(1, "Ícone é obrigatório"),
+  isActive: z.boolean().default(true),
 });
 
 type CategoryForm = z.infer<typeof categorySchema>;
@@ -63,7 +64,8 @@ export default function CategoriesPage() {
       name: "",
       slug: "",
       description: "",
-      icon: ""
+      icon: "",
+      isActive: true
     }
   });
 
@@ -210,6 +212,18 @@ export default function CategoriesPage() {
                     {form.formState.errors.icon.message}
                   </p>
                 )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  {...form.register("isActive")}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="isActive" className="text-sm font-medium">
+                  Categoria ativa
+                </label>
               </div>
 
               <div className="flex justify-end space-x-2">
