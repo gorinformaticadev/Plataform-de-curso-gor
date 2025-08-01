@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
 import { CategoryEditForm } from "./category-edit-form";
 
@@ -33,6 +33,9 @@ export function CategoryEditModal({
       >
         <DialogHeader>
           <DialogTitle>Editar Categoria</DialogTitle>
+          <DialogDescription>
+            Modifique os dados da categoria {category.name}
+          </DialogDescription>
         </DialogHeader>
         <CategoryEditForm
           category={category}
@@ -46,4 +49,3 @@ export function CategoryEditModal({
     </Dialog>
   );
 }
-

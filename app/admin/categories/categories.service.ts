@@ -60,7 +60,16 @@ export function useUpdateCategory() {
       icon?: string;
       isActive?: boolean 
     }) => {
-      console.log('Enviando atualização:', { id, updates });
+      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        console.groupCollapsed('[Categories] Atualizando categoria');
+        console.log('ID:', id);
+        console.log('Alterações:', {
+          name: updates.name,
+          isActive: updates.isActive,
+          icon: updates.icon
+        });
+        console.groupEnd();
+      }
       return axios.patch(`/api/categories/${id}`, updates, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
