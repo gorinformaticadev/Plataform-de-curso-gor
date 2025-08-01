@@ -1,4 +1,4 @@
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCategoryDto {
@@ -6,6 +6,13 @@ export class CreateCategoryDto {
   @IsString()
   @MaxLength(100)
   name: string;
+
+  @ApiProperty({ example: 'programacao' })
+  @IsString()
+  @Matches(/^[a-z0-9-]+$/, { 
+    message: 'Slug deve conter apenas letras minúsculas, números e hifens' 
+  })
+  slug: string;
 
   @ApiPropertyOptional({ example: 'Cursos de programação e desenvolvimento' })
   @IsOptional()

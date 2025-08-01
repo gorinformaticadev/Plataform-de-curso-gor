@@ -9,7 +9,8 @@ export class CategoriesService {
   constructor(private prisma: PrismaService) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    const slug = this.generateSlug(createCategoryDto.name);
+    // Usar slug fornecido ou gerar a partir do nome
+    const slug = createCategoryDto.slug || this.generateSlug(createCategoryDto.name);
     
     // Verificar se já existe categoria com mesmo slug
     const existingCategory = await this.prisma.category.findUnique({
@@ -17,7 +18,7 @@ export class CategoriesService {
     });
 
     if (existingCategory) {
-      throw new ConflictException('Já existe uma categoria com este nome');
+      throw new ConflictException('Já existe uma categoria com este slug');
     }
 
     return this.prisma.category.create({
