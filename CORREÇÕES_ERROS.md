@@ -2,7 +2,16 @@
 
 Este documento detalha as correções implementadas para resolver os erros encontrados no console do navegador.
 
-## Problemas Identificados e Soluções
+## Status dos Problemas e Soluções
+
+| Problema | Status | Categoria | Data Resolução |
+|----------|--------|-----------|----------------|
+| [1. ❌ Favicon 404 (Not Found)](#1-❌-favicon-404-not-found) | ✅ Resolvido | Frontend | 30/07/2025 |
+| [2. ❌ Warning de Hidratação](#2-❌-warning-de-hidratação-do-classname) | ✅ Resolvido | Frontend | 30/07/2025 |
+| [3. ❌ Warning de Preload de CSS](#3-❌-warning-de-preload-de-css) | ✅ Resolvido | Performance | 30/07/2025 |
+| [4. ❌ Warning de Acessibilidade](#4-❌-warning-de-acessibilidade-no-dialogcontent) | ✅ Resolvido | Acessibilidade | 30/07/2025 |
+| [5. ❌ Problemas na Página de Usuários](#5-❌-problemas-na-página-de-detalhes-dos-usuários) | ✅ Resolvido | Frontend | 30/07/2025 |
+| [6. ℹ️ React DevTools](#6-ℹ️-react-devtools-informativo) | ℹ️ Informativo | Desenvolvimento | - |
 
 ### 1. ❌ Favicon 404 (Not Found)
 **Erro:** `GET http://localhost:3000/favicon.ico 404 (Not Found)`

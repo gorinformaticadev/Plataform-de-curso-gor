@@ -123,21 +123,6 @@ netstat -ano | findstr :3000
 taskkill /PID 1234 /F
 ```
 
-## 📚 Documentação Adicional
-
-- [Documentação do NestJS](https://nestjs.com/)
-- [Documentação do Next.js](https://nextjs.org/docs)
-- [Documentação do Prisma](https://www.prisma.io/docs)
-- [Documentação do Docker](https://docs.docker.com/)
-- [Documentação do Tailwind CSS](https://tailwindcss.com/docs)
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
 
 ## 🔧 Scripts Disponíveis
 
@@ -196,29 +181,20 @@ docker-compose exec api bash   # Acessar container da API
 - [x] Páginas de autenticação
 - [x] Layout profissional
 
-## 🚀 Próximas Funcionalidades
-### ✅ Interface do administrador
-### 🔄 Em Desenvolvimento
-- [ ] Dashboard interativo exclusivo de administração com Design responsivo Layout profissional
-- [ ] Menu administrativo na lateral esquerda
-- [ ] Controle de usuários
-      - [ ] Pagina de controle de alunos
-      - [ ] Pagina de controle de instrutores
-      - [ ] Pagina de controle de administradores
-- [ ] Controle de cursos
-      - [ ] Pagina de controle de cursos
-      - [ ] Controle de categorias
-      - [ ] Controle de módulos e aulas
-      - [ ] Controle de progressos
-      - [ ] Controle de compras
+### ✅ Interface Administrativa
+- [x] Dashboard administrativo
+- [x] Controle de usuários (CRUD)
+- [x] Controle de categorias
+- [x] Paginação e filtros avançados
+- [x] Soft delete para usuários
 
-### 🔄 Em Desenvolvimento
+## 🔄 Em Desenvolvimento
 - [ ] Player de vídeo avançado
 - [ ] Sistema de avaliações
 - [ ] Chat/comentários
 - [ ] Certificados digitais
 
-### 📋 Planejado
+## 📋 Roadmap Futuro
 - [ ] Integração Mercado Pago/Stripe
 - [ ] Sistema de afiliados
 - [ ] Live streaming
