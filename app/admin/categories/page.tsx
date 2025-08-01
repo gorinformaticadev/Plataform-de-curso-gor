@@ -36,6 +36,7 @@ const iconComponents: Record<string, LucideIcon> = {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/app/admin/categories/data-table";
+import { CategoryEditModal } from "@/components/admin/category-edit-modal";
 import { columns } from "@/app/admin/categories/columns";
 import { useCategories, useCreateCategory } from "./categories.service";
 import { toast } from "sonner";
@@ -57,6 +58,14 @@ type CategoryForm = z.infer<typeof categorySchema>;
 export default function CategoriesPage() {
   const { data: categories = [], isLoading, error } = useCategories();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<{
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    icon?: string;
+    isActive: boolean;
+  } | null>(null);
 
   const form = useForm<CategoryForm>({
     resolver: zodResolver(categorySchema),
