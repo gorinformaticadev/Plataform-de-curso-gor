@@ -1,195 +1,121 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Search, Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { DataTable } from "@/app/admin/categories/data-table";
+import { columns } from "@/app/admin/categories/columns";
+import { useCategories, useCreateCategory } from "./categories.service";
+import { toast } from "sonner";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  coursesCount: number;
-  createdAt: string;
-  isActive: boolean;
-}
+const categorySchema = z.object({
+  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+});
 
-const mockCategories: Category[] = [
-  {
-    id: "1",
-    name: "Desenvolvimento Web",
-    description: "Cursos de desenvolvimento web moderno",
-    coursesCount: 15,
-    createdAt: "2024-01-15",
-    isActive: true,
-  },
-  {
-    id: "2",
-    name: "Programação",
-    description: "Fundamentos e linguagens de programação",
-    coursesCount: 12,
-    createdAt: "2024-01-10",
-    isActive: true,
-  },
-  {
-    id: "3",
-    name: "Design",
-    description: "Design gráfico e UX/UI",
-    coursesCount: 8,
-    createdAt: "2024-01-05",
-    isActive: false,
-  },
-];
+type CategoryForm = z.infer<typeof categorySchema>;
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
-  const [searchTerm, setSearchTerm] = useState("");
+  const { data: categories = [], isLoading, error } = useCategories();
   const [showAddDialog, setShowAddDialog] = useState(false);
 
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const form = useForm<CategoryForm>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: {
+      name: "",
+      description: ""
+    }
+  });
 
-  const getStatusBadgeVariant = (isActive: boolean) => {
-    return isActive ? "default" : "secondary";
+  const createCategory = useCreateCategory();
+
+  const onSubmit = async (data: CategoryForm) => {
+    try {
+      await createCategory.mutateAsync(data);
+      toast.success("Categoria criada com sucesso!");
+      setShowAddDialog(false);
+      form.reset();
+    } catch {
+      toast.error("Erro ao criar categoria");
+    }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-500">Erro ao carregar categorias</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gerenciar Categorias</h1>
-          <p className="text-gray-600 mt-2">Visualize e gerencie todas as categorias de cursos</p>
-        </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Categoria
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Nova Categoria</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nome da Categoria</Label>
-                <Input id="name" placeholder="Ex: Desenvolvimento Web" />
-              </div>
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Input id="description" placeholder="Descrição da categoria" />
-              </div>
-              <Button type="submit" className="w-full">
-                Criar Categoria
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <h1 className="text-2xl font-bold">Categorias</h1>
+        <Button onClick={() => setShowAddDialog(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Categoria
+        </Button>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Buscar por nome ou descrição..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </CardContent>
-      </Card>
+      <DataTable columns={columns} data={categories} />
 
-      {/* Categories Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Categorias</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Cursos</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data de Criação</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCategories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.description}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{category.coursesCount} cursos</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(category.isActive)}>
-                      {category.isActive ? "Ativa" : "Inativa"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(category.createdAt).toLocaleDateString("pt-BR")}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar categoria
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          Ver cursos da categoria
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          {category.isActive ? "Desativar" : "Ativar"} categoria
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Add Category Dialog */}
+      {showAddDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Nova Categoria</h2>
+            
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <label className="block mb-1">Nome</label>
+                <Input {...form.register("name")} />
+                {form.formState.errors.name && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block mb-1">Descrição</label>
+                <Input {...form.register("description")} />
+                {form.formState.errors.description && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.description.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAddDialog(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createCategory.isPending}>
+                  {createCategory.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : "Salvar"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

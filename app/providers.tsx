@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from 'next-themes'
 import { ReactNode, useEffect } from 'react'
+import { QueryProvider } from './providers/query-client-provider'
 
 export function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -12,8 +13,10 @@ export function Providers({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light">
-      {children}
-    </ThemeProvider>
+    <QueryProvider>
+      <ThemeProvider attribute="class" defaultTheme="light">
+        {children}
+      </ThemeProvider>
+    </QueryProvider>
   )
 }

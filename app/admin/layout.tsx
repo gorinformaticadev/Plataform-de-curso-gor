@@ -55,7 +55,7 @@ const menuGroups: MenuGroup[] = [
         href: "/admin/courses",
         subItems: [
           { icon: BookOpen, label: "Todos os Cursos", href: "/admin/courses" },
-          { icon: Tag, label: "Minhas Categorias", href: "/admin/my-categories" },
+          { icon: Tag, label: "Categorias", href: "/admin/categories" },
           { icon: GraduationCap, label: "Aulas", href: "/admin/lessons" },
           { icon: FileText, label: "Certificados", href: "/admin/certificates" },
         ]
