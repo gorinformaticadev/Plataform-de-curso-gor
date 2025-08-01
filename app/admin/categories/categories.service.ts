@@ -26,7 +26,12 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (newCategory: { name: string; description: string }) => {
+    mutationFn: (newCategory: { 
+      name: string; 
+      slug: string;
+      description: string;
+      icon: string 
+    }) => {
       return axios.post("/api/categories", newCategory);
     },
     onSuccess: () => {
@@ -39,7 +44,14 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, ...updates }: { id: string; name?: string; description?: string; isActive?: boolean }) => {
+    mutationFn: ({ id, ...updates }: { 
+      id: string; 
+      name?: string;
+      slug?: string;
+      description?: string;
+      icon?: string;
+      isActive?: boolean 
+    }) => {
       return axios.patch(`/api/categories/${id}`, updates);
     },
     onSuccess: () => {

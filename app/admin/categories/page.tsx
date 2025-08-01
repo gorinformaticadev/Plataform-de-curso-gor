@@ -1,7 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2 } from "lucide-react";
+import React from "react";
+import { 
+  Plus, 
+  Loader2,
+  Book,
+  Code,
+  Laptop,
+  GraduationCap,
+  Atom,
+  FlaskConical,
+  Palette,
+  Music,
+  Calculator,
+  Globe,
+  Microscope
+} from "lucide-react";
+
+import type { LucideIcon } from "lucide-react";
+
+const iconComponents: Record<string, LucideIcon> = {
+  book: Book,
+  code: Code,
+  laptop: Laptop,
+  'graduation-cap': GraduationCap,
+  atom: Atom,
+  flask: FlaskConical,
+  palette: Palette,
+  music: Music,
+  calculator: Calculator,
+  globe: Globe,
+  microscope: Microscope
+};
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/app/admin/categories/data-table";
@@ -14,7 +45,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 const categorySchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  slug: z.string().min(3, "Slug deve ter pelo menos 3 caracteres")
+    .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  icon: z.string().min(1, "Ícone é obrigatório"),
 });
 
 type CategoryForm = z.infer<typeof categorySchema>;
@@ -27,7 +61,9 @@ export default function CategoriesPage() {
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
-      description: ""
+      slug: "",
+      description: "",
+      icon: ""
     }
   });
 
@@ -90,11 +126,56 @@ export default function CategoriesPage() {
               </div>
 
               <div>
+                <label className="block mb-1">Slug</label>
+                <Input {...form.register("slug")} />
+                {form.formState.errors.slug && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.slug.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
                 <label className="block mb-1">Descrição</label>
                 <Input {...form.register("description")} />
                 {form.formState.errors.description && (
                   <p className="text-red-500 text-sm mt-1">
                     {form.formState.errors.description.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block mb-1">Ícone</label>
+                <div className="grid grid-cols-6 gap-2">
+                  {['book', 'code', 'laptop', 'graduation-cap', 'atom', 'flask', 
+                     'palette', 'music', 'calculator', 'globe', 'microscope'].map((icon) => (
+                    <button
+                      type="button"
+                      key={icon}
+                      className={`p-2 border rounded-md ${
+                        form.watch('icon') === icon 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'hover:bg-accent'
+                      }`}
+                      onClick={() => form.setValue('icon', icon)}
+                    >
+                      {iconComponents[icon] ? (
+                        React.createElement(iconComponents[icon], { className: "w-5 h-5" })
+                      ) : (
+                        <span className="text-xs">{icon}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <Input 
+                  {...form.register("icon")} 
+                  className="mt-2"
+                  placeholder="Ou digite o nome do ícone"
+                />
+                {form.formState.errors.icon && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.icon.message}
                   </p>
                 )}
               </div>
