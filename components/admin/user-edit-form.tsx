@@ -253,27 +253,49 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
         <FormField
           control={form.control}
           name="avatar"
-          render={({ field: { onChange, onBlur, name, ref } }) => (
+          render={({ field: { onChange, value, ...rest } }) => (
             <FormItem>
               <FormLabel>Novo Avatar</FormLabel>
               <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  name={name}
-                  onBlur={onBlur}
-                  ref={ref}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    onChange(file);
-                    if (file) {
-                      setAvatarPreview(URL.createObjectURL(file));
-                    } else {
-                      setAvatarPreview(user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null);
-                    }
-                  }}
-                />
+                <div className="flex items-center gap-4">
+                  <label htmlFor="avatar-upload" className="cursor-pointer inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                    Selecionar Imagem
+                  </label>
+                  <Input
+                    id="avatar-upload"
+                    type="file"
+                    className="hidden"
+                    accept=".jpg, .png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      onChange(file);
+                      if (file) {
+                        setAvatarPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    {...rest}
+                  />
+                  {avatarPreview && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        onChange(null);
+                        setAvatarPreview(null);
+                        // Resetar o input de arquivo
+                        const input = document.getElementById('avatar-upload') as HTMLInputElement;
+                        if (input) input.value = '';
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </Button>
+                  )}
+                </div>
               </FormControl>
+              <p className="text-sm text-muted-foreground">
+                Formatos permitidos: JPG, PNG. Tamanho ideal: 200x200px.
+              </p>
               <FormMessage />
             </FormItem>
           )}

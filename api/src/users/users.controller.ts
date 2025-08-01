@@ -15,11 +15,11 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { join } from 'path';
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
+import * as sharp from 'sharp';
 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -94,29 +94,9 @@ export class UsersController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = join(process.cwd(), 'public', 'uploads', 'avatars');
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-          try {
-            if (!file || !file.originalname) {
-              throw new Error('Arquivo ou nome do arquivo original inválido');
-            }
-            const randomName = uuidv4();
-            cb(null, `${randomName}${extname(file.originalname)}`);
-          } catch (error) {
-            cb(error, null);
-          }
-        },
-      }),
       fileFilter: (req, file, cb) => {
-        if (!file || !file.originalname || !file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-          return cb(new Error('Apenas arquivos de imagem são permitidos!'), false);
+        if (!file.originalname.match(/\.(jpg|png)$/i)) {
+          return cb(new Error('Apenas imagens JPG e PNG são permitidas!'), false);
         }
         cb(null, true);
       },
@@ -144,7 +124,19 @@ export class UsersController {
         }
       }
       
-      updateUserDto.avatar = `/uploads/avatars/${file.filename}`;
+      const filename = `${uuidv4()}.webp`;
+      const uploadPath = join(process.cwd(), 'public', 'uploads', 'avatars');
+
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+
+      await sharp(file.buffer)
+        .resize(200, 200)
+        .webp({ quality: 80 })
+        .toFile(join(uploadPath, filename));
+
+      updateUserDto.avatar = `/uploads/avatars/${filename}`;
     }
 
     return this.usersService.update(id, updateUserDto);
