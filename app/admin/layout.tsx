@@ -65,7 +65,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
@@ -112,8 +112,8 @@ export default function AdminLayout({
           "bg-gradient-to-b from-blue-900 to-blue-950 border-r border-blue-800 transition-all duration-300",
           "w-16 hover:w-64 group"
         )}
-        onMouseEnter={() => !sidebarOpen && setSidebarOpen(true)}
-        onMouseLeave={() => !sidebarOpen && setSidebarOpen(false)}
+        onMouseEnter={() => setSidebarOpen(true)}
+        onMouseLeave={() => setSidebarOpen(false)}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -161,8 +161,11 @@ export default function AdminLayout({
             <ul className="space-y-4">
               {menuGroups.map((group, groupIndex) => (
                 <li key={groupIndex}>
-                  {group.label && sidebarOpen && (
-                    <div className="px-4 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider">
+                  {group.label && (
+                    <div className={cn(
+                      "px-4 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider",
+                      !sidebarOpen && "hidden"
+                    )}>
                       {group.label}
                     </div>
                   )}
@@ -172,13 +175,19 @@ export default function AdminLayout({
                         <Button
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start text-blue-100 hover:text-white hover:bg-blue-800",
+                            "w-full text-blue-100 hover:text-white hover:bg-blue-800",
                             sidebarOpen ? "justify-start" : "justify-center"
                           )}
                           onClick={() => router.push(item.href)}
                         >
-                          <item.icon className="h-5 w-5" />
-                          {sidebarOpen && <span className="ml-3">{item.label}</span>}
+                          <div className="flex items-center justify-center w-5 h-5">
+                            <item.icon className="h-5 w-5" />
+                          </div>
+                          {sidebarOpen && (
+                            <span className="ml-3">
+                              {item.label}
+                            </span>
+                          )}
                         </Button>
                       </li>
                     ))}
