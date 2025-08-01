@@ -67,6 +67,24 @@ export default function CategoriesPage() {
     }
   });
 
+  const generateSlug = (name: string) => {
+    return name
+      .trim()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais (exceto hífens e espaços)
+      .replace(/\s+/g, '-') // Substitui espaços por hífens
+      .replace(/-+/g, '-') // Remove múltiplos hífens
+      .substring(0, 50); // Limita o tamanho máximo
+  };
+
+  const handleNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    if (name) {
+      form.setValue('slug', generateSlug(name));
+    }
+  };
+
   const createCategory = useCreateCategory();
 
   const onSubmit = async (data: CategoryForm) => {
@@ -117,7 +135,10 @@ export default function CategoriesPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block mb-1">Nome</label>
-                <Input {...form.register("name")} />
+                <Input 
+                  {...form.register("name")} 
+                  onBlur={handleNameBlur}
+                />
                 {form.formState.errors.name && (
                   <p className="text-red-500 text-sm mt-1">
                     {form.formState.errors.name.message}
