@@ -189,11 +189,22 @@ export default function CategoriesPage() {
                     </button>
                   ))}
                 </div>
-                <Input 
-                  {...form.register("icon")} 
+                <Input
+                  {...form.register("icon")}
                   className="mt-2"
-                  placeholder="Ou digite o nome do ícone"
+                  placeholder="Digite o nome do ícone (ex: book, code)"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Veja todos os ícones disponíveis em:{' '}
+                  <a 
+                    href="https://lucide.dev/icons" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    lucide.dev/icons
+                  </a>
+                </p>
                 {form.formState.errors.icon && (
                   <p className="text-red-500 text-sm mt-1">
                     {form.formState.errors.icon.message}
