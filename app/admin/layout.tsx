@@ -105,19 +105,19 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
+    <div className="flex bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
       {/* Sidebar */}
       <div 
         className={cn(
-          "bg-gradient-to-b from-blue-900 to-blue-950 border-r border-blue-800 transition-all duration-300",
-          "w-16 hover:w-64 group"
+          "fixed h-screen bg-gradient-to-b from-blue-900 to-blue-950 border-r border-blue-800 transition-all duration-300",
+          "w-16 hover:w-64 group z-50"
         )}
         onMouseEnter={() => setSidebarOpen(true)}
         onMouseLeave={() => setSidebarOpen(false)}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between p-4 border-b border-blue-800">
+          {/* Logo - Área fixa no topo */}
+          <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-blue-800">
             {sidebarOpen && (
               <div className="flex items-center space-x-3">
                 {user.avatar ? (
@@ -156,8 +156,8 @@ export default function AdminLayout({
             )}
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4">
+          {/* Navigation - Área rolável */}
+          <nav className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <ul className="space-y-4">
               {menuGroups.map((group, groupIndex) => (
                 <li key={groupIndex}>
@@ -197,8 +197,8 @@ export default function AdminLayout({
             </ul>
           </nav>
 
-          {/* User Info */}
-          <div className="p-4 border-t border-blue-800">
+          {/* User Info - Área fixa no rodapé */}
+          <div className="flex-shrink-0 p-4 border-t border-blue-800">
             <div className="flex items-center space-x-3">
               {sidebarOpen && (
                 <div>
@@ -211,7 +211,7 @@ export default function AdminLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto ml-16">
         <div className="p-8">
           {children}
         </div>
