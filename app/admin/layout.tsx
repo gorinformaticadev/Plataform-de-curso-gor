@@ -11,20 +11,53 @@ import {
   Settings,
   Menu,
   X,
-  ShieldAlert
+  ShieldAlert,
+  ShoppingCart,
+  FileText,
+  Gift,
+  Bookmark,
+  GraduationCap,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
-  { icon: Users, label: "Usuários", href: "/admin/users" },
-  { icon: BookOpen, label: "Cursos", href: "/admin/courses" },
-  { icon: Tag, label: "Categorias", href: "/admin/categories" },
-  { icon: BarChart3, label: "Analytics", href: "/admin/analytics" },
-  { icon: Settings, label: "Configurações", href: "/admin/settings" },
+const menuGroups = [
+  {
+    label: "Administração",
+    items: [
+      { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
+      { icon: Users, label: "Usuários", href: "/admin/users" },
+      { icon: BarChart3, label: "Analytics", href: "/admin/analytics" },
+    ]
+  },
+  {
+    label: "Produtos",
+    items: [
+      { icon: BookOpen, label: "Cursos", href: "/admin/courses" },
+      { icon: Bookmark, label: "Meus Cursos", href: "/admin/my-courses" },
+      { icon: Tag, label: "Minhas Categorias", href: "/admin/my-categories" },
+      { icon: GraduationCap, label: "Aulas", href: "/admin/lessons" },
+      { icon: FileText, label: "Certificados", href: "/admin/certificates" },
+    ]
+  },
+  {
+    label: "Vendas",
+    items: [
+      { icon: ShoppingCart, label: "Minhas vendas", href: "/admin/sales" },
+      { icon: FileText, label: "Assinaturas", href: "/admin/subscriptions" },
+      { icon: BarChart3, label: "Relatórios", href: "/admin/reports" },
+      { icon: Gift, label: "Cupons", href: "/admin/coupons" },
+    ]
+  },
+  {
+    items: [
+      { icon: Settings, label: "Configurações", href: "/admin/settings" },
+      { icon: LogOut, label: "Sair", href: "/logout" },
+    ]
+  }
 ];
 
 export default function AdminLayout({
@@ -74,10 +107,14 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
       {/* Sidebar */}
-      <div className={cn(
-        "bg-gradient-to-b from-blue-900 to-blue-950 border-r border-blue-800 transition-all duration-300",
-        sidebarOpen ? "w-64" : "w-16"
-      )}>
+      <div 
+        className={cn(
+          "bg-gradient-to-b from-blue-900 to-blue-950 border-r border-blue-800 transition-all duration-300",
+          "w-16 hover:w-64 group"
+        )}
+        onMouseEnter={() => !sidebarOpen && setSidebarOpen(true)}
+        onMouseLeave={() => !sidebarOpen && setSidebarOpen(false)}
+      >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between p-4 border-b border-blue-800">
@@ -112,24 +149,40 @@ export default function AdminLayout({
             >
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </Button>
+            {!sidebarOpen && (
+              <div className="absolute left-full ml-2 px-2 py-1 bg-blue-900 rounded-md text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                Menu
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-4">
-            <ul className="space-y-2">
-              {menuItems.map((item) => (
-                <li key={item.href}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start text-blue-100 hover:text-white hover:bg-blue-800",
-                      sidebarOpen ? "justify-start" : "justify-center"
-                    )}
-                    onClick={() => router.push(item.href)}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {sidebarOpen && <span className="ml-3">{item.label}</span>}
-                  </Button>
+            <ul className="space-y-4">
+              {menuGroups.map((group, groupIndex) => (
+                <li key={groupIndex}>
+                  {group.label && sidebarOpen && (
+                    <div className="px-4 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider">
+                      {group.label}
+                    </div>
+                  )}
+                  <ul className="space-y-1">
+                    {group.items.map((item) => (
+                      <li key={item.href}>
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start text-blue-100 hover:text-white hover:bg-blue-800",
+                            sidebarOpen ? "justify-start" : "justify-center"
+                          )}
+                          onClick={() => router.push(item.href)}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {sidebarOpen && <span className="ml-3">{item.label}</span>}
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>
