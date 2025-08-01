@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -33,8 +34,8 @@ export class CategoriesController {
   @Get()
   @ApiOperation({ summary: 'Listar todas as categorias' })
   @ApiResponse({ status: 200, description: 'Lista de categorias' })
-  findAll() {
-    return this.categoriesService.findAll();
+  findAll(@Query('onlyActive') onlyActive?: string) {
+    return this.categoriesService.findAll(onlyActive === 'true');
   }
 
   @Get('slug/:slug')

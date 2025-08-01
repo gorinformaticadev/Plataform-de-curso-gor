@@ -6,10 +6,13 @@ import axios from "axios";
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   description: string;
+  icon: string;
+  isActive: boolean;
   coursesCount: number;
   createdAt: string;
-  isActive: boolean;
+  updatedAt: string;
 }
 
 export function useCategories() {
@@ -30,9 +33,14 @@ export function useCreateCategory() {
       name: string; 
       slug: string;
       description: string;
-      icon: string 
+      icon: string;
+      isActive: boolean
     }) => {
-      return axios.post("/api/categories", newCategory);
+      return axios.post("/api/categories", newCategory, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -52,7 +60,11 @@ export function useUpdateCategory() {
       icon?: string;
       isActive?: boolean 
     }) => {
-      return axios.patch(`/api/categories/${id}`, updates);
+      return axios.patch(`/api/categories/${id}`, updates, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -65,7 +77,11 @@ export function useToggleCategoryStatus() {
   
   return useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return axios.patch(`/api/categories/${id}`, { isActive: !isActive });
+      return axios.patch(`/api/categories/${id}`, { isActive: !isActive }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -78,7 +94,11 @@ export function useDeleteCategory() {
   
   return useMutation({
     mutationFn: (id: string) => {
-      return axios.delete(`/api/categories/${id}`);
+      return axios.delete(`/api/categories/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });

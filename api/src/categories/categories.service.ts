@@ -28,8 +28,9 @@ export class CategoriesService {
     });
   }
 
-  async findAll() {
+  async findAll(onlyActive: boolean = false) {
     return this.prisma.category.findMany({
+      where: onlyActive ? { isActive: true } : undefined,
       include: {
         _count: {
           select: {

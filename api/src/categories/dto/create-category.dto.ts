@@ -18,4 +18,8 @@ export class CreateCategoryDto {
   @IsString()
   @MaxLength(10)
   icon?: string;
+
+  @ApiPropertyOptional({ example: true, default: true })
+  @IsOptional()
+  isActive?: boolean;
 }
