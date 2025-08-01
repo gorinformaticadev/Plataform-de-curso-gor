@@ -93,6 +93,7 @@ export class UsersService {
           bio: true,
           isActive: true,
           cpf: true,
+          avatar: true, // Adicionado o campo avatar
           _count: {
             select: { inscricoes: true },
           },
