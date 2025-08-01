@@ -162,11 +162,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
               <AvatarImage
-                src={user.avatar ?
-                    user.avatar.startsWith('http') ?
-                    user.avatar :
-                    `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
-                    : undefined}
+                src={user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : undefined}
                 alt={user.name}
               />
               <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>

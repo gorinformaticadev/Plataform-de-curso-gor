@@ -17,7 +17,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
-import * as fs from 'fs/promises';
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 
 import { UsersService } from './users.service';
@@ -90,60 +91,63 @@ export class UsersController {
   @Patch(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Atualizar usuário (Admin)' })
-  @ApiResponse({ status: 200, description: 'Usuário atualizado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
-  }
-
-  @Patch(':id/avatar')
-  @Roles(UserRole.ADMIN)
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(process.cwd(), 'public', 'uploads', 'avatars'),
+        destination: (req, file, cb) => {
+          const uploadPath = join(process.cwd(), 'public', 'uploads', 'avatars');
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
         filename: (req, file, cb) => {
-          const randomName = uuidv4();
-          cb(null, `${randomName}${extname(file.originalname)}`);
+          try {
+            if (!file || !file.originalname) {
+              throw new Error('Arquivo ou nome do arquivo original inválido');
+            }
+            const randomName = uuidv4();
+            cb(null, `${randomName}${extname(file.originalname)}`);
+          } catch (error) {
+            cb(error, null);
+          }
         },
       }),
       fileFilter: (req, file, cb) => {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+        if (!file || !file.originalname || !file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
           return cb(new Error('Apenas arquivos de imagem são permitidos!'), false);
         }
         cb(null, true);
       },
     }),
   )
-  @ApiOperation({ summary: 'Upload de avatar do usuário (Admin)' })
-  @ApiConsumes('multipart/form-data')
-  @ApiResponse({ status: 200, description: 'Avatar atualizado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  async uploadAvatar(
+  async update(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    const user = await this.usersService.findById(id);
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
+    if (file) {
+      const user = await this.usersService.findById(id);
+      if (!user) {
+        throw new NotFoundException('Usuário não encontrado');
+      }
 
-    // Deleta o avatar antigo se existir
-    if (user.avatar) {
-      const relativeAvatarPath = user.avatar.startsWith('/') ? user.avatar.substring(1) : user.avatar;
-      const oldAvatarPath = join(process.cwd(), 'public', relativeAvatarPath);
-      try {
-        await fs.unlink(oldAvatarPath);
-      } catch (error) {
-        // Ignora o erro se o arquivo não existir, mas loga outros erros.
-        if (error.code !== 'ENOENT') {
-          console.error(`Falha ao deletar avatar antigo: ${oldAvatarPath}`, error);
+      if (user.avatar) {
+        const oldAvatarPath = join(process.cwd(), 'public', user.avatar);
+        try {
+          await fsp.unlink(oldAvatarPath);
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            console.error(`Falha ao deletar avatar antigo: ${oldAvatarPath}`, error);
+          }
         }
       }
+      
+      updateUserDto.avatar = `/uploads/avatars/${file.filename}`;
     }
 
-    const avatarUrl = `${process.env.NEXT_PUBLIC_API_URL}/public/uploads/avatars/${file.filename}`;
-    return this.usersService.update(id, { avatar: avatarUrl });
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Patch(':id/deactivate')

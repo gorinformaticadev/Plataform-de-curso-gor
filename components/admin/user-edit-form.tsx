@@ -71,7 +71,7 @@ const formSchema = z
     email: z.string().email("Email inválido."),
     bio: z.string().optional(),
     role: z.enum(["ADMIN", "INSTRUCTOR", "STUDENT"]),
-    avatar: z.any(),
+    avatar: z.instanceof(File).optional().nullable(),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").optional().or(z.literal("")),
     confirmPassword: z.string().optional().or(z.literal("")),
     cpf: z.string().optional().or(z.literal("")).refine(
@@ -96,11 +96,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   const { token, reloadUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    user.avatar ? 
-      user.avatar.startsWith('http') ? 
-        user.avatar : 
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
-      : null
+    user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -134,57 +130,38 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
-    const { avatar, ...otherValues } = values;
+    const formData = new FormData();
 
-    // 1. Upload avatar if a new one is selected
-    if (avatar && avatar[0]) {
-      const formData = new FormData();
-      formData.append('file', avatar[0]);
-
-      try {
-        const avatarRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/${user.id}/avatar`, {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!avatarRes.ok) {
-          throw new Error('Falha ao fazer upload do avatar.');
-        }
-      } catch (error: any) {
-        toast.error(error.message);
-        setIsSubmitting(false);
-        return;
-      }
+    // Anexa o arquivo de avatar se existir
+    if (values.avatar) {
+      formData.append('file', values.avatar);
     }
 
-    // 2. Update other user data
-    const dataToSend = { ...otherValues };
+    // Anexa outros campos de texto
+    formData.append('name', values.name);
+    formData.append('email', values.email);
+    formData.append('role', values.role);
     
-    // Handle empty CPF
-    if (!dataToSend.cpf || dataToSend.cpf.trim() === '') {
-      dataToSend.cpf = undefined;
-    } else {
-      // Remove formatting from CPF before sending
-      dataToSend.cpf = dataToSend.cpf.replace(/\D/g, '');
+    if (values.bio) {
+      formData.append('bio', values.bio);
     }
 
-    if (!dataToSend.password) {
-      delete dataToSend.password;
-      delete dataToSend.confirmPassword;
-    } else {
-      delete dataToSend.confirmPassword;
+    if (values.cpf) {
+      formData.append('cpf', values.cpf.replace(/\D/g, ''));
+    }
+
+    // Apenas anexa a senha se ela for fornecida
+    if (values.password) {
+      formData.append('password', values.password);
     }
 
     const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/${user.id}`, {
       method: "PATCH",
       headers: {
-        "Content-Type": "application/json",
+        // Não defina 'Content-Type', o navegador fará isso automaticamente para multipart/form-data
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(dataToSend),
+      body: formData,
     }).then(async (res) => {
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ message: 'Falha ao atualizar os dados do usuário.' }));
@@ -268,15 +245,7 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
         />
         <div className="flex flex-col items-center">
           <img 
-            src={
-              avatarPreview?.startsWith('blob:') 
-                ? avatarPreview 
-                : user.avatar 
-                  ? user.avatar.startsWith('http') 
-                    ? user.avatar 
-                    : `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar.replace('/api', '')}`
-                  : undefined
-            }
+            src={avatarPreview || (user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : undefined)}
             alt="Avatar" 
             className="w-32 h-32 rounded-full object-cover" 
           />
@@ -284,18 +253,23 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
         <FormField
           control={form.control}
           name="avatar"
-          render={({ field }) => (
+          render={({ field: { onChange, onBlur, name, ref } }) => (
             <FormItem>
-              <FormLabel>NovosAvatar</FormLabel>
+              <FormLabel>Novo Avatar</FormLabel>
               <FormControl>
                 <Input
                   type="file"
                   accept="image/*"
+                  name={name}
+                  onBlur={onBlur}
+                  ref={ref}
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
+                    const file = e.target.files?.[0] || null;
+                    onChange(file);
                     if (file) {
-                      field.onChange(e.target.files);
                       setAvatarPreview(URL.createObjectURL(file));
+                    } else {
+                      setAvatarPreview(user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null);
                     }
                   }}
                 />

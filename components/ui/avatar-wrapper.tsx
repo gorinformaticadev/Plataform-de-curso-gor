@@ -16,14 +16,11 @@ export function AvatarWrapper({
   className,
   fallback,
 }: AvatarWrapperProps) {
-  // Remove a parte '/api' da URL se existir
-  const correctedSrc = src?.replace('/api', '') || src
-
   return (
     <Avatar className={cn('h-10 w-10', className)}>
-      {correctedSrc ? (
+      {src ? (
         <AvatarImage 
-          src={correctedSrc} 
+          src={src} 
           alt={alt}
           className="object-cover"
         />
