@@ -219,7 +219,7 @@ docker-compose exec api bash   # Acessar container da API
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está sob a licença AGPL v3. Veja o arquivo [LICENSE](https://www.gnu.org/licenses/agpl-3.0.html) para mais detalhes.
 
 ## 👥 Equipe
 
