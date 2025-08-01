@@ -425,7 +425,8 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
     </Card>
 
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px]" aria-describedby="create-user-description">
+        <p id="create-user-description" className="sr-only">Formulário para criação de novo usuário</p>
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
           <DialogDescription>

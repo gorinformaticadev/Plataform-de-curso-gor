@@ -56,19 +56,18 @@ export class CategoriesService {
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     const updateData: any = { ...updateCategoryDto };
 
-    if (updateCategoryDto.name) {
-      const newSlug = this.generateSlug(updateCategoryDto.name);
+    // Verificar se o slug foi alterado manualmente
+    if (updateCategoryDto.slug) {
       const existingCategoryWithSlug = await this.prisma.category.findFirst({
         where: {
-          slug: newSlug,
-          id: { not: id }, // Exclui a categoria atual da verificação
+          slug: updateCategoryDto.slug,
+          id: { not: id },
         },
       });
 
       if (existingCategoryWithSlug) {
-        throw new ConflictException('Já existe uma categoria com este nome');
+        throw new ConflictException('Já existe uma categoria com este slug');
       }
-      updateData.slug = newSlug;
     }
 
     try {

@@ -52,6 +52,11 @@ export function CategoryEditForm({ category, onSuccess, onCancel }: CategoryEdit
     },
   });
 
+  // Remover a geração automática de slug
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    form.setValue('name', e.target.value);
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     updateCategory(
       { id: category.id, ...values },
@@ -78,7 +83,11 @@ export function CategoryEditForm({ category, onSuccess, onCancel }: CategoryEdit
               <FormItem>
                 <FormLabel>Nome</FormLabel>
                 <FormControl>
-                  <Input placeholder="Nome da categoria" {...field} />
+                  <Input 
+                    placeholder="Nome da categoria" 
+                    {...field}
+                    onChange={handleNameChange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

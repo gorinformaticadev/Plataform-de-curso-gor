@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
 import { CategoryEditForm } from "./category-edit-form";
 
 interface CategoryEditModalProps {
@@ -30,7 +26,11 @@ export function CategoryEditModal({
 }: CategoryEditModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <AccessibleDialogContent 
+        className="sm:max-w-[425px]"
+        descriptionId="edit-category-description"
+        descriptionText="Formulário para edição de categoria"
+      >
         <DialogHeader>
           <DialogTitle>Editar Categoria</DialogTitle>
         </DialogHeader>
@@ -42,7 +42,8 @@ export function CategoryEditModal({
           }}
           onCancel={() => onOpenChange(false)}
         />
-      </DialogContent>
+      </AccessibleDialogContent>
     </Dialog>
   );
 }
+

@@ -98,7 +98,8 @@ export default function CategoriesPage() {
               Adicionar Categoria
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent aria-describedby="category-dialog-description">
+            <p id="category-dialog-description" className="sr-only">Formulário para gerenciamento de categorias</p>
             <DialogHeader>
               <DialogTitle>Adicionar Nova Categoria</DialogTitle>
             </DialogHeader>

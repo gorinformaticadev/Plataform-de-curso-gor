@@ -67,6 +67,14 @@ export default function CategoriesPage() {
     isActive: boolean;
   } | null>(null);
 
+  // Expor a função para ser acessível pelo DataTable
+  React.useEffect(() => {
+    (window as any).setEditingCategory = setEditingCategory;
+    return () => {
+      delete (window as any).setEditingCategory;
+    };
+  }, []);
+
   const form = useForm<CategoryForm>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
@@ -251,6 +259,19 @@ export default function CategoriesPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {editingCategory && (
+        <CategoryEditModal
+          category={editingCategory}
+          open={!!editingCategory}
+          onOpenChange={(open) => !open && setEditingCategory(null)}
+          onSuccess={() => {
+            // Atualizar a lista de categorias após edição
+            // (será tratado automaticamente pelo react-query)
+          }}
+        />
       )}
     </div>
   );

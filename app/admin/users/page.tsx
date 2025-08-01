@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
 import {
   Pagination,
   PaginationContent,
@@ -157,7 +157,11 @@ export default function UsersPage() {
       </Card>
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+      <AccessibleDialogContent 
+        className="sm:max-w-[425px]"
+        descriptionId="create-user-description"
+        descriptionText="Formulário para criação de novo usuário"
+      >
           <DialogHeader>
             <DialogTitle>Criar Usuário</DialogTitle>
             <DialogDescription>
@@ -168,11 +172,15 @@ export default function UsersPage() {
             onSuccess={handleSuccess}
             onCancel={() => setIsCreateModalOpen(false)}
           />
-        </DialogContent>
+      </AccessibleDialogContent>
       </Dialog>
 
       <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
-        <DialogContent className="sm:max-w-[625px]">
+      <AccessibleDialogContent 
+        className="sm:max-w-[625px]"
+        descriptionId="edit-user-description"
+        descriptionText="Formulário detalhado para edição de usuário"
+      >
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
             <DialogDescription>
@@ -187,7 +195,7 @@ export default function UsersPage() {
               onCancel={closeEditDialog}
             />
           )}
-        </DialogContent>
+        </AccessibleDialogContent>
       </Dialog>
     </div>
   );

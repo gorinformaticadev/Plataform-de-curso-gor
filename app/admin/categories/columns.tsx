@@ -77,7 +77,15 @@ export const columns: ColumnDef<Category>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
+            <DropdownMenuItem 
+              onSelect={(e) => {
+                e.preventDefault();
+                const setEditingCategory = (window as any).setEditingCategory;
+                if (setEditingCategory) {
+                  setEditingCategory(row.original);
+                }
+              }}
+            >
               <Edit className="mr-2 h-4 w-4" />
               Editar
             </DropdownMenuItem>
