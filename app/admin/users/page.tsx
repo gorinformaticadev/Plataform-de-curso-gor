@@ -22,6 +22,7 @@ import { UserCreateForm } from "@/components/admin/user-create-form";
 import { UserFilters } from "@/components/admin/user-filters";
 import { UserEditForm } from "@/components/admin/user-edit-form";
 import { useUsers } from "@/hooks/use-users";
+import { useAuth } from "@/contexts/auth-context";
 import { User } from "@/types";
 
 export default function UsersPage() {
@@ -33,6 +34,9 @@ export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isFetchingEditUser, setIsFetchingEditUser] = useState(false);
+  const { token } = useAuth();
 
   const fetchUsersRef = useRef(fetchUsers);
   useEffect(() => {
@@ -44,8 +48,37 @@ export default function UsersPage() {
   }, [searchTerm, roleFilter, currentPage, statusFilter]);
 
   const handleEdit = (user: User) => {
-    setSelectedUser(user);
+    setSelectedUser(user); // Mantemos o usuário básico para o título
     setIsEditDialogOpen(true);
+    
+    // Busca os dados completos do usuário para edição
+    const fetchFullUser = async () => {
+      if (!token) return;
+      setIsFetchingEditUser(true);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          throw new Error('Falha ao buscar detalhes do usuário para edição.');
+        }
+        const fullUserData = await response.json();
+        setEditingUser(fullUserData);
+      } catch (error) {
+        console.error(error);
+        // Opcional: mostrar um toast de erro
+      } finally {
+        setIsFetchingEditUser(false);
+      }
+    };
+
+    fetchFullUser();
+  };
+
+  const closeEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setSelectedUser(null);
+    setEditingUser(null);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -56,7 +89,7 @@ export default function UsersPage() {
 
   const handleSuccess = () => {
     setIsCreateModalOpen(false);
-    setIsEditDialogOpen(false);
+    closeEditDialog();
     fetchUsersRef.current(searchTerm, roleFilter, currentPage);
   };
 
@@ -138,7 +171,7 @@ export default function UsersPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
         <DialogContent className="sm:max-w-[625px]">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
@@ -146,11 +179,12 @@ export default function UsersPage() {
               Modifique as informações do usuário {selectedUser?.name} conforme necessário.
             </DialogDescription>
           </DialogHeader>
-          {selectedUser && (
+          {isFetchingEditUser && <div className="text-center">Carregando...</div>}
+          {!isFetchingEditUser && editingUser && (
             <UserEditForm
-              user={selectedUser}
+              user={editingUser}
               onSuccess={handleSuccess}
-              onCancel={() => setIsEditDialogOpen(false)}
+              onCancel={closeEditDialog}
             />
           )}
         </DialogContent>
