@@ -54,6 +54,7 @@ interface Course {
   id: string;
   title: string;
   slug: string;
+  shortDescription?: string;
   description: string;
   thumbnail?: string;
   price: number;
@@ -81,6 +82,7 @@ const mockCourses: Course[] = [
     id: "1",
     title: "React Avançado: Do Zero ao Profissional",
     slug: "react-avancado",
+    shortDescription: "Aprenda React do básico ao avançado com projetos reais",
     description: "<p>Curso completo de React com projetos reais</p>",
     thumbnail: "/placeholder-course.jpg",
     price: 297.0,
@@ -106,6 +108,7 @@ const mockCourses: Course[] = [
     id: "2",
     title: "JavaScript Completo: ES6+ e Moderno",
     slug: "javascript-completo",
+    shortDescription: "Domine JavaScript moderno com ES6+",
     description: "<p>Domine JavaScript moderno</p>",
     thumbnail: "/placeholder-course.jpg",
     price: 197.0,
@@ -127,6 +130,7 @@ const mockCourses: Course[] = [
     id: "3",
     title: "Node.js Backend: API RESTful",
     slug: "nodejs-backend",
+    shortDescription: "Construa APIs robustas com Node.js",
     description: "<p>Construa APIs robustas com Node.js</p>",
     thumbnail: "/placeholder-course.jpg",
     price: 247.0,
@@ -144,16 +148,17 @@ const mockCourses: Course[] = [
   },
 ];
 
-const formSchema = z.object({
-  title: z.string().min(3, "Título muito curto"),
-  description: z.string().min(10, "Descrição muito curta"),
-  price: z.number().min(0, "Preço inválido"),
-  level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
-  category: z.string().min(1, "Selecione uma categoria"),
-  duration: z.number().min(0, "Duração inválida"),
-});
-
 export default function CoursesPage() {
+  const formSchema = z.object({
+    title: z.string().min(3, "Título muito curto"),
+    shortDescription: z.string().min(10, "Descrição curta muito curta").max(150, "Descrição curta muito longa"),
+    description: z.string().min(10, "Descrição muito curta"),
+    price: z.number().min(0, "Preço inválido"),
+    level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
+    category: z.string().min(1, "Selecione uma categoria"),
+    duration: z.number().min(0, "Duração inválida"),
+  });
+
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>(mockCourses);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -163,6 +168,7 @@ export default function CoursesPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      shortDescription: "",
       description: "",
       price: 0,
       level: "BEGINNER",
@@ -179,6 +185,7 @@ export default function CoursesPage() {
         id: (courses.length + 1).toString(),
         title: values.title,
         slug: values.title.toLowerCase().replace(/\s+/g, '-'),
+        shortDescription: values.shortDescription,
         description: `<p>${values.description}</p>`,
         price: values.price,
         level: values.level,
@@ -316,6 +323,24 @@ export default function CoursesPage() {
                       <FormLabel>Título</FormLabel>
                       <FormControl>
                         <Input placeholder="Título do curso" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="shortDescription"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição Curta</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Descrição curta do curso (máx. 150 caracteres)"
+                          {...field}
+                          maxLength={150}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
