@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
 import {
   Dialog,
   DialogContent,
@@ -83,7 +85,7 @@ const mockCourses: Course[] = [
     title: "React Avançado: Do Zero ao Profissional",
     slug: "react-avancado",
     shortDescription: "Aprenda React do básico ao avançado com projetos reais",
-    description: "<p>Curso completo de React com projetos reais</p>",
+    description: "<h2>Curso completo de React com projetos reais</h2><p>Este curso abrange todos os conceitos essenciais do React, desde o básico até tópicos avançados como hooks, context API e gerenciamento de estado.</p><ul><li>Componentes funcionais e de classe</li><li>Hooks como useState, useEffect, useContext</li><li>Gerenciamento de estado com Redux</li><li>Integração com APIs REST</li></ul>",
     thumbnail: "/placeholder-course.jpg",
     price: 297.0,
     level: "INTERMEDIATE",
@@ -109,7 +111,7 @@ const mockCourses: Course[] = [
     title: "JavaScript Completo: ES6+ e Moderno",
     slug: "javascript-completo",
     shortDescription: "Domine JavaScript moderno com ES6+",
-    description: "<p>Domine JavaScript moderno</p>",
+    description: "<h2>Domine JavaScript moderno</h2><p>Este curso completo de JavaScript abrange desde os fundamentos até os recursos mais avançados da linguagem, incluindo ES6+.</p><p>Você aprenderá:</p><ul><li>Sintaxe básica e tipos de dados</li><li>Funções e escopo</li><li>Programação assíncrona com Promises e async/await</li><li>Recursos modernos como arrow functions, destructuring e modules</li></ul>",
     thumbnail: "/placeholder-course.jpg",
     price: 197.0,
     level: "BEGINNER",
@@ -131,7 +133,7 @@ const mockCourses: Course[] = [
     title: "Node.js Backend: API RESTful",
     slug: "nodejs-backend",
     shortDescription: "Construa APIs robustas com Node.js",
-    description: "<p>Construa APIs robustas com Node.js</p>",
+    description: "<h2>Construa APIs robustas com Node.js</h2><p>Este curso ensina como criar APIs RESTful escaláveis usando Node.js, Express e MongoDB.</p><p>O que você aprenderá:</p><ul><li>Configuração do ambiente Node.js</li><li>Criação de endpoints REST</li><li>Autenticação e autorização</li><li>Validação de dados e tratamento de erros</li><li>Integração com banco de dados MongoDB</li></ul>",
     thumbnail: "/placeholder-course.jpg",
     price: 247.0,
     level: "ADVANCED",
@@ -186,7 +188,7 @@ export default function CoursesPage() {
         title: values.title,
         slug: values.title.toLowerCase().replace(/\s+/g, '-'),
         shortDescription: values.shortDescription,
-        description: `<p>${values.description}</p>`,
+        description: values.description, // O CKEditor já retorna HTML
         price: values.price,
         level: values.level,
         duration: values.duration,
@@ -354,11 +356,37 @@ export default function CoursesPage() {
                     <FormItem>
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Descrição detalhada do curso"
-                          rows={4}
-                          {...field}
-                        />
+                        <div className="border rounded-md">
+                          <CKEditor
+                            editor={ClassicEditor}
+                            data={field.value || ""}
+                            onChange={(_, editor) => {
+                              field.onChange(editor.getData());
+                            }}
+                            config={{
+                              toolbar: [
+                                'heading',
+                                '|',
+                                'bold',
+                                'italic',
+                                'link',
+                                'bulletedList',
+                                'numberedList',
+                                'blockQuote',
+                                'undo',
+                                'redo'
+                              ],
+                              heading: {
+                                options: [
+                                  { model: 'paragraph', title: 'Parágrafo', class: 'ck-heading_paragraph' },
+                                  { model: 'heading1', view: 'h1', title: 'Cabeçalho 1', class: 'ck-heading_heading1' },
+                                  { model: 'heading2', view: 'h2', title: 'Cabeçalho 2', class: 'ck-heading_heading2' },
+                                  { model: 'heading3', view: 'h3', title: 'Cabeçalho 3', class: 'ck-heading_heading3' }
+                                ]
+                              }
+                            }}
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
