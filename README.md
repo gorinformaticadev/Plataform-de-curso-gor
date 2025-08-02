@@ -10,7 +10,6 @@ Uma plataforma completa para criação, venda e consumo de cursos online, simila
 - **Tailwind CSS** - Estilização utilitária
 - **shadcn/ui** - Componentes UI modernos
 - **Lucide React** - Ícones
-- **TipTap Editor** - Editor de texto rico para conteúdo
 
 ### Backend
 - **NestJS** - Framework Node.js robusto
@@ -55,8 +54,6 @@ eduplatform/
 │   └── layout.tsx
 ├── components/                  # Componentes React
 │   ├── ui/                      # Componentes base (shadcn/ui)
-│   ├── css-optimizer.tsx        # Otimização de CSS
-│   ├── no-ssr.tsx               # Componente para desabilitar SSR
 │   └── layout/                  # Componentes de layout
 ├── contexts/                    # Contextos React
 ├── lib/                         # Utilitários
@@ -161,7 +158,6 @@ docker-compose exec api bash   # Acessar container da API
 - [x] Login com JWT
 - [x] Proteção de rotas
 - [x] Perfis (Aluno, Instrutor, Admin)
-- [x] Controle de acesso baseado em função (RBAC)
 
 ### ✅ Gestão de Cursos
 - [x] CRUD completo de cursos
@@ -184,8 +180,6 @@ docker-compose exec api bash   # Acessar container da API
 - [x] Dashboard interativo
 - [x] Páginas de autenticação
 - [x] Layout profissional
-- [x] Melhorias de acessibilidade
-- [x] Notificações de feedback (toasts)
 
 ### ✅ Interface Administrativa
 - [x] Dashboard administrativo
@@ -193,8 +187,6 @@ docker-compose exec api bash   # Acessar container da API
 - [x] Controle de categorias
 - [x] Paginação e filtros avançados
 - [x] Soft delete para usuários
-- [x] Melhorias de acessibilidade
-- [x] Notificações de feedback (toasts)
 
 ## 🔄 Em Desenvolvimento
 - [ ] Player de vídeo avançado
@@ -235,7 +227,7 @@ Este projeto está sob a licença AGPL v3. Veja o arquivo [LICENSE](https://www.
 
 ## 📞 Suporte
 
-Para suporte, chame pelo whastsa [(61) 99656-5362](https://wa.me/61996565362).
+Para suporte, envie um email para suporte@eduplatform.com ou abra uma issue no GitHub.
 
 ---
 

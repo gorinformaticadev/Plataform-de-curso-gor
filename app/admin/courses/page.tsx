@@ -21,11 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import dynamic from "next/dynamic";
-const TipTapEditor = dynamic(() => import("@/components/ui/tiptap-editor"), {
-  ssr: false,
-  loading: () => <div className="p-4 border rounded-md">Carregando editor...</div>
-});
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -58,8 +54,7 @@ interface Course {
   id: string;
   title: string;
   slug: string;
-  shortDescription: string;
-  details: string;
+  description: string;
   thumbnail?: string;
   price: number;
   level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
@@ -86,8 +81,7 @@ const mockCourses: Course[] = [
     id: "1",
     title: "React Avançado: Do Zero ao Profissional",
     slug: "react-avancado",
-    shortDescription: "Aprenda React do zero até nível avançado com projetos práticos",
-    details: "<p>Curso completo de React com projetos reais</p>",
+    description: "<p>Curso completo de React com projetos reais</p>",
     thumbnail: "/placeholder-course.jpg",
     price: 297.0,
     level: "INTERMEDIATE",
@@ -112,8 +106,7 @@ const mockCourses: Course[] = [
     id: "2",
     title: "JavaScript Completo: ES6+ e Moderno",
     slug: "javascript-completo",
-    shortDescription: "Domine JavaScript moderno e todas as suas funcionalidades",
-    details: "<p>Domine JavaScript moderno</p>",
+    description: "<p>Domine JavaScript moderno</p>",
     thumbnail: "/placeholder-course.jpg",
     price: 197.0,
     level: "BEGINNER",
@@ -134,8 +127,7 @@ const mockCourses: Course[] = [
     id: "3",
     title: "Node.js Backend: API RESTful",
     slug: "nodejs-backend",
-    shortDescription: "Aprenda a construir APIs RESTful com Node.js",
-    details: "<p>Construa APIs robustas com Node.js</p>",
+    description: "<p>Construa APIs robustas com Node.js</p>",
     thumbnail: "/placeholder-course.jpg",
     price: 247.0,
     level: "ADVANCED",
@@ -154,8 +146,7 @@ const mockCourses: Course[] = [
 
 const formSchema = z.object({
   title: z.string().min(3, "Título muito curto"),
-  shortDescription: z.string().min(10, "Descrição curta muito pequena"),
-  details: z.string().min(20, "Detalhes muito curtos"),
+  description: z.string().min(10, "Descrição muito curta"),
   price: z.number().min(0, "Preço inválido"),
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   category: z.string().min(1, "Selecione uma categoria"),
@@ -172,8 +163,7 @@ export default function CoursesPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      shortDescription: "",
-      details: "",
+      description: "",
       price: 0,
       level: "BEGINNER",
       category: "",
@@ -189,8 +179,7 @@ export default function CoursesPage() {
         id: (courses.length + 1).toString(),
         title: values.title,
         slug: values.title.toLowerCase().replace(/\s+/g, '-'),
-        shortDescription: values.shortDescription,
-        details: values.details,
+        description: `<p>${values.description}</p>`,
         price: values.price,
         level: values.level,
         duration: values.duration,
@@ -335,37 +324,21 @@ export default function CoursesPage() {
 
                 <FormField
                   control={form.control}
-                  name="shortDescription"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descrição Curta</FormLabel>
+                      <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Descrição resumida do curso"
+                        <Textarea
+                          placeholder="Descrição detalhada do curso"
+                          rows={4}
                           {...field}
                         />
                       </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="details"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Detalhes do Curso</FormLabel>
-                  <FormControl>
-                    <TipTapEditor
-                      content={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
