@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MoreHorizontal, Plus, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -156,6 +157,7 @@ export default function CoursesPage() {
     slug: z.string().min(3, "Slug muito curto").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug inválido: use apenas letras minúsculas, números e hífens"),
     shortDescription: z.string().min(10, "Descrição curta muito curta").max(150, "Descrição curta muito longa"),
     description: z.string().min(10, "Descrição muito curta"),
+    thumbnail: z.string().optional(), // This will store the URL after upload
     price: z.number().min(0, "Preço inválido"),
     level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
     category: z.string().min(1, "Selecione uma categoria"),
@@ -166,6 +168,9 @@ export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>(mockCourses);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -174,6 +179,7 @@ export default function CoursesPage() {
       slug: "",
       shortDescription: "",
       description: "",
+      thumbnail: "",
       price: 0,
       level: "BEGINNER",
       category: "",
@@ -184,6 +190,19 @@ export default function CoursesPage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
+      let thumbnailUrl = values.thumbnail;
+
+      if (thumbnailFile) {
+        const formData = new FormData();
+        formData.append('file', thumbnailFile);
+        const uploadResponse = await axios.post('/api/uploads/course-thumbnail', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        thumbnailUrl = uploadResponse.data.url;
+      }
+
       // Simular chamada à API
       const newCourse: Course = {
         id: (courses.length + 1).toString(),
@@ -191,6 +210,7 @@ export default function CoursesPage() {
         slug: values.slug,
         shortDescription: values.shortDescription,
         description: values.description, // O CKEditor já retorna HTML
+        thumbnail: thumbnailUrl,
         price: values.price,
         level: values.level,
         duration: values.duration,
@@ -208,6 +228,8 @@ export default function CoursesPage() {
       setCourses([...courses, newCourse]);
       setIsCreateModalOpen(false);
       form.reset();
+      setThumbnailFile(null);
+      setThumbnailPreviewUrl(null);
       router.refresh();
     } catch (error) {
       console.error("Error creating course:", error);
@@ -402,6 +424,43 @@ export default function CoursesPage() {
                               }
                             }}
                           />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="thumbnail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Thumbnail do Curso</FormLabel>
+                      <FormControl>
+                        <div>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            ref={fileInputRef}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setThumbnailFile(file);
+                                setThumbnailPreviewUrl(URL.createObjectURL(file));
+                                field.onChange(file.name); // Store filename or a temporary identifier
+                              } else {
+                                setThumbnailFile(null);
+                                setThumbnailPreviewUrl(null);
+                                field.onChange("");
+                              }
+                            }}
+                          />
+                          {thumbnailPreviewUrl && (
+                            <div className="mt-2">
+                              <img src={thumbnailPreviewUrl} alt="Preview" className="max-w-xs h-auto rounded-md" />
+                            </div>
+                          )}
                         </div>
                       </FormControl>
                       <FormMessage />
