@@ -155,7 +155,6 @@ export default function CoursesPage() {
     title: z.string().min(3, "Título muito curto"),
     shortDescription: z.string().min(10, "Descrição curta muito curta").max(150, "Descrição curta muito longa"),
     description: z.string().min(10, "Descrição muito curta"),
-    thumbnail: z.string().optional(),
     price: z.number().min(0, "Preço inválido"),
     level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
     category: z.string().min(1, "Selecione uma categoria"),
@@ -190,7 +189,6 @@ export default function CoursesPage() {
         slug: values.title.toLowerCase().replace(/\s+/g, '-'),
         shortDescription: values.shortDescription,
         description: values.description, // O CKEditor já retorna HTML
-        thumbnail: values.thumbnail || "",
         price: values.price,
         level: values.level,
         duration: values.duration,
@@ -389,43 +387,6 @@ export default function CoursesPage() {
                             }}
                           />
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="thumbnail"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Thumbnail</FormLabel>
-                      <FormControl>
-                        <input
-                          type="file"
-                          accept="image/png, image/jpeg"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const formData = new FormData();
-                            formData.append('file', file);
-                            try {
-                              const response = await fetch(`/api/courses/${form.getValues('id') || 'new'}/thumbnail`, {
-                                method: 'PATCH',
-                                body: formData,
-                              });
-                              if (!response.ok) throw new Error('Falha no upload');
-                              const data = await response.json();
-                              field.onChange(data.thumbnailPath);
-                            } catch (error) {
-                              console.error('Erro ao fazer upload da thumbnail:', error);
-                            }
-                          }}
-                        />
-                        {field.value && (
-                          <img src={field.value} alt="Thumbnail" className="mt-2 max-h-24 rounded" />
-                        )}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -704,12 +665,12 @@ export default function CoursesPage() {
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                           <span className="sr-only">Abrir menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                    </DropdownMenuTrigger>
+                      </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem>
