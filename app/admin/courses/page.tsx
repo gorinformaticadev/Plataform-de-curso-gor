@@ -439,7 +439,7 @@ export default function CoursesPage() {
                       <FormLabel>Thumbnail do Curso</FormLabel>
                       <FormControl>
                         <div>
-                          <Input
+                          <input
                             type="file"
                             accept="image/*"
                             ref={fileInputRef}
@@ -455,10 +455,18 @@ export default function CoursesPage() {
                                 field.onChange("");
                               }
                             }}
+                            className="hidden" // Hide the default file input
                           />
+                          <Button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            variant="outline"
+                          >
+                            Escolher Arquivo
+                          </Button>
                           {thumbnailPreviewUrl && (
                             <div className="mt-2">
-                              <img src={thumbnailPreviewUrl} alt="Preview" className="max-w-xs h-auto rounded-md" />
+                              <img src={thumbnailPreviewUrl} alt="Preview" className="w-24 h-24 object-cover rounded-md" />
                             </div>
                           )}
                         </div>
