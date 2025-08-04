@@ -52,6 +52,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Course {
   id: string;
@@ -162,6 +163,7 @@ export default function CoursesPage() {
     level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
     category: z.string().min(1, "Selecione uma categoria"),
     duration: z.number().min(0, "Duração inválida"),
+    isPublished: z.boolean().default(false),
   });
 
   const router = useRouter();
@@ -184,6 +186,7 @@ export default function CoursesPage() {
       level: "BEGINNER",
       category: "",
       duration: 0,
+      isPublished: false,
     },
   });
 
@@ -223,6 +226,7 @@ export default function CoursesPage() {
         reviewsCount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        status: values.isPublished ? "PUBLISHED" : "DRAFT",
       };
 
       setCourses([...courses, newCourse]);
@@ -335,7 +339,7 @@ export default function CoursesPage() {
         </Button>
 
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-[80vh]">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Curso</DialogTitle>
             </DialogHeader>
@@ -565,6 +569,27 @@ export default function CoursesPage() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="isPublished"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Publicar Curso
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
                 <div className="flex justify-end gap-2 pt-4">
                   <Button
