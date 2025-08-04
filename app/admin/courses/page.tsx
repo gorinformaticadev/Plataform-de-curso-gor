@@ -153,6 +153,7 @@ const mockCourses: Course[] = [
 export default function CoursesPage() {
   const formSchema = z.object({
     title: z.string().min(3, "Título muito curto"),
+    slug: z.string().min(3, "Slug muito curto").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug inválido: use apenas letras minúsculas, números e hífens"),
     shortDescription: z.string().min(10, "Descrição curta muito curta").max(150, "Descrição curta muito longa"),
     description: z.string().min(10, "Descrição muito curta"),
     price: z.number().min(0, "Preço inválido"),
@@ -170,6 +171,7 @@ export default function CoursesPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      slug: "",
       shortDescription: "",
       description: "",
       price: 0,
@@ -186,7 +188,7 @@ export default function CoursesPage() {
       const newCourse: Course = {
         id: (courses.length + 1).toString(),
         title: values.title,
-        slug: values.title.toLowerCase().replace(/\s+/g, '-'),
+        slug: values.slug,
         shortDescription: values.shortDescription,
         description: values.description, // O CKEditor já retorna HTML
         price: values.price,
@@ -325,6 +327,20 @@ export default function CoursesPage() {
                       <FormLabel>Título</FormLabel>
                       <FormControl>
                         <Input placeholder="Título do curso" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="slug"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slug</FormLabel>
+                      <FormControl>
+                        <Input placeholder="slug-do-curso" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
