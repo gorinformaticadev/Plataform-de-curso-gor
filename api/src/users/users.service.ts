@@ -248,4 +248,22 @@ export class UsersService {
       },
     });
   }
+
+  async findInstructors() {
+    return this.prisma.user.findMany({
+      where: {
+        role: UserRole.INSTRUCTOR,
+        instructorProfile: {
+          isNot: null, // Ensure they have an instructor profile
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
 }

@@ -73,6 +73,13 @@ export class UsersController {
     return this.usersService.getNewStudentsLastMonth();
   }
 
+  @Get('instructors')
+  @ApiOperation({ summary: 'Listar todos os instrutores' })
+  @ApiResponse({ status: 200, description: 'Lista de instrutores' })
+  findInstructors() {
+    return this.usersService.findInstructors();
+  }
+
   @Get('profile')
   @ApiOperation({ summary: 'Obter perfil do usuário logado' })
   @ApiResponse({ status: 200, description: 'Dados do perfil' })

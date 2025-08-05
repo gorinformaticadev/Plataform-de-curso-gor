@@ -69,6 +69,7 @@ interface Course {
     name: string;
     avatar?: string;
   };
+  instructorId?: string; // Add instructorId to the interface
   category: {
     name: string;
     icon?: string;
@@ -164,6 +165,7 @@ export default function CoursesPage() {
     category: z.string().min(1, "Selecione uma categoria"),
     duration: z.number().min(0, "Duração inválida"),
     isPublished: z.boolean().default(false),
+    instructorId: z.string().optional(), // Novo campo para o instrutor
   });
 
   const router = useRouter();
@@ -187,6 +189,7 @@ export default function CoursesPage() {
       category: "",
       duration: 0,
       isPublished: false,
+      instructorId: "", // Default value for instructor
     },
   });
 
@@ -227,6 +230,7 @@ export default function CoursesPage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: values.isPublished ? "PUBLISHED" : "DRAFT",
+        instructorId: values.instructorId || undefined, // Pass instructorId if selected
       };
 
       setCourses([...courses, newCourse]);
@@ -260,6 +264,8 @@ export default function CoursesPage() {
 
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [instructors, setInstructors] = useState<{ id: string; name: string }[]>([]);
+  const [isLoadingInstructors, setIsLoadingInstructors] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -270,14 +276,28 @@ export default function CoursesPage() {
         setCategories(data.map((cat: any) => cat.name));
       } catch (error) {
         console.error('Error fetching categories:', error);
-        // Fallback para categorias mockadas se a API falhar
-        setCategories(['Desenvolvimento Web', 'Programação', 'Backend']);
+        setCategories(['Desenvolvimento Web', 'Programação', 'Backend']); // Fallback
       } finally {
         setIsLoadingCategories(false);
       }
     };
 
+    const fetchInstructors = async () => {
+      try {
+        const response = await fetch('/api/users/instructors');
+        if (!response.ok) throw new Error('Failed to fetch instructors');
+        const data = await response.json();
+        setInstructors(data);
+      } catch (error) {
+        console.error('Error fetching instructors:', error);
+        setInstructors([]); // Fallback
+      } finally {
+        setIsLoadingInstructors(false);
+      }
+    };
+
     fetchCategories();
+    fetchInstructors();
   }, []);
 
   const getStatusBadgeVariant = (status: string) => {
@@ -562,6 +582,36 @@ export default function CoursesPage() {
                                 {category}
                               </SelectItem>
                             ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="instructorId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instrutor (Opcional)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um instrutor" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem> {/* Option for no instructor */}
+                            {isLoadingInstructors ? (
+                              <SelectItem value="loading" disabled>Carregando instrutores...</SelectItem>
+                            ) : (
+                              instructors.map((instructor) => (
+                                <SelectItem key={instructor.id} value={instructor.id}>
+                                  {instructor.name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
