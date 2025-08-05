@@ -1,3 +1,4 @@
+import 'dotenv/config'; // Garante que as variáveis de ambiente sejam carregadas
 import { PrismaClient, UserRole } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
