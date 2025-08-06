@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { QuillEditor } from "@/components/ui/quill-editor";
+import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import axios from "axios";
 import {
   Dialog,
@@ -295,10 +295,10 @@ export default function CoursesPage() {
             aria-describedby="create-course-description"
           >
             <DialogHeader>
+              <DialogTitle>Adicionar Novo Curso</DialogTitle>
               <p id="create-course-description" className="sr-only">
                 Formulário para criação de um novo curso
               </p>
-              <DialogTitle>Adicionar Novo Curso</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
