@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { MoreHorizontal, Plus, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -54,6 +55,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 
+interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+}
+
 interface Course {
   id: string;
   title: string;
@@ -82,77 +89,6 @@ interface Course {
   updatedAt: string;
 }
 
-const mockCourses: Course[] = [
-  {
-    id: "1",
-    title: "React Avançado: Do Zero ao Profissional",
-    slug: "react-avancado",
-    shortDescription: "Aprenda React do básico ao avançado com projetos reais",
-    description: "<h2>Curso completo de React com projetos reais</h2><p>Este curso abrange todos os conceitos essenciais do React, desde o básico até tópicos avançados como hooks, context API e gerenciamento de estado.</p><ul><li>Componentes funcionais e de classe</li><li>Hooks como useState, useEffect, useContext</li><li>Gerenciamento de estado com Redux</li><li>Integração com APIs REST</li></ul>",
-    thumbnail: "/placeholder-course.jpg",
-    price: 297.0,
-    level: "INTERMEDIATE",
-    duration: 360,
-    status: "PUBLISHED",
-    instructor: {
-      name: "João Silva",
-      avatar: "/placeholder-instructor.jpg"
-    },
-    category: {
-      name: "Desenvolvimento Web",
-      icon: "💻"
-    },
-    modulesCount: 5,
-    enrollmentsCount: 234,
-    reviewsCount: 45,
-    averageRating: 4.8,
-    createdAt: "2024-01-15",
-    updatedAt: "2024-06-20",
-  },
-  {
-    id: "2",
-    title: "JavaScript Completo: ES6+ e Moderno",
-    slug: "javascript-completo",
-    shortDescription: "Domine JavaScript moderno com ES6+",
-    description: "<h2>Domine JavaScript moderno</h2><p>Este curso completo de JavaScript abrange desde os fundamentos até os recursos mais avançados da linguagem, incluindo ES6+.</p><p>Você aprenderá:</p><ul><li>Sintaxe básica e tipos de dados</li><li>Funções e escopo</li><li>Programação assíncrona com Promises e async/await</li><li>Recursos modernos como arrow functions, destructuring e modules</li></ul>",
-    thumbnail: "/placeholder-course.jpg",
-    price: 197.0,
-    level: "BEGINNER",
-    duration: 420,
-    status: "PUBLISHED",
-    category: {
-      name: "Programação",
-      icon: "👨‍💻"
-    },
-    modulesCount: 6,
-    enrollmentsCount: 189,
-    reviewsCount: 32,
-    averageRating: 4.7,
-    createdAt: "2024-01-10",
-    updatedAt: "2024-05-15",
-  },
-  {
-    id: "3",
-    title: "Node.js Backend: API RESTful",
-    slug: "nodejs-backend",
-    shortDescription: "Construa APIs robustas com Node.js",
-    description: "<h2>Construa APIs robustas com Node.js</h2><p>Este curso ensina como criar APIs RESTful escaláveis usando Node.js, Express e MongoDB.</p><p>O que você aprenderá:</p><ul><li>Configuração do ambiente Node.js</li><li>Criação de endpoints REST</li><li>Autenticação e autorização</li><li>Validação de dados e tratamento de erros</li><li>Integração com banco de dados MongoDB</li></ul>",
-    thumbnail: "/placeholder-course.jpg",
-    price: 247.0,
-    level: "ADVANCED",
-    status: "DRAFT",
-    category: {
-      name: "Backend",
-      icon: "⚙️"
-    },
-    modulesCount: 4,
-    enrollmentsCount: 0,
-    reviewsCount: 0,
-    createdAt: "2024-01-05",
-    updatedAt: "2024-01-05",
-  },
-];
-
 export default function CoursesPage() {
   const formSchema = z.object({
     title: z.string().min(3, "Título muito curto"),
@@ -162,14 +98,15 @@ export default function CoursesPage() {
     thumbnail: z.string().optional(), // This will store the URL after upload
     price: z.number().min(0, "Preço inválido"),
     level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
-    category: z.string().min(1, "Selecione uma categoria"),
+    categoryId: z.string().min(1, "Selecione uma categoria"),
     duration: z.number().min(0, "Duração inválida"),
     isPublished: z.boolean().default(false),
     instructorId: z.string().optional(), // Novo campo para o instrutor
   });
 
   const router = useRouter();
-  const [courses, setCourses] = useState<Course[]>(mockCourses);
+  const { token } = useAuth();
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -186,7 +123,7 @@ export default function CoursesPage() {
       thumbnail: "",
       price: 0,
       level: "BEGINNER",
-      category: "",
+      categoryId: "",
       duration: 0,
       isPublished: false,
       instructorId: "", // Default value for instructor
@@ -204,36 +141,30 @@ export default function CoursesPage() {
         const uploadResponse = await axios.post('/api/uploads/course-thumbnail', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
           },
         });
         thumbnailUrl = uploadResponse.data.url;
       }
 
-      // Simular chamada à API
-      const newCourse: Course = {
-        id: (courses.length + 1).toString(),
-        title: values.title,
-        slug: values.slug,
-        shortDescription: values.shortDescription,
-        description: values.description, // O CKEditor já retorna HTML
+      const courseData = {
+        ...values,
         thumbnail: thumbnailUrl,
-        price: values.price,
-        level: values.level,
-        duration: values.duration,
-        status: "DRAFT",
-        category: {
-          name: values.category,
-        },
-        modulesCount: 0,
-        enrollmentsCount: 0,
-        reviewsCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         status: values.isPublished ? "PUBLISHED" : "DRAFT",
-        instructorId: values.instructorId || undefined, // Pass instructorId if selected
+        instructorId: values.instructorId === 'none' ? null : values.instructorId,
       };
+      
+      const response = await axios.post('/api/courses', courseData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const newCourse = response.data;
 
-      setCourses([...courses, newCourse]);
+      // Atualizar a lista de cursos com o novo curso
+      // Idealmente, a API retornaria o curso completo com o instrutor e categoria populados
+      // Por enquanto, vamos adicionar uma versão simplificada e recarregar
+      setCourses(prevCourses => [...prevCourses, { ...newCourse, category: { name: categories.find(c => c.id === newCourse.categoryId)?.name || 'N/A' }, instructor: { name: instructors.find(i => i.id === newCourse.instructorId)?.name || 'N/A' }, modulesCount: 0, enrollmentsCount: 0, reviewsCount: 0 }]);
       setIsCreateModalOpen(false);
       form.reset();
       setThumbnailFile(null);
@@ -262,43 +193,44 @@ export default function CoursesPage() {
     return matchesSearch && matchesStatus && matchesLevel && matchesCategory && matchesPrice;
   });
 
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [instructors, setInstructors] = useState<{ id: string; name: string }[]>([]);
   const [isLoadingInstructors, setIsLoadingInstructors] = useState(true);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories');
-        if (!response.ok) throw new Error('Failed to fetch categories');
-        const data = await response.json();
-        setCategories(data.map((cat: any) => cat.name));
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategories(['Desenvolvimento Web', 'Programação', 'Backend']); // Fallback
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
+    const fetchInitialData = async () => {
+      if (!token) return;
 
-    const fetchInstructors = async () => {
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+      };
+
       try {
-        const response = await fetch('/api/users/instructors');
-        if (!response.ok) throw new Error('Failed to fetch instructors');
-        const data = await response.json();
-        setInstructors(data);
+        // Fetch Cursos
+        const coursesResponse = await axios.get('/api/courses/my-courses', { headers });
+        setCourses(coursesResponse.data);
+
+        // Fetch Categorias
+        const categoriesResponse = await axios.get('/api/categories', { headers });
+        setCategories(categoriesResponse.data);
+        setIsLoadingCategories(false);
+
+        // Fetch Instrutores
+        const instructorsResponse = await axios.get('/api/users/instructors', { headers });
+        setInstructors(instructorsResponse.data);
+        setIsLoadingInstructors(false);
+
       } catch (error) {
-        console.error('Error fetching instructors:', error);
-        setInstructors([]); // Fallback
-      } finally {
+        console.error("Error fetching initial data:", error);
+        // Lidar com erros de forma mais granular se necessário
+        setIsLoadingCategories(false);
         setIsLoadingInstructors(false);
       }
     };
 
-    fetchCategories();
-    fetchInstructors();
-  }, []);
+    fetchInitialData();
+  }, [token]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -420,7 +352,7 @@ export default function CoursesPage() {
                       <FormControl>
                         <div className="border rounded-md">
                           <CKEditor
-                            editor={ClassicEditor}
+                            editor={ClassicEditor as any}
                             data={field.value || ""}
                             onChange={(_, editor) => {
                               field.onChange(editor.getData());
@@ -566,7 +498,7 @@ export default function CoursesPage() {
 
                   <FormField
                     control={form.control}
-                    name="category"
+                    name="categoryId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Categoria</FormLabel>
@@ -577,11 +509,15 @@ export default function CoursesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
+                            {isLoadingCategories ? (
+                              <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                            ) : (
+                              categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -714,7 +650,7 @@ export default function CoursesPage() {
               >
                 <option value="all">Todas</option>
                 {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
+                  <option key={category.id} value={category.name}>{category.name}</option>
                 ))}
               </select>
             )}

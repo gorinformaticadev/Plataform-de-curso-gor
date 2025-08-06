@@ -43,3 +43,4 @@ hello-prisma/node_modules/.cache/prisma/master/8047c96bbd92db98a2abc7c9323ce77c0
 /api/C
 /api/public/uploads/avatars
 /api/public/uploads/avatars
+api/public/uploads/courses/*
