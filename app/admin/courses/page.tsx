@@ -290,7 +290,7 @@ export default function CoursesPage() {
         </Button>
 
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogContent 
+          <DialogContent
             className="sm:max-w-[600px] overflow-y-auto max-h-[80vh]"
             aria-describedby="create-course-description"
           >

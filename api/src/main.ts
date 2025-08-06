@@ -26,17 +26,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Swagger Documentation
-  const config = new DocumentBuilder()
-    .setTitle('Course Platform API')
-    .setDescription('API para plataforma de cursos online')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
-
+  // TODO: Reimplement Swagger documentation after resolving dependency issues
   // Prefixo global para todas as rotas
   app.setGlobalPrefix('api');
 
