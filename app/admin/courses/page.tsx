@@ -7,8 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
+import { QuillEditor } from "@/components/ui/quill-editor";
 import axios from "axios";
 import {
   Dialog,
@@ -350,37 +349,10 @@ export default function CoursesPage() {
                     <FormItem>
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <div className="border rounded-md">
-                          <CKEditor
-                            editor={ClassicEditor as any}
-                            data={field.value || ""}
-                            onChange={(_, editor) => {
-                              field.onChange(editor.getData());
-                            }}
-                            config={{
-                              toolbar: [
-                                'heading',
-                                '|',
-                                'bold',
-                                'italic',
-                                'link',
-                                'bulletedList',
-                                'numberedList',
-                                'blockQuote',
-                                'undo',
-                                'redo'
-                              ],
-                              heading: {
-                                options: [
-                                  { model: 'paragraph', title: 'Parágrafo', class: 'ck-heading_paragraph' },
-                                  { model: 'heading1', view: 'h1', title: 'Cabeçalho 1', class: 'ck-heading_heading1' },
-                                  { model: 'heading2', view: 'h2', title: 'Cabeçalho 2', class: 'ck-heading_heading2' },
-                                  { model: 'heading3', view: 'h3', title: 'Cabeçalho 3', class: 'ck-heading_heading3' }
-                                ]
-                              }
-                            }}
-                          />
-                        </div>
+                        <QuillEditor
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
