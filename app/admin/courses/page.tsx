@@ -290,8 +290,14 @@ export default function CoursesPage() {
         </Button>
 
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogContent className="sm:max-w-[600px] overflow-y-auto max-h-[80vh]">
+          <DialogContent 
+            className="sm:max-w-[600px] overflow-y-auto max-h-[80vh]"
+            aria-describedby="create-course-description"
+          >
             <DialogHeader>
+              <p id="create-course-description" className="sr-only">
+                Formulário para criação de um novo curso
+              </p>
               <DialogTitle>Adicionar Novo Curso</DialogTitle>
             </DialogHeader>
             <Form {...form}>

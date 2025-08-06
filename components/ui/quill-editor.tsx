@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 
+// Note: Quill.js uses deprecated 'DOMNodeInserted' event
+// This is a known issue in the underlying library
+// Consider monitoring for updates or alternative editors if this becomes problematic
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 interface QuillEditorProps {
