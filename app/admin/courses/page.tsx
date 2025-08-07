@@ -12,6 +12,7 @@ import axios from "axios";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -152,6 +153,8 @@ export default function CoursesPage() {
         status: values.isPublished ? "PUBLISHED" : "DRAFT",
         instructorId: values.instructorId === 'none' ? null : values.instructorId,
       };
+      
+      console.log("Dados enviados para a API:", courseData);
       
       const response = await axios.post('/api/courses', courseData, {
         headers: {
@@ -296,9 +299,9 @@ export default function CoursesPage() {
           >
             <DialogHeader>
               <DialogTitle>Adicionar Novo Curso</DialogTitle>
-              <p id="create-course-description" className="sr-only">
-                Formulário para criação de um novo curso
-              </p>
+              <DialogDescription id="create-course-description">
+                Preencha as informações do novo curso
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -355,7 +358,7 @@ export default function CoursesPage() {
                     <FormItem>
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
-                        <QuillEditor
+                        <TiptapEditor
                           value={field.value || ""}
                           onChange={field.onChange}
                         />

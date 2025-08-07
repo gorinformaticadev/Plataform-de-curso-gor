@@ -13,12 +13,13 @@ interface TiptapEditorProps {
 
 export function TiptapEditor({ value, onChange }: TiptapEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-blue-500 underline",
+      StarterKit.configure({
+        link: {
+          HTMLAttributes: {
+            class: "text-blue-500 underline",
+          },
         },
       }),
     ],
