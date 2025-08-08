@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
 import { Label } from "@/components/ui/label";
 import { useCategories, useCreateCategory, useToggleCategoryStatus, useDeleteCategory } from "./categories.service";
 import { toast } from "sonner";
@@ -98,8 +99,10 @@ export default function CategoriesPage() {
               Adicionar Categoria
             </Button>
           </DialogTrigger>
-          <DialogContent aria-describedby="category-dialog-description">
-            <p id="category-dialog-description" className="sr-only">Formulário para gerenciamento de categorias</p>
+          <AccessibleDialogContent
+            descriptionId="category-dialog-description"
+            descriptionText="Formulário para gerenciamento de categorias"
+          >
             <DialogHeader>
               <DialogTitle>Adicionar Nova Categoria</DialogTitle>
             </DialogHeader>
@@ -131,7 +134,7 @@ export default function CategoriesPage() {
                 {createCategory.isPending ? "Criando..." : "Criar Categoria"}
               </Button>
             </div>
-          </DialogContent>
+          </AccessibleDialogContent>
         </Dialog>
       </div>
 

@@ -10,11 +10,11 @@ import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import axios from "axios";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
 import {
   Form,
   FormControl,
@@ -158,9 +158,10 @@ export function CourseCreateModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
+      <AccessibleDialogContent
         className="sm:max-w-[600px] overflow-y-auto max-h-[80vh]"
-        aria-describedby="create-course-description"
+        descriptionId="create-course-description"
+        descriptionText="Preencha as informações do novo curso"
       >
         <DialogHeader>
           <DialogTitle>Adicionar Novo Curso</DialogTitle>
@@ -389,7 +390,7 @@ export function CourseCreateModal({
             </div>
           </form>
         </Form>
-      </DialogContent>
+      </AccessibleDialogContent>
     </Dialog>
   );
 }

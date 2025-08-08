@@ -10,11 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
 import { UserEditForm } from "@/components/admin/user-edit-form";
 
 interface User {
@@ -425,8 +425,11 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
     </Card>
 
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <DialogContent className="sm:max-w-[625px]" aria-describedby="create-user-description">
-        <p id="create-user-description" className="sr-only">Formulário para criação de novo usuário</p>
+      <AccessibleDialogContent 
+        className="sm:max-w-[625px]"
+        descriptionId="edit-user-description"
+        descriptionText="Formulário para edição de usuário"
+      >
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
           <DialogDescription>
@@ -441,7 +444,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
           }}
           onCancel={() => setIsEditDialogOpen(false)}
         />
-      </DialogContent>
+      </AccessibleDialogContent>
     </Dialog>
     </div>
   );

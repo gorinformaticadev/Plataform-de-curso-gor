@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MoreHorizontal, Plus, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import axios from "axios";
 import {
@@ -372,9 +373,11 @@ export default function CoursesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar curso
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/courses/${course.id}`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar curso
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
                         <DropdownMenuSeparator />

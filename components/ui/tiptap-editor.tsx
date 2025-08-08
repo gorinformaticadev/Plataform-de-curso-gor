@@ -1,105 +1,33 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import { Button } from "@/components/ui/button";
-import { Bold, Italic, Link as LinkIcon, List, ListOrdered, Quote } from "lucide-react";
+import { NoSSR } from "@/components/no-ssr";
+import { TiptapEditorContent } from "./tiptap-editor-content";
 
 interface TiptapEditorProps {
   value: string;
   onChange: (value: string) => void;
+  height?: string;
+  placeholder?: string;
 }
 
-export function TiptapEditor({ value, onChange }: TiptapEditorProps) {
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        link: {
-          HTMLAttributes: {
-            class: "text-blue-500 underline",
-          },
-        },
-      }),
-    ],
-    content: value,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-  });
-
-  if (!editor) {
-    return null;
-  }
-
+// Componente de loading
+function TiptapEditorSkeleton() {
   return (
-    <div className="border rounded-md">
-      <div className="border-b p-2 flex gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive("bold") ? "bg-gray-100" : ""}
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive("italic") ? "bg-gray-100" : ""}
-        >
-          <Italic className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editor.isActive("bulletList") ? "bg-gray-100" : ""}
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={editor.isActive("orderedList") ? "bg-gray-100" : ""}
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={editor.isActive("blockquote") ? "bg-gray-100" : ""}
-        >
-          <Quote className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            const url = window.prompt("URL do link:");
-            if (url) {
-              editor.chain().focus().setLink({ href: url }).run();
-            }
-          }}
-          className={editor.isActive("link") ? "bg-gray-100" : ""}
-        >
-          <LinkIcon className="h-4 w-4" />
-        </Button>
+    <div className="border rounded-md flex flex-col">
+      <div className="border-b p-2 flex flex-wrap gap-1 flex-shrink-0">
+        <div className="text-sm text-gray-500">Carregando editor...</div>
       </div>
-      <EditorContent
-        editor={editor}
-        className="prose prose-sm max-w-none p-4 min-h-[200px]"
-      />
+      <div className="flex-1 p-4 min-h-[200px] bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-400">Editor carregando...</div>
+      </div>
     </div>
+  );
+}
+
+export function TiptapEditor(props: TiptapEditorProps) {
+  return (
+    <NoSSR fallback={<TiptapEditorSkeleton />}>
+      <TiptapEditorContent {...props} />
+    </NoSSR>
   );
 }
