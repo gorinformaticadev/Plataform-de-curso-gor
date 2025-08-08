@@ -332,4 +332,20 @@ export class CoursesService {
       .replace(/-+/g, '-')
       .trim();
   }
+
+  async getCourseModules(courseId: string) {
+    return this.prisma.module.findMany({
+      where: { courseId },
+      include: {
+        lessons: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+      orderBy: {
+        order: 'asc',
+      },
+    });
+  }
 }

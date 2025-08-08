@@ -7,6 +7,10 @@ import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import Code from "@tiptap/extension-code";
 import CodeBlock from "@tiptap/extension-code-block";
+import { Table } from "@tiptap/extension-table";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TableRow } from "@tiptap/extension-table-row";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -30,6 +34,13 @@ import {
   Undo,
   Redo,
   Eraser
+} from "lucide-react";
+import {
+  Table as TableIcon,
+  TableProperties,
+  Rows,
+  Columns,
+  Trash2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -88,6 +99,19 @@ export function TiptapEditorContent({
         },
       }),
     ],
+    Table.configure({
+      resizable: true,
+      HTMLAttributes: {
+        class: "w-full border-collapse",
+      },
+    }),
+    TableRow.configure(),
+    TableHeader.configure({
+      HTMLAttributes: {
+        class: "bg-gray-100",
+      },
+    }),
+    TableCell.configure(),
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -429,7 +453,7 @@ export function TiptapEditorContent({
       {/* Área de edição */}
       <EditorContent
         editor={editor}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto prose-table:border prose-table:border-gray-300 prose-th:p-2 prose-td:p-2 prose-th:border prose-td:border prose-th:border-gray-300 prose-td:border-gray-300"
       />
     </div>
   );

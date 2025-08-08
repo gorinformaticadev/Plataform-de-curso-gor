@@ -100,4 +100,13 @@ export class CoursesController {
   remove(@Param('id') id: string, @Request() req) {
     return this.coursesService.remove(id, req.user.id);
   }
+
+  // Endpoints para módulos e lições do curso
+  @Get(':id/modules')
+  @ApiOperation({ summary: 'Listar módulos de um curso' })
+  @ApiResponse({ status: 200, description: 'Lista de módulos do curso' })
+  @ApiResponse({ status: 404, description: 'Curso não encontrado' })
+  async getCourseModules(@Param('id') id: string) {
+    return this.coursesService.getCourseModules(id);
+  }
 }
