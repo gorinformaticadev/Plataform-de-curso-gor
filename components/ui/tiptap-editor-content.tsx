@@ -5,8 +5,6 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
-import Underline from "@tiptap/extension-underline";
-import Strike from "@tiptap/extension-strike";
 import Code from "@tiptap/extension-code";
 import CodeBlock from "@tiptap/extension-code-block";
 import { Button } from "@/components/ui/button";
@@ -79,8 +77,6 @@ export function TiptapEditorContent({
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
-      Underline,
-      Strike,
       Code.configure({
         HTMLAttributes: {
           class: "bg-gray-100 px-1 py-0.5 rounded text-sm font-mono",
