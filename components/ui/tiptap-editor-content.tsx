@@ -21,6 +21,7 @@ import {
   Underline as UnderlineIcon,
   Strikethrough,
   Palette,
+  Text,
   Link as LinkIcon, 
   List, 
   ListOrdered, 
@@ -46,6 +47,7 @@ import {
   Trash2
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import TurndownService from "turndown";
 
 interface TiptapEditorProps {
   value: string;
@@ -62,6 +64,8 @@ export function TiptapEditorContent({
 }: TiptapEditorProps) {
   const [imageUrl, setImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [showMarkdown, setShowMarkdown] = useState(false);
+  const [markdownContent, setMarkdownContent] = useState("");
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -284,6 +288,27 @@ export function TiptapEditorContent({
             title="Título 1"
           >
             <Heading1 className="h-4 w-4" />
+          </Button>
+ 
+          <Separator orientation="vertical" className="h-6" />
+ 
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (showMarkdown) {
+                setShowMarkdown(false);
+              } else {
+                const turndownService = new TurndownService();
+                setMarkdownContent(turndownService.turndown(editor.getHTML()));
+                setShowMarkdown(true);
+              }
+            }}
+            className={showMarkdown ? "bg-gray-100" : ""}
+            title="Alternar visualização Markdown"
+          >
+            <Text className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -563,10 +588,16 @@ export function TiptapEditorContent({
       )}
 
       {/* Área de edição */}
-      <EditorContent
-        editor={editor}
-        className="flex-1 overflow-y-auto prose-table:border prose-table:border-gray-300 prose-th:p-2 prose-td:p-2 prose-th:border prose-td:border prose-th:border-gray-300 prose-td:border-gray-300"
-      />
+      {showMarkdown ? (
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50 font-mono text-sm whitespace-pre-wrap">
+          {markdownContent}
+        </div>
+      ) : (
+        <EditorContent
+          editor={editor}
+          className="flex-1 overflow-y-auto prose-table:border prose-table:border-gray-300 prose-th:p-2 prose-td:p-2 prose-th:border prose-td:border prose-th:border-gray-300 prose-td:border-gray-300"
+        />
+      )}
     </div>
   );
 }
