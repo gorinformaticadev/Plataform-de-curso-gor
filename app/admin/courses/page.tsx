@@ -312,7 +312,7 @@ export default function CoursesPage() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar>
-                        <AvatarImage src={course.thumbnail} alt={course.title} />
+                        <AvatarImage src={course.thumbnail ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${course.thumbnail}` : undefined} alt={course.title} />
                         <AvatarFallback>{course.title.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
@@ -327,7 +327,7 @@ export default function CoursesPage() {
                     {course.instructor ? (
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={course.instructor.avatar} />
+                          <AvatarImage src={course.instructor.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${course.instructor.avatar}` : undefined} />
                           <AvatarFallback>{course.instructor.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         {course.instructor.name}

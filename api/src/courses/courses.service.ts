@@ -311,7 +311,6 @@ export class CoursesService {
         category: true,
         _count: {
           select: {
-            modules: true,
             enrollments: true,
             reviews: true,
           },

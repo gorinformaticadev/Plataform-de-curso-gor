@@ -47,6 +47,7 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
+      console.log('Senha incorreta:', password, user.password);
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
