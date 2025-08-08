@@ -11,6 +11,8 @@ import { Table } from "@tiptap/extension-table";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { TableRow } from "@tiptap/extension-table-row";
+import { Color } from "@tiptap/extension-color";
+import { TextStyle } from "@tiptap/extension-text-style";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -18,6 +20,7 @@ import {
   Italic, 
   Underline as UnderlineIcon,
   Strikethrough,
+  Palette,
   Link as LinkIcon, 
   List, 
   ListOrdered, 
@@ -98,20 +101,22 @@ export function TiptapEditorContent({
           class: "bg-gray-100 p-4 rounded-md font-mono text-sm",
         },
       }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "w-full border-collapse"
+        }
+      }),
+      TableRow.configure(),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "bg-gray-100"
+        }
+      }),
+      TableCell.configure(),
+      TextStyle.configure(),
+      Color.configure(),
     ],
-    Table.configure({
-      resizable: true,
-      HTMLAttributes: {
-        class: "w-full border-collapse",
-      },
-    }),
-    TableRow.configure(),
-    TableHeader.configure({
-      HTMLAttributes: {
-        class: "bg-gray-100",
-      },
-    }),
-    TableCell.configure(),
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -417,6 +422,74 @@ export function TiptapEditorContent({
         >
           <Eraser className="h-4 w-4" />
         </Button>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        {/* Controle de cores */}
+        <div className="flex gap-1 items-center">
+          <input
+            type="color"
+            onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+            value={editor?.getAttributes('textStyle').color || '#000000'}
+            className="w-6 h-6 cursor-pointer"
+            title="Cor do texto"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().setColor('#000000').run()}
+            title="Resetar cor"
+          >
+            <Palette className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        {/* Controles de tabela */}
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            disabled={editor?.isActive("table")}
+            title="Inserir tabela"
+          >
+            <TableIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+            disabled={!editor?.isActive("table")}
+            title="Adicionar linha"
+          >
+            <Rows className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+            disabled={!editor?.isActive("table")}
+            title="Adicionar coluna"
+          >
+            <Columns className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => editor.chain().focus().deleteTable().run()}
+            disabled={!editor?.isActive("table")}
+            title="Excluir tabela"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Input para URL da imagem */}
