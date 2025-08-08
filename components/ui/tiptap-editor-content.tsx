@@ -61,6 +61,7 @@ export function TiptapEditorContent({
   placeholder = "Digite seu conteúdo aqui..."
 }: TiptapEditorProps) {
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -157,10 +158,23 @@ export function TiptapEditorContent({
     );
   }
 
-  const addImage = () => {
-    if (imageUrl) {
-      editor.chain().focus().setImage({ src: imageUrl }).run();
+  const addImage = async () => {
+    try {
+      if (imageFile) {
+        // Simular upload - em produção substituir por chamada API real
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          editor.chain().focus().setImage({ src: result }).run();
+        };
+        reader.readAsDataURL(imageFile);
+      } else if (imageUrl) {
+        editor.chain().focus().setImage({ src: imageUrl }).run();
+      }
       setImageUrl("");
+      setImageFile(null);
+    } catch (error) {
+      console.error("Erro ao adicionar imagem:", error);
     }
   };
 
@@ -493,33 +507,58 @@ export function TiptapEditorContent({
       </div>
 
       {/* Input para URL da imagem */}
-      {imageUrl !== "" && imageUrl !== " " && (
-        <div className="border-b p-2 flex gap-2 flex-shrink-0 bg-gray-50">
+      {(imageUrl || imageFile) && (
+        <div className="border-b p-2 flex flex-col gap-2 flex-shrink-0 bg-gray-50">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="URL da imagem..."
+              value={imageUrl}
+              onChange={(e) => {
+                setImageUrl(e.target.value);
+                setImageFile(null);
+              }}
+              className="flex-1 px-3 py-1 text-sm border rounded-md"
+              onKeyPress={(e) => e.key === "Enter" && addImage()}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addImage}
+              disabled={!imageUrl && !imageFile}
+            >
+              Inserir
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setImageUrl("");
+                setImageFile(null);
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+          <div className="text-center text-sm text-gray-500">ou</div>
           <input
-            type="text"
-            placeholder="URL da imagem..."
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="flex-1 px-3 py-1 text-sm border rounded-md"
-            onKeyPress={(e) => e.key === "Enter" && addImage()}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                setImageFile(e.target.files[0]);
+                setImageUrl("");
+              }
+            }}
+            className="text-sm"
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addImage}
-            disabled={!imageUrl}
-          >
-            Inserir
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setImageUrl("")}
-          >
-            Cancelar
-          </Button>
+          {imageFile && (
+            <div className="text-xs text-gray-500 mt-1">
+              Arquivo selecionado: {imageFile.name}
+            </div>
+          )}
         </div>
       )}
 
