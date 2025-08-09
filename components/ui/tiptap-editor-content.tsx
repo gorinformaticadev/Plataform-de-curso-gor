@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Bold, Italic } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 interface TiptapEditorProps {
   value: string;
@@ -22,19 +22,16 @@ export function TiptapEditorContent({
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
-    immediatelyRender: false,
   });
 
   useEffect(() => {
-    if (editor && !editor.isDestroyed && value !== editor.getHTML()) {
-      editor.commands.setContent(value, false, {
-        preserveWhitespace: 'full',
-      });
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value);
     }
   }, [value, editor]);
 
   if (!editor) {
-    return <div>Carregando editor...</div>;
+    return null; // O estado de loading é tratado pelo dynamic import
   }
 
   return (
