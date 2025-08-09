@@ -21,14 +21,21 @@ export class ModulesService {
       throw new ForbiddenException('Você não tem permissão para adicionar módulos a este curso');
     }
 
-    return this.prisma.module.create({
+    const newModule = await this.prisma.module.create({
       data: {
         ...createModuleDto,
       },
       include: {
-        lessons: true,
+        lessons: true, // Renomeado para contents no frontend
       },
     });
+
+    // O frontend espera 'contents', então vamos mapear 'lessons' para 'contents'
+    const { lessons, ...moduleData } = newModule;
+    return {
+      ...moduleData,
+      contents: lessons,
+    };
   }
 
   async findOne(id: string) {

@@ -41,7 +41,7 @@ interface Lesson {
 
 interface Module {
   id?: string;
-  name: string;
+  title: string;
   description: string;
   order: number;
   contents: Lesson[];
@@ -62,9 +62,9 @@ export default function CourseModulesManager({
   courseId 
 }: CourseModulesManagerProps) {
   const [draggedItem, setDraggedItem] = useState<{ type: 'module' | 'lesson'; moduleId: number; lessonId?: number } | null>(null);
-  const [newModuleName, setNewModuleName] = useState("");
+  const [newModuleTitle, setNewModuleTitle] = useState("");
   const [editingModule, setEditingModule] = useState<{ module: Module; index: number } | null>(null);
-  const [editedModuleName, setEditedModuleName] = useState("");
+  const [editedModuleTitle, setEditedModuleTitle] = useState("");
   const [editedModuleDescription, setEditedModuleDescription] = useState("");
   const [addingLesson, setAddingLesson] = useState<{ moduleId: number } | null>(null);
   const [editingLesson, setEditingLesson] = useState<{ moduleId: number; lesson: Lesson; lessonIndex: number } | null>(null);
@@ -115,28 +115,41 @@ export default function CourseModulesManager({
     setDraggedItem(null);
   };
 
-  const handleAddModule = () => {
-    if (!newModuleName.trim()) {
+  const handleAddModule = async () => {
+    if (!newModuleTitle.trim()) {
       toast.error("Por favor, digite um nome para o módulo");
       return;
     }
-    
-    const newModule: Module = {
-      name: newModuleName,
-      description: "",
-      order: modules.length + 1,
-      contents: [],
-      isExpanded: true
-    };
-    
-    onModulesChange([...modules, newModule]);
-    setNewModuleName("");
-    toast.success("Módulo adicionado com sucesso!");
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/modules`,
+        {
+          title: newModuleTitle,
+          description: "",
+          courseId: courseId,
+          order: modules.length + 1,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const newModule = response.data;
+      onModulesChange([...modules, newModule]);
+      setNewModuleTitle("");
+      toast.success("Módulo adicionado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao adicionar módulo:", error);
+      toast.error("Erro ao adicionar módulo. Tente novamente.");
+    }
   };
 
   const handleEditModule = (module: Module, index: number) => {
     setEditingModule({ module, index });
-    setEditedModuleName(module.name);
+    setEditedModuleTitle(module.title);
     setEditedModuleDescription(module.description);
   };
 
@@ -146,7 +159,7 @@ export default function CourseModulesManager({
     const newModules = [...modules];
     newModules[editingModule.index] = {
       ...newModules[editingModule.index],
-      name: editedModuleName,
+      title: editedModuleTitle,
       description: editedModuleDescription
     };
     
@@ -266,13 +279,13 @@ export default function CourseModulesManager({
                 <label className="text-sm font-medium">Nome do Módulo</label>
                 <Input
                   placeholder="Digite o nome do módulo"
-                  value={newModuleName}
-                  onChange={(e) => setNewModuleName(e.target.value)}
+                  value={newModuleTitle}
+                  onChange={(e) => setNewModuleTitle(e.target.value)}
                   className="mt-1"
                 />
               </div>
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setNewModuleName("")}>
+                <Button variant="outline" onClick={() => setNewModuleTitle("")}>
                   Cancelar
                 </Button>
                 <Button onClick={handleAddModule}>
@@ -317,7 +330,7 @@ export default function CourseModulesManager({
                       </Button>
                     </CollapsibleTrigger>
                     <div>
-                      <CardTitle className="text-base">{module.name}</CardTitle>
+                      <CardTitle className="text-base">{module.title}</CardTitle>
                       <p className="text-sm text-gray-500">
                         {module.contents.length} aula{module.contents.length !== 1 ? 's' : ''}
                       </p>
@@ -345,7 +358,7 @@ export default function CourseModulesManager({
                         <AlertDialogHeader>
                           <AlertDialogTitle>Excluir Módulo</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Tem certeza que deseja excluir o módulo "{module.name}"?
+                            Tem certeza que deseja excluir o módulo "{module.title}"?
                             Esta ação também excluirá todas as aulas deste módulo.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -490,13 +503,13 @@ export default function CourseModulesManager({
                     <label className="text-sm font-medium">Nome do Módulo</label>
                     <Input
                       placeholder="Digite o nome do módulo"
-                      value={newModuleName}
-                      onChange={(e) => setNewModuleName(e.target.value)}
+                      value={newModuleTitle}
+                      onChange={(e) => setNewModuleTitle(e.target.value)}
                       className="mt-1"
                     />
                   </div>
                   <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setNewModuleName("")}>
+                    <Button variant="outline" onClick={() => setNewModuleTitle("")}>
                       Cancelar
                     </Button>
                     <Button onClick={handleAddModule}>
@@ -521,8 +534,8 @@ export default function CourseModulesManager({
               <div>
                 <label className="text-sm font-medium">Nome do Módulo</label>
                 <Input
-                  value={editedModuleName}
-                  onChange={(e) => setEditedModuleName(e.target.value)}
+                  value={editedModuleTitle}
+                  onChange={(e) => setEditedModuleTitle(e.target.value)}
                   className="mt-1"
                 />
               </div>

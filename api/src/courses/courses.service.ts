@@ -334,7 +334,7 @@ export class CoursesService {
   }
 
   async getCourseModules(courseId: string) {
-    return this.prisma.module.findMany({
+    const modules = await this.prisma.module.findMany({
       where: { courseId },
       include: {
         lessons: {
@@ -346,6 +346,14 @@ export class CoursesService {
       orderBy: {
         order: 'asc',
       },
+    });
+
+    return modules.map(module => {
+      const { lessons, ...rest } = module;
+      return {
+        ...rest,
+        contents: lessons,
+      };
     });
   }
 }
