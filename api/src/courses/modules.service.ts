@@ -104,4 +104,32 @@ export class ModulesService {
       where: { id },
     });
   }
+  async reorderModules(modules: { id: string; order: number }[], userId: string) {
+    // Verificar se o usuário tem permissão para editar os módulos
+    // Isso pode ser feito verificando se todos os módulos pertencem a cursos do instrutor
+    for (const moduleData of modules) {
+      const module = await this.prisma.module.findUnique({
+        where: { id: moduleData.id },
+        include: {
+          course: true,
+        },
+      });
+
+      if (!module) {
+        throw new NotFoundException(`Módulo com ID ${moduleData.id} não encontrado`);
+      }
+
+      if (module.course.instructorId !== userId) {
+        throw new ForbiddenException('Você não tem permissão para reordenar este módulo');
+      }
+    }
+
+    const transaction = modules.map((module) =>
+      this.prisma.module.update({
+        where: { id: module.id },
+        data: { order: module.order },
+      }),
+    );
+    return this.prisma.$transaction(transaction);
+  }
 }

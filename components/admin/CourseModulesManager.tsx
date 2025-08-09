@@ -114,6 +114,27 @@ export default function CourseModulesManager({
     
     onModulesChange(newModules);
     setDraggedItem(null);
+    handleUpdateModuleOrder(newModules); // Persist the new order
+  };
+
+  const handleUpdateModuleOrder = async (updatedModules: Module[]) => {
+    try {
+      await axios.patch(
+        `${process.env.NEXT_PUBLIC_API_URL}/modules/reorder`,
+        {
+          modules: updatedModules.map(m => ({ id: m.id, order: m.order })),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Ordem dos módulos atualizada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar a ordem dos módulos:", error);
+      toast.error("Erro ao atualizar a ordem dos módulos. Tente novamente.");
+    }
   };
 
   const handleAddModule = async () => {
@@ -155,29 +176,71 @@ export default function CourseModulesManager({
     setEditedModuleDescription(module.description);
   };
 
-  const handleSaveModule = () => {
-    if (!editingModule) return;
-    
-    const newModules = [...modules];
-    newModules[editingModule.index] = {
-      ...newModules[editingModule.index],
-      title: editedModuleTitle,
-      description: editedModuleDescription
-    };
-    
-    onModulesChange(newModules);
-    setEditingModule(null);
-    toast.success("Módulo atualizado com sucesso!");
+  const handleSaveModule = async () => {
+    if (!editingModule || !editingModule.module.id) {
+      toast.error("Erro: Módulo não encontrado para edição.");
+      return;
+    }
+
+    try {
+      const response = await axios.patch(
+        `${process.env.NEXT_PUBLIC_API_URL}/modules/${editingModule.module.id}`,
+        {
+          title: editedModuleTitle,
+          description: editedModuleDescription,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updatedModule = response.data;
+      const newModules = [...modules];
+      newModules[editingModule.index] = {
+        ...newModules[editingModule.index],
+        title: updatedModule.title,
+        description: updatedModule.description,
+      };
+      
+      onModulesChange(newModules);
+      setEditingModule(null);
+      toast.success("Módulo atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar módulo:", error);
+      toast.error("Erro ao atualizar módulo. Tente novamente.");
+    }
   };
 
-  const handleDeleteModule = (index: number) => {
-    const newModules = modules.filter((_, i) => i !== index);
-    // Update order
-    newModules.forEach((module, i) => {
-      module.order = i + 1;
-    });
-    onModulesChange(newModules);
-    toast.success("Módulo excluído com sucesso!");
+  const handleDeleteModule = async (index: number) => {
+    const moduleToDelete = modules[index];
+    if (!moduleToDelete || !moduleToDelete.id) {
+      toast.error("Erro: Módulo não encontrado para exclusão.");
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/modules/${moduleToDelete.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const newModules = modules.filter((_, i) => i !== index);
+      // Update order
+      newModules.forEach((module, i) => {
+        module.order = i + 1;
+      });
+      onModulesChange(newModules);
+      toast.success("Módulo excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir módulo:", error);
+      toast.error("Erro ao excluir módulo. Tente novamente.");
+    }
   };
 
   const toggleModuleExpansion = (index: number) => {
