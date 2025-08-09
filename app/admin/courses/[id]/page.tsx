@@ -113,11 +113,14 @@ export default function EditCoursePage() {
       if (!token || !params.id) return;
 
       try {
-        const [courseResponse, categoriesResponse] = await Promise.all([
+        const [courseResponse, categoriesResponse, modulesResponse] = await Promise.all([
           axios.get(`/api/courses/${params.id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           axios.get('/api/categories', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`/api/courses/${params.id}/modules`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -125,6 +128,7 @@ export default function EditCoursePage() {
         const courseData = courseResponse.data;
         setCourse(courseData);
         setCategories(categoriesResponse.data);
+        setModules(modulesResponse.data);
 
         // Preencher o formulário com os dados do curso
         form.reset({

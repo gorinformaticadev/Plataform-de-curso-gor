@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,7 @@ export default function CourseModulesManager({
 }: CourseModulesManagerProps) {
   const [draggedItem, setDraggedItem] = useState<{ type: 'module' | 'lesson'; moduleId: number; lessonId?: number } | null>(null);
   const [newModuleTitle, setNewModuleTitle] = useState("");
+  const [isAddModuleDialogOpen, setIsAddModuleDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<{ module: Module; index: number } | null>(null);
   const [editedModuleTitle, setEditedModuleTitle] = useState("");
   const [editedModuleDescription, setEditedModuleDescription] = useState("");
@@ -141,6 +142,7 @@ export default function CourseModulesManager({
       onModulesChange([...modules, newModule]);
       setNewModuleTitle("");
       toast.success("Módulo adicionado com sucesso!");
+      setIsAddModuleDialogOpen(false); // Close dialog on success
     } catch (error) {
       console.error("Erro ao adicionar módulo:", error);
       toast.error("Erro ao adicionar módulo. Tente novamente.");
@@ -263,9 +265,9 @@ export default function CourseModulesManager({
       {/* Add Module Button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Módulos do Curso</h3>
-        <Dialog>
+        <Dialog open={isAddModuleDialogOpen} onOpenChange={setIsAddModuleDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => setIsAddModuleDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Módulo
             </Button>
@@ -285,7 +287,10 @@ export default function CourseModulesManager({
                 />
               </div>
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setNewModuleTitle("")}>
+                <Button variant="outline" onClick={() => {
+                  setNewModuleTitle("");
+                  setIsAddModuleDialogOpen(false);
+                }}>
                   Cancelar
                 </Button>
                 <Button onClick={handleAddModule}>
