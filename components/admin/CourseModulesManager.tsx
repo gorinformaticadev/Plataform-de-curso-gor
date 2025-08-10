@@ -31,12 +31,16 @@ import axios from "axios";
 interface Lesson {
   id?: string;
   title: string;
-  type: "VIDEO" | "PDF" | "QUIZ";
-  url?: string;
-  coverUrl?: string;
-  quizTitle?: string;
-  quizDescription?: string;
+  description?: string;
   order: number;
+  contents: {
+    id?: string;
+    type: "VIDEO" | "TEXT" | "QUIZ";
+    videoUrl?: string;
+    duration?: number;
+    content?: string;
+    quizData?: any;
+  }[];
 }
 
 interface Module {
@@ -67,7 +71,9 @@ export default function CourseModulesManager({
   const [editingModule, setEditingModule] = useState<{ module: Module; index: number } | null>(null);
   const [editedModuleTitle, setEditedModuleTitle] = useState("");
   const [editedModuleDescription, setEditedModuleDescription] = useState("");
-  const [addingLesson, setAddingLesson] = useState<{ moduleId: number } | null>(null);
+  const [isAddLessonDialogOpen, setIsAddLessonDialogOpen] = useState(false);
+  const [selectedLessonTypes, setSelectedLessonTypes] = useState<string[]>([]);
+  const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
   const [editingLesson, setEditingLesson] = useState<{ moduleId: number; lesson: Lesson; lessonIndex: number } | null>(null);
 
   // Drag and drop handlers
@@ -258,33 +264,75 @@ export default function CourseModulesManager({
     onModulesChange(newModules);
   };
 
-  const handleAddLesson = (moduleId: number) => {
-    setAddingLesson({ moduleId });
+  const handleAddLessonClick = (moduleId: number) => {
+    setCurrentModuleId(moduleId);
+    setIsAddLessonDialogOpen(true);
   };
 
-  const handleSaveLesson = async () => {
-    if (!addingLesson) return;
-    
-    const { moduleId } = addingLesson;
-    const module = modules[moduleId];
-    
-    // This is a simplified version - in a real implementation, 
-    // you would have a form to collect lesson details
-    const newLesson: Lesson = {
+  const handleLessonTypeChange = (type: string) => {
+    setSelectedLessonTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const handleCreateLesson = async () => {
+    if (currentModuleId === null || modules[currentModuleId] === undefined) {
+      toast.error("Módulo não encontrado.");
+      return;
+    }
+
+    if (currentModuleId === null || modules[currentModuleId] === undefined) {
+      toast.error("Módulo não encontrado.");
+      return;
+    }
+
+    const module = modules[currentModuleId];
+    if (!module.id) {
+      toast.error("Salve o módulo antes de adicionar aulas.");
+      return;
+    }
+
+    if (selectedLessonTypes.length === 0) {
+      toast.error("Selecione pelo menos um tipo de aula.");
+      return;
+    }
+    const newLessonData = {
       title: "Nova Aula",
-      type: "VIDEO",
-      order: module.contents.length + 1
+      description: "",
+      order: module.contents.length + 1,
+      moduleId: module.id,
+      contents: selectedLessonTypes.map(type => ({
+        type: type as "VIDEO" | "TEXT" | "QUIZ",
+        ...(type === "VIDEO" ? { videoUrl: "" } : {}),
+        ...(type === "TEXT" ? { content: "" } : {}),
+        ...(type === "QUIZ" ? { quizData: {} } : {})
+      })),
     };
-    
-    const newModules = [...modules];
-    newModules[moduleId] = {
-      ...newModules[moduleId],
-      contents: [...newModules[moduleId].contents, newLesson]
-    };
-    
-    onModulesChange(newModules);
-    setAddingLesson(null);
-    toast.success("Aula adicionada com sucesso!");
+
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/lessons`,
+        newLessonData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const newLesson = response.data;
+      const newModules = [...modules];
+      newModules[currentModuleId].contents.push(newLesson);
+      onModulesChange(newModules);
+
+      toast.success("Aula criada com sucesso!");
+      setIsAddLessonDialogOpen(false);
+      setSelectedLessonTypes([]);
+      setCurrentModuleId(null);
+    } catch (error) {
+      console.error("Erro ao criar aula:", error);
+      toast.error("Erro ao criar aula. Tente novamente.");
+    }
   };
 
   const handleDeleteLesson = (moduleId: number, lessonIndex: number) => {
@@ -303,11 +351,14 @@ export default function CourseModulesManager({
     toast.success("Aula excluída com sucesso!");
   };
 
-  const getLessonIcon = (type: string) => {
-    switch (type) {
+  const getLessonIcon = (lesson: Lesson) => {
+    if (!lesson.contents || lesson.contents.length === 0) {
+      return <Play className="h-4 w-4" />;
+    }
+    switch (lesson.contents[0].type) {
       case 'VIDEO':
         return <Video className="h-4 w-4" />;
-      case 'PDF':
+      case 'TEXT':
         return <FileText className="h-4 w-4" />;
       case 'QUIZ':
         return <HelpCircle className="h-4 w-4" />;
@@ -316,12 +367,15 @@ export default function CourseModulesManager({
     }
   };
 
-  const getLessonTypeLabel = (type: string) => {
-    switch (type) {
+  const getLessonTypeLabel = (lesson: Lesson) => {
+    if (!lesson.contents || lesson.contents.length === 0) {
+      return 'Aula';
+    }
+    switch (lesson.contents[0].type) {
       case 'VIDEO':
         return 'Vídeo';
-      case 'PDF':
-        return 'PDF';
+      case 'TEXT':
+        return 'Texto';
       case 'QUIZ':
         return 'Questionário';
       default:
@@ -461,7 +515,7 @@ export default function CourseModulesManager({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAddLesson(moduleIndex)}
+                      onClick={() => handleAddLessonClick(moduleIndex)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Aula
@@ -482,11 +536,11 @@ export default function CourseModulesManager({
                         >
                           <div className="flex items-center space-x-3">
                             <GripVertical className="h-4 w-4 text-gray-400" />
-                            {getLessonIcon(lesson.type)}
+                            {getLessonIcon(lesson)}
                             <div>
                               <p className="font-medium text-sm">{lesson.title}</p>
                               <p className="text-xs text-gray-500">
-                                {getLessonTypeLabel(lesson.type)} • Aula {lesson.order}
+                                {getLessonTypeLabel(lesson)} • Aula {lesson.order}
                               </p>
                             </div>
                           </div>
@@ -537,7 +591,7 @@ export default function CourseModulesManager({
                         variant="outline"
                         size="sm"
                         className="mt-2"
-                        onClick={() => handleAddLesson(moduleIndex)}
+                        onClick={() => handleAddLessonClick(moduleIndex)}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Adicionar primeira aula
@@ -634,6 +688,60 @@ export default function CourseModulesManager({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Lesson Dialog */}
+      <Dialog open={isAddLessonDialogOpen} onOpenChange={setIsAddLessonDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Nova Aula</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Tipo de Aula</label>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <Button
+                  variant={selectedLessonTypes.includes('VIDEO') ? 'default' : 'outline'}
+                  onClick={() => handleLessonTypeChange('VIDEO')}
+                >
+                  Vídeo
+                </Button>
+                <Button
+                  variant={selectedLessonTypes.includes('TEXT') ? 'default' : 'outline'}
+                  onClick={() => handleLessonTypeChange('TEXT')}
+                >
+                  Texto
+                </Button>
+                <Button
+                  variant={selectedLessonTypes.includes('QUIZ') ? 'default' : 'outline'}
+                  onClick={() => handleLessonTypeChange('QUIZ')}
+                >
+                  Quiz
+                </Button>
+              </div>
+            </div>
+
+            {selectedLessonTypes.includes('QUIZ') && (
+              <div>
+                <label className="text-sm font-medium">Tipo de Quiz</label>
+                {/* TODO: Adicionar sub-opções do quiz */}
+                <p className="text-sm text-gray-500 mt-2">
+                  As opções de tipo de quiz (escolha única, múltipla escolha, etc.) serão adicionadas aqui.
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsAddLessonDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleCreateLesson}>
+                Criar Aula
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

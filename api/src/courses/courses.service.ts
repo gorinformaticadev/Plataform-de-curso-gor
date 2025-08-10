@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { CourseStatus } from '@prisma/client';
 
 @Injectable()
 export class CoursesService {
@@ -105,20 +104,6 @@ export class CoursesService {
         },
         category: true,
         modules: {
-          include: {
-            lessons: {
-              select: {
-                id: true,
-                title: true,
-                duration: true,
-                order: true,
-                type: true,
-              },
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
           orderBy: {
             order: 'asc',
           },
@@ -185,20 +170,6 @@ export class CoursesService {
         },
         category: true,
         modules: {
-          include: {
-            lessons: {
-              select: {
-                id: true,
-                title: true,
-                duration: true,
-                order: true,
-                type: true,
-              },
-              orderBy: {
-                order: 'asc',
-              },
-            },
-          },
           orderBy: {
             order: 'asc',
           },
@@ -338,6 +309,9 @@ export class CoursesService {
       where: { courseId },
       include: {
         lessons: {
+          include: {
+            contents: true,
+          },
           orderBy: {
             order: 'asc',
           },

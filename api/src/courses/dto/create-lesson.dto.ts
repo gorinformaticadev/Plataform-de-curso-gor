@@ -1,37 +1,52 @@
-import { IsString, IsNumber, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsArray, ValidateNested, IsEnum } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LessonType } from '@prisma/client';
 
-export class CreateLessonDto {
-  @ApiProperty({ example: 'Variáveis e Tipos de Dados' })
-  @IsString()
-  title: string;
+class LessonContentDto {
+  @ApiProperty({ enum: LessonType })
+  @IsEnum(LessonType)
+  type: LessonType;
 
-  @ApiPropertyOptional({ example: 'Nesta aula você aprenderá sobre variáveis e tipos de dados em JavaScript' })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiPropertyOptional({ example: 'https://video.url' })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   videoUrl?: string;
 
-  @ApiPropertyOptional({ example: 300, description: 'Duração em segundos' })
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   duration?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  content?: string;
+
+  // quizData can be added here later
+}
+
+export class CreateLessonDto {
+  @ApiProperty({ example: 'Introdução ao React' })
+  @IsString()
+  title: string;
+
+  @ApiPropertyOptional({ example: 'Nesta lição você aprenderá os conceitos básicos de React' })
+  @IsOptional()
+  @IsString()
+  description?: string;
 
   @ApiProperty({ example: 1 })
   @IsNumber()
   order: number;
 
-  @ApiPropertyOptional({ enum: LessonType, default: LessonType.VIDEO })
-  @IsOptional()
-  @IsEnum(LessonType)
-  type?: LessonType;
-
   @ApiProperty({ example: 'uuid-do-modulo' })
   @IsString()
   moduleId: string;
+
+  @ApiProperty({ type: [LessonContentDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LessonContentDto)
+  contents: LessonContentDto[];
 }

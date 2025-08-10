@@ -8,9 +8,11 @@ export class LessonsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createLessonDto: CreateLessonDto, userId: string) {
+    const { moduleId, contents, ...lessonData } = createLessonDto;
+
     // Verificar se o usuário é o instrutor do curso
     const module = await this.prisma.module.findUnique({
-      where: { id: createLessonDto.moduleId },
+      where: { id: moduleId },
       include: {
         course: true,
       },
@@ -26,7 +28,16 @@ export class LessonsService {
 
     return this.prisma.lesson.create({
       data: {
-        ...createLessonDto,
+        ...lessonData,
+        module: {
+          connect: { id: moduleId },
+        },
+        contents: {
+          create: contents,
+        },
+      },
+      include: {
+        contents: true,
       },
     });
   }
