@@ -6,11 +6,6 @@ export class CreateModuleDto {
   @IsString()
   title: string;
 
-  @ApiPropertyOptional({ example: 'Neste módulo você aprenderá os conceitos básicos de JavaScript' })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
   @ApiProperty({ example: 1 })
   @IsNumber()
   order: number;
@@ -18,4 +13,9 @@ export class CreateModuleDto {
   @ApiProperty({ example: 'uuid-do-curso' })
   @IsString()
   courseId: string;
+
+  @ApiPropertyOptional({ example: 'Neste módulo você aprenderá os conceitos básicos de JavaScript' })
+  @IsOptional()
+  @IsString()
+  description?: string;
 }

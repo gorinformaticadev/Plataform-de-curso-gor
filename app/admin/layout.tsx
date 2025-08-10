@@ -63,22 +63,6 @@ const menuGroups: MenuGroup[] = [
     ]
   },
   {
-    label: "Vendas",
-    items: [
-      { 
-        icon: ShoppingCart, 
-        label: "Vendas", 
-        href: "/admin/sales",
-        subItems: [
-          { icon: ShoppingCart, label: "Minhas vendas", href: "/admin/sales" },
-          { icon: FileText, label: "Assinaturas", href: "/admin/subscriptions" },
-          { icon: BarChart3, label: "Relatórios", href: "/admin/reports" },
-          { icon: Gift, label: "Cupons", href: "/admin/coupons" },
-        ]
-      },
-    ]
-  },
-  {
     items: [
       { icon: Settings, label: "Configurações", href: "/admin/settings" },
       { icon: LogOut, label: "Sair", href: "/logout" },

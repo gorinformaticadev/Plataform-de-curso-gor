@@ -82,7 +82,7 @@ export default function CourseModulesManager({
     e.dataTransfer.dropEffect = "move";
   };
 
-  const handleDrop = (e: React.DragEvent, targetModuleId: number, targetLessonId?: number) => {
+  const handleDrop = async (e: React.DragEvent, targetModuleId: number, targetLessonId?: number) => {
     e.preventDefault();
     
     if (!draggedItem) return;
@@ -94,10 +94,37 @@ export default function CourseModulesManager({
       const [draggedModule] = newModules.splice(draggedItem.moduleId, 1);
       newModules.splice(targetModuleId, 0, draggedModule);
       
-      // Update order
-      newModules.forEach((module, index) => {
-        module.order = index + 1;
+      // Update order and persist changes
+      const updates = newModules.map(async (module, index) => {
+        if (module.order !== index + 1) {
+          module.order = index + 1;
+          try {
+            await axios.patch(
+              `${process.env.NEXT_PUBLIC_API_URL}/modules/${module.id}`,
+              { order: module.order },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+          } catch (error) {
+            console.error(`Erro ao atualizar o módulo ${module.id}:`, error);
+            throw error; // Re-throw to be caught by Promise.all
+          }
+        }
       });
+
+      try {
+        await Promise.all(updates);
+        toast.success("Ordem dos módulos atualizada com sucesso!", {
+          duration: 3000,
+          className: 'bg-green-500 text-white',
+        });
+      } catch (error) {
+        toast.error("Erro ao atualizar a ordem dos módulos. Tente novamente.");
+      }
+
     } else if (draggedItem.type === 'lesson' && draggedItem.lessonId !== undefined && targetLessonId !== undefined) {
       // Reordering lessons within the same module
       if (draggedItem.moduleId === targetModuleId) {
@@ -114,27 +141,6 @@ export default function CourseModulesManager({
     
     onModulesChange(newModules);
     setDraggedItem(null);
-    handleUpdateModuleOrder(newModules); // Persist the new order
-  };
-
-  const handleUpdateModuleOrder = async (updatedModules: Module[]) => {
-    try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/modules/reorder`,
-        {
-          modules: updatedModules.map(m => ({ id: m.id, order: m.order })),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      toast.success("Ordem dos módulos atualizada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao atualizar a ordem dos módulos:", error);
-      toast.error("Erro ao atualizar a ordem dos módulos. Tente novamente.");
-    }
   };
 
   const handleAddModule = async () => {

@@ -63,13 +63,4 @@ export class ModulesController {
   remove(@Param('id') id: string, @Request() req) {
     return this.modulesService.remove(id, req.user.id);
   }
-  @Patch('reorder')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Reordenar módulos' })
-  @ApiResponse({ status: 200, description: 'Ordem dos módulos atualizada com sucesso' })
-  @ApiResponse({ status: 403, description: 'Sem permissão para reordenar' })
-  async reorder(@Body() body: { modules: { id: string; order: number }[] }, @Request() req) {
-    return this.modulesService.reorderModules(body.modules, req.user.id);
-  }
 }
