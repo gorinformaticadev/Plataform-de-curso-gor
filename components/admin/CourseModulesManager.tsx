@@ -376,7 +376,7 @@ export default function CourseModulesManager({
         {modules.map((module, moduleIndex) => (
           <Collapsible
             key={moduleIndex}
-            open={module.isExpanded}
+            open={module.isExpanded ?? false}
             onOpenChange={() => toggleModuleExpansion(moduleIndex)}
             className="border-2 hover:border-gray-300 transition-colors rounded-md"
           >
