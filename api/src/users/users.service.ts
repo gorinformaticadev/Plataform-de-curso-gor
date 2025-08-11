@@ -146,6 +146,12 @@ export class UsersService {
     });
   }
 
+  async findByEmailWithPassword(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const { password, cpf, ...restOfDto } = updateUserDto;
 

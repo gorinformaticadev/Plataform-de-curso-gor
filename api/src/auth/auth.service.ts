@@ -44,10 +44,15 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.findByEmailWithPassword(email);
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      console.log('Senha incorreta:', password, user.password);
+    if (!user) {
+      throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    const isPasswordMatching = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatching) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
@@ -62,7 +67,7 @@ export class AuthService {
   }
 
   async validateUser(email: string, password_param: string) {
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.findByEmailWithPassword(email);
     if (user && (await bcrypt.compare(password_param, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user;
