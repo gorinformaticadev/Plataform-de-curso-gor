@@ -75,6 +75,14 @@ export default function CourseModulesManager({
   const [selectedLessonTypes, setSelectedLessonTypes] = useState<string[]>([]);
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
   const [editingLesson, setEditingLesson] = useState<{ moduleId: number; lesson: Lesson; lessonIndex: number } | null>(null);
+  const [newLessonTitle, setNewLessonTitle] = useState<string>("Nova Aula");
+  const [newLessonDescription, setNewLessonDescription] = useState<string>("");
+  const [videoUrl, setVideoUrl] = useState<string>("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+  const [textContent, setTextContent] = useState<string>("");
+  const [videoUploadMethod, setVideoUploadMethod] = useState<"link" | "upload">("link");
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, type: 'module' | 'lesson', moduleId: number, lessonId?: number) => {
@@ -281,11 +289,6 @@ export default function CourseModulesManager({
       return;
     }
 
-    if (currentModuleId === null || modules[currentModuleId] === undefined) {
-      toast.error("Módulo não encontrado.");
-      return;
-    }
-
     const module = modules[currentModuleId];
     if (!module.id) {
       toast.error("Salve o módulo antes de adicionar aulas.");
@@ -296,17 +299,75 @@ export default function CourseModulesManager({
       toast.error("Selecione pelo menos um tipo de aula.");
       return;
     }
-    const newLessonData = {
-      title: "Nova Aula",
-      description: "",
-      order: module.contents.length + 1,
-      moduleId: module.id,
-      contents: selectedLessonTypes.map(type => ({
-        type: type as "VIDEO" | "TEXT" | "QUIZ",
-        ...(type === "VIDEO" ? { videoUrl: "" } : {}),
-        ...(type === "TEXT" ? { content: "" } : {}),
+
+    // Preparar dados para upload de arquivos, se necessário
+    let formData = null;
+    let videoFileName = "";
+    let thumbnailFileName = "";
+    
+    // Se estiver usando upload de vídeo ou imagem, criar FormData
+    if ((videoUploadMethod === 'upload' && videoFile) || thumbnailFile) {
+      formData = new FormData();
+      
+      if (videoUploadMethod === 'upload' && videoFile) {
+        videoFileName = `video_${Date.now()}_${videoFile.name}`;
+        formData.append('video', videoFile, videoFileName);
+      }
+      
+      if (thumbnailFile) {
+        thumbnailFileName = `thumbnail_${Date.now()}_${thumbnailFile.name}`;
+        formData.append('thumbnail', thumbnailFile, thumbnailFileName);
+      }
+      
+      // Fazer upload dos arquivos primeiro
+      try {
+        const uploadResponse = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/uploads/lesson-media`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        // Obter URLs dos arquivos enviados
+        if (uploadResponse.data.videoUrl) {
+          setVideoUrl(uploadResponse.data.videoUrl);
+        }
+        
+        if (uploadResponse.data.thumbnailUrl) {
+          setThumbnailPreview(uploadResponse.data.thumbnailUrl);
+        }
+      } catch (error) {
+        console.error("Erro ao fazer upload dos arquivos:", error);
+        toast.error("Erro ao fazer upload dos arquivos. Tente novamente.");
+        return;
+      }
+    }
+    
+    // Criar o conteúdo baseado nos tipos selecionados
+    const contentData = {
+      type: "doc",
+      content: selectedLessonTypes.map(type => ({
+        type: type,
+        ...(type === "VIDEO" ? { 
+          videoUrl: videoUrl,
+          thumbnailUrl: thumbnailPreview || null,
+          videoMethod: videoUploadMethod
+        } : {}),
+        ...(type === "TEXT" ? { content: textContent } : {}),
         ...(type === "QUIZ" ? { quizData: {} } : {})
-      })),
+      }))
+    };
+
+    const newLessonData = {
+      title: newLessonTitle,
+      description: newLessonDescription,
+      order: (module.contents?.length || 0) + 1,
+      moduleId: module.id,
+      content: contentData
     };
 
     try {
@@ -322,6 +383,10 @@ export default function CourseModulesManager({
 
       const newLesson = response.data;
       const newModules = [...modules];
+      // Garantir que contents existe antes de fazer push
+      if (!newModules[currentModuleId].contents) {
+        newModules[currentModuleId].contents = [];
+      }
       newModules[currentModuleId].contents.push(newLesson);
       onModulesChange(newModules);
 
@@ -329,6 +394,15 @@ export default function CourseModulesManager({
       setIsAddLessonDialogOpen(false);
       setSelectedLessonTypes([]);
       setCurrentModuleId(null);
+      // Limpar os campos do formulário
+      setNewLessonTitle("Nova Aula");
+      setNewLessonDescription("");
+      setVideoUrl("");
+      setVideoFile(null);
+      setThumbnailFile(null);
+      setThumbnailPreview("");
+      setVideoUploadMethod("link");
+      setTextContent("");
     } catch (error) {
       console.error("Erro ao criar aula:", error);
       toast.error("Erro ao criar aula. Tente novamente.");
@@ -460,7 +534,7 @@ export default function CourseModulesManager({
                     <div>
                       <CardTitle className="text-base">{module.title}</CardTitle>
                       <p className="text-sm text-gray-500">
-                        {module.contents.length} aula{module.contents.length !== 1 ? 's' : ''}
+                        {module.contents?.length || 0} aula{(module.contents?.length || 0) !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
@@ -523,9 +597,9 @@ export default function CourseModulesManager({
                   </div>
 
                   {/* Lessons List */}
-                  {module.contents.length > 0 && (
+                  {(module.contents?.length || 0) > 0 && (
                     <div className="space-y-2">
-                      {module.contents.map((lesson, lessonIndex) => (
+                      {(module.contents || []).map((lesson, lessonIndex) => (
                         <div
                           key={lessonIndex}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200"
@@ -583,7 +657,7 @@ export default function CourseModulesManager({
                     </div>
                   )}
 
-                  {module.contents.length === 0 && (
+                  {(module.contents?.length || 0) === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <Play className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">Nenhuma aula neste módulo</p>
@@ -697,6 +771,26 @@ export default function CourseModulesManager({
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <label className="text-sm font-medium">Título da Aula</label>
+              <Input
+                value={newLessonTitle}
+                onChange={(e) => setNewLessonTitle(e.target.value)}
+                placeholder="Digite o título da aula"
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">Descrição da Aula</label>
+              <Input
+                value={newLessonDescription}
+                onChange={(e) => setNewLessonDescription(e.target.value)}
+                placeholder="Digite uma breve descrição da aula"
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
               <label className="text-sm font-medium">Tipo de Aula</label>
               <div className="grid grid-cols-3 gap-2 mt-2">
                 <Button
@@ -719,6 +813,141 @@ export default function CourseModulesManager({
                 </Button>
               </div>
             </div>
+
+            {selectedLessonTypes.includes('VIDEO') && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Método de Adição de Vídeo</label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Button
+                      variant={videoUploadMethod === 'link' ? 'default' : 'outline'}
+                      onClick={() => setVideoUploadMethod('link')}
+                      type="button"
+                    >
+                      Link Externo
+                    </Button>
+                    <Button
+                      variant={videoUploadMethod === 'upload' ? 'default' : 'outline'}
+                      onClick={() => setVideoUploadMethod('upload')}
+                      type="button"
+                    >
+                      Upload de Arquivo
+                    </Button>
+                  </div>
+                </div>
+                
+                {videoUploadMethod === 'link' && (
+                  <div>
+                    <label className="text-sm font-medium">URL do Vídeo</label>
+                    <Input
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="Cole aqui o link do vídeo (YouTube, Vimeo, etc.)"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Suporta links do YouTube, Vimeo e outros serviços de vídeo.
+                    </p>
+                    
+                    {videoUrl && (
+                      <div className="mt-3">
+                        <label className="text-sm font-medium">Pré-visualização</label>
+                        <div className="mt-2 border rounded-md overflow-hidden aspect-video">
+                          <iframe 
+                            src={videoUrl.includes('youtube.com') ? videoUrl.replace('watch?v=', 'embed/') : videoUrl}
+                            className="w-full h-full"
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {videoUploadMethod === 'upload' && (
+                  <div>
+                    <label className="text-sm font-medium">Upload de Vídeo</label>
+                    <div className="mt-1 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-6">
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setVideoFile(file);
+                          }
+                        }}
+                        className="w-full"
+                      />
+                    </div>
+                    {videoFile && (
+                      <p className="text-sm text-green-600 mt-1">
+                        Arquivo selecionado: {videoFile.name}
+                      </p>
+                    )}
+                    
+                    {videoFile && (
+                      <div className="mt-3">
+                        <label className="text-sm font-medium">Pré-visualização</label>
+                        <div className="mt-2 border rounded-md overflow-hidden">
+                          <video 
+                            src={URL.createObjectURL(videoFile)} 
+                            controls 
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium">Imagem de Capa</label>
+                  <div className="mt-1 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-6">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setThumbnailFile(file);
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            setThumbnailPreview(e.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                  {thumbnailPreview && (
+                    <div className="mt-3">
+                      <label className="text-sm font-medium">Pré-visualização da Capa</label>
+                      <div className="mt-2 border rounded-md overflow-hidden">
+                        <img 
+                          src={thumbnailPreview} 
+                          alt="Imagem de capa" 
+                          className="w-full h-40 object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {selectedLessonTypes.includes('TEXT') && (
+              <div>
+                <label className="text-sm font-medium">Conteúdo de Texto</label>
+                <div className="mt-1">
+                  <TiptapEditor
+                    value={textContent}
+                    onChange={setTextContent}
+                  />
+                </div>
+              </div>
+            )}
 
             {selectedLessonTypes.includes('QUIZ') && (
               <div>
