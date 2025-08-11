@@ -8,7 +8,7 @@ export class LessonsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createLessonDto: CreateLessonDto, userId: string) {
-    const { moduleId, contents, ...lessonData } = createLessonDto;
+    const { moduleId, content, ...lessonData } = createLessonDto;
 
     // Verificar se o usuário é o instrutor do curso
     const module = await this.prisma.module.findUnique({
@@ -26,20 +26,25 @@ export class LessonsService {
       throw new ForbiddenException('Você não tem permissão para adicionar lições a este módulo');
     }
 
-    return this.prisma.lesson.create({
+    const lesson = await this.prisma.lesson.create({
       data: {
         ...lessonData,
         module: {
           connect: { id: moduleId },
         },
-        contents: {
-          create: contents,
-        },
-      },
-      include: {
-        contents: true,
       },
     });
+
+    if (content) {
+      await this.prisma.lessonContent.create({
+        data: {
+          lessonId: lesson.id,
+          content: content as any,
+        },
+      });
+    }
+
+    return lesson;
   }
 
   async findOne(id: string) {

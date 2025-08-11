@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Prisma, CourseLevel, CourseStatus } from '@prisma/client';
 
 @Injectable()
 export class CoursesService {
@@ -39,8 +40,8 @@ export class CoursesService {
   async findAll(page = 1, limit = 10, categoryId?: string, level?: string) {
     const skip = (page - 1) * limit;
     
-    const where: any = {
-      status: CourseStatus.PUBLISHED,
+    const where: Prisma.CourseWhereInput = {
+      status: 'PUBLISHED',
     };
 
     if (categoryId) {
@@ -48,7 +49,7 @@ export class CoursesService {
     }
 
     if (level) {
-      where.level = level;
+      where.level = level as CourseLevel;
     }
 
     const [courses, total] = await Promise.all([
@@ -235,8 +236,8 @@ export class CoursesService {
       throw new ForbiddenException('Você não tem permissão para editar este curso');
     }
 
-    const updateData: any = { ...updateCourseDto };
-    
+    const updateData: Prisma.CourseUpdateInput = { ...updateCourseDto };
+
     if (updateCourseDto.title) {
       updateData.slug = this.generateSlug(updateCourseDto.title);
     }
@@ -309,9 +310,6 @@ export class CoursesService {
       where: { courseId },
       include: {
         lessons: {
-          include: {
-            contents: true,
-          },
           orderBy: {
             order: 'asc',
           },
@@ -322,11 +320,18 @@ export class CoursesService {
       },
     });
 
-    return modules.map(module => {
+    // Usando 'any' para evitar erros de tipo temporariamente
+    return (modules as any[]).map((module) => {
       const { lessons, ...rest } = module;
       return {
         ...rest,
-        contents: lessons,
+        lessons: lessons.map((lesson: any) => {
+          const { content, ...lessonRest } = lesson;
+          return {
+            ...lessonRest,
+            content: content?.content,
+          };
+        }),
       };
     });
   }
