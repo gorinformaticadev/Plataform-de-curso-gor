@@ -765,7 +765,7 @@ export default function CourseModulesManager({
 
       {/* Add Lesson Dialog */}
       <Dialog open={isAddLessonDialogOpen} onOpenChange={setIsAddLessonDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
             <DialogTitle>Adicionar Nova Aula</DialogTitle>
           </DialogHeader>
