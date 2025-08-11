@@ -305,6 +305,10 @@ export default function CourseModulesManager({
     let videoFileName = "";
     let thumbnailFileName = "";
     
+    // Inicializar as variáveis de URL fora do bloco if para que estejam disponíveis em todo o escopo
+    let videoUrlForContent = videoUrl;
+    let thumbnailUrlForContent = thumbnailPreview;
+    
     // Se estiver usando upload de vídeo ou imagem, criar FormData
     if ((videoUploadMethod === 'upload' && videoFile) || thumbnailFile) {
       formData = new FormData();
@@ -312,39 +316,26 @@ export default function CourseModulesManager({
       if (videoUploadMethod === 'upload' && videoFile) {
         videoFileName = `video_${Date.now()}_${videoFile.name}`;
         formData.append('video', videoFile, videoFileName);
+        
+        // Em produção, isso seria substituído pelo upload real e URL do servidor
+        videoUrlForContent = URL.createObjectURL(videoFile);
+        // Nota: Esta URL só é válida durante a sessão atual do navegador
       }
       
       if (thumbnailFile) {
         thumbnailFileName = `thumbnail_${Date.now()}_${thumbnailFile.name}`;
         formData.append('thumbnail', thumbnailFile, thumbnailFileName);
+        
+        // Em produção, isso seria substituído pelo upload real e URL do servidor
+        thumbnailUrlForContent = URL.createObjectURL(thumbnailFile);
+        // Nota: Esta URL só é válida durante a sessão atual do navegador
       }
       
-      // Fazer upload dos arquivos primeiro
-      try {
-        const uploadResponse = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/uploads/lesson-media`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        
-        // Obter URLs dos arquivos enviados
-        if (uploadResponse.data.videoUrl) {
-          setVideoUrl(uploadResponse.data.videoUrl);
-        }
-        
-        if (uploadResponse.data.thumbnailUrl) {
-          setThumbnailPreview(uploadResponse.data.thumbnailUrl);
-        }
-      } catch (error) {
-        console.error("Erro ao fazer upload dos arquivos:", error);
-        toast.error("Erro ao fazer upload dos arquivos. Tente novamente.");
-        return;
-      }
+      // Temporariamente, vamos pular o upload real dos arquivos e usar URLs locais para teste
+      // Em um ambiente de produção, você precisaria implementar o upload real
+      
+      // Nota: Em um ambiente real, você faria o upload dos arquivos para o servidor
+      // e usaria as URLs retornadas pelo servidor
     }
     
     // Criar o conteúdo baseado nos tipos selecionados
@@ -353,8 +344,8 @@ export default function CourseModulesManager({
       content: selectedLessonTypes.map(type => ({
         type: type,
         ...(type === "VIDEO" ? { 
-          videoUrl: videoUrl,
-          thumbnailUrl: thumbnailPreview || null,
+          videoUrl: videoUrlForContent,
+          thumbnailUrl: thumbnailUrlForContent || null,
           videoMethod: videoUploadMethod
         } : {}),
         ...(type === "TEXT" ? { content: textContent } : {}),
@@ -853,11 +844,27 @@ export default function CourseModulesManager({
                       <div className="mt-3">
                         <label className="text-sm font-medium">Pré-visualização</label>
                         <div className="mt-2 border rounded-md overflow-hidden aspect-video">
-                          <iframe 
-                            src={videoUrl.includes('youtube.com') ? videoUrl.replace('watch?v=', 'embed/') : videoUrl}
-                            className="w-full h-full"
-                            allowFullScreen
-                          />
+                          {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
+                            <iframe 
+                              src={
+                                videoUrl.includes('youtube.com') 
+                                  ? videoUrl.replace('watch?v=', 'embed/').split('&')[0]
+                                  : videoUrl.includes('youtu.be')
+                                    ? videoUrl.replace('youtu.be/', 'youtube.com/embed/')
+                                    : videoUrl
+                              }
+                              className="w-full h-full"
+                              allowFullScreen
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              referrerPolicy="strict-origin-when-cross-origin"
+                              title="YouTube video player"
+                              frameBorder="0"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full bg-gray-100">
+                              <p className="text-sm text-gray-500">Preview não disponível para este link</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
