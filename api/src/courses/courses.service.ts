@@ -325,11 +325,11 @@ export class CoursesService {
       const { lessons, ...rest } = module;
       return {
         ...rest,
-        lessons: lessons.map((lesson: any) => {
+        contents: lessons.map((lesson: any) => {
           const { content, ...lessonRest } = lesson;
           return {
             ...lessonRest,
-            content: content?.content,
+            contents: content?.content, // Mapeia o conteúdo da aula para o campo 'contents'
           };
         }),
       };
