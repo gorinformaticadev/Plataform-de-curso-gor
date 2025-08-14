@@ -14,6 +14,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
+import { ReorderLessonDto } from './dto/reorder-lesson.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Lições')
@@ -62,5 +63,14 @@ export class LessonsController {
   @ApiResponse({ status: 403, description: 'Sem permissão para deletar' })
   remove(@Param('id') id: string, @Request() req) {
     return this.lessonsService.remove(id, req.user.id);
+  }
+  @Patch('reorder')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reordenar lições' })
+  @ApiResponse({ status: 200, description: 'Lições reordenadas com sucesso' })
+  @ApiResponse({ status: 403, description: 'Sem permissão para reordenar' })
+  reorder(@Body() reorderLessonDto: ReorderLessonDto, @Request() req) {
+    return this.lessonsService.reorderLessons(reorderLessonDto.lessons, req.user.id);
   }
 }

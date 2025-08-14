@@ -8,6 +8,10 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // Aumentar o limite de payload para 50MB
+  app.useBodyParser('json', { limit: '50mb' });
+  app.useBodyParser('urlencoded', { limit: '50mb', extended: true });
+
   // Servir arquivos estáticos
   app.useStaticAssets(join(__dirname, '..', 'public'));
 

@@ -143,4 +143,38 @@ export class LessonsService {
       where: { id },
     });
   }
+  async reorderLessons(lessons: { id: string; order: number }[], userId: string) {
+    if (lessons.length === 0) {
+      return;
+    }
+
+    // Obter a primeira lição para verificar o módulo e o curso
+    const firstLesson = await this.prisma.lesson.findUnique({
+      where: { id: lessons[0].id },
+      include: {
+        module: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    if (!firstLesson) {
+      throw new NotFoundException('Lição não encontrada');
+    }
+
+    if (firstLesson.module.course.instructorId !== userId) {
+      throw new ForbiddenException('Você não tem permissão para reordenar estas lições');
+    }
+
+    return this.prisma.$transaction(
+      lessons.map((lesson) =>
+        this.prisma.lesson.update({
+          where: { id: lesson.id },
+          data: { order: lesson.order },
+        }),
+      ),
+    );
+  }
 }

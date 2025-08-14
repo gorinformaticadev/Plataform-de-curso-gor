@@ -40,6 +40,8 @@ interface Lesson {
     duration?: number;
     content?: string;
     quizData?: any;
+    videoMethod?: "link" | "upload"; // Adicionado para rastrear o método de upload
+    thumbnailUrl?: string; // Adicionado para a URL da thumbnail
   }[];
 }
 
@@ -150,6 +152,33 @@ export default function CourseModulesManager({
         sourceModule.contents.forEach((lesson, index) => {
           lesson.order = index + 1;
         });
+
+        // Persistir a nova ordem das lições no backend
+        const lessonOrderUpdates = sourceModule.contents.map((lesson: any) => ({
+          id: lesson.id,
+          order: lesson.order
+        }));
+
+        try {
+          await axios.patch(
+            `${process.env.NEXT_PUBLIC_API_URL}/lessons/reorder`,
+            { lessons: lessonOrderUpdates },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          toast.success("Ordem das aulas atualizada com sucesso!", {
+            duration: 3000,
+            className: 'bg-green-500 text-white',
+          });
+        } catch (error) {
+          console.error("Erro ao atualizar a ordem das aulas:", error);
+          toast.error("Erro ao atualizar a ordem das aulas. Tente novamente.");
+          // Reverter a mudança no estado local em caso de erro?
+          // Isso depende da política de tratamento de erros desejada.
+        }
       }
     }
     
@@ -285,17 +314,23 @@ export default function CourseModulesManager({
       setNewLessonTitle(lesson.title);
       setNewLessonDescription(lesson.description || "");
 
-      const types = lesson.contents.map(c => c.type);
+      // Correção: Verificar se lesson.contents existe antes de usar .map
+      const contents = lesson.contents || []; // Default para array vazio se undefined
+      const types = contents.map(c => c.type);
       setSelectedLessonTypes(types);
 
-      const videoContent = lesson.contents.find(c => c.type === 'VIDEO');
+      const videoContent = contents.find(c => c.type === 'VIDEO');
       if (videoContent) {
         setVideoUrl(videoContent.videoUrl || "");
+        setVideoUploadMethod(videoContent.videoMethod || "link"); // Define o método de upload
+        setThumbnailPreview(videoContent.thumbnailUrl || ""); // Carrega a URL da thumbnail
       } else {
         setVideoUrl("");
+        setVideoUploadMethod("link");
+        setThumbnailPreview("");
       }
 
-      const textContentData = lesson.contents.find(c => c.type === 'TEXT');
+      const textContentData = contents.find(c => c.type === 'TEXT');
       if (textContentData) {
         setTextContent(textContentData.content || "");
       } else {
@@ -486,7 +521,7 @@ export default function CourseModulesManager({
         ...(type === "VIDEO" ? {
           videoUrl: videoUrl,
           thumbnailUrl: thumbnailPreview || null,
-          videoMethod: videoUploadMethod
+          videoMethod: videoUploadMethod,
         } : {}),
         ...(type === "TEXT" ? { content: textContent } : {}),
         ...(type === "QUIZ" ? { quizData: {} } : {})
@@ -538,10 +573,18 @@ export default function CourseModulesManager({
   };
 
   function getLessonIcon(lesson: Lesson) {
+    // Verificar se lesson.contents existe e não está vazio
     if (!lesson.contents || lesson.contents.length === 0) {
       return <Play className="h-4 w-4" />;
     }
-    switch (lesson.contents[0].type) {
+    
+    // Verificar se o primeiro elemento existe antes de acessar .type
+    const firstContent = lesson.contents[0];
+    if (!firstContent) {
+       return <Play className="h-4 w-4" />; // Ícone padrão se o primeiro elemento não existir
+    }
+    
+    switch (firstContent.type) {
       case 'VIDEO':
         return <Video className="h-4 w-4" />;
       case 'TEXT':
@@ -554,10 +597,18 @@ export default function CourseModulesManager({
   }
 
   function getLessonTypeLabel(lesson: Lesson) {
+    // Verificar se lesson.contents existe e não está vazio
     if (!lesson.contents || lesson.contents.length === 0) {
       return 'Aula';
     }
-    switch (lesson.contents[0].type) {
+    
+    // Verificar se o primeiro elemento existe antes de acessar .type
+    const firstContent = lesson.contents[0];
+    if (!firstContent) {
+       return 'Aula'; // Label padrão se o primeiro elemento não existir
+    }
+    
+    switch (firstContent.type) {
       case 'VIDEO':
         return 'Vídeo';
       case 'TEXT':
