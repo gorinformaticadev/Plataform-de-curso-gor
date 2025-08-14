@@ -50,6 +50,9 @@ export class LessonsService {
   async findOne(id: string) {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id },
+      include: {
+        content: true, // Incluir o conteúdo da lição
+      },
     });
 
     if (!lesson) {
@@ -60,8 +63,7 @@ export class LessonsService {
   }
 
   async update(id: string, updateLessonDto: UpdateLessonDto, userId: string) {
-    // Verificar se o usuário é o instrutor do curso
-    const lesson = await this.prisma.lesson.findUnique({
+    const lessonToUpdate = await this.prisma.lesson.findUnique({
       where: { id },
       include: {
         module: {
@@ -69,20 +71,50 @@ export class LessonsService {
             course: true,
           },
         },
+        content: true, // Incluir o conteúdo existente para verificar
       },
     });
 
-    if (!lesson) {
+    if (!lessonToUpdate) {
       throw new NotFoundException('Lição não encontrada');
     }
 
-    if (lesson.module.course.instructorId !== userId) {
+    if (lessonToUpdate.module.course.instructorId !== userId) {
       throw new ForbiddenException('Você não tem permissão para editar esta lição');
     }
 
-    return this.prisma.lesson.update({
-      where: { id },
-      data: updateLessonDto,
+    const { content, ...lessonData } = updateLessonDto;
+
+    const updatedLesson = await this.prisma.$transaction(async (prisma) => {
+      const lesson = await prisma.lesson.update({
+        where: { id },
+        data: lessonData,
+      });
+
+      if (content !== undefined) { // Verifica se 'content' foi fornecido no DTO
+        if (lessonToUpdate.content) {
+          // Se já existe conteúdo, atualiza
+          await prisma.lessonContent.update({
+            where: { lessonId: id },
+            data: { content: content as any },
+          });
+        } else {
+          // Se não existe conteúdo, cria um novo
+          await prisma.lessonContent.create({
+            data: {
+              lessonId: id,
+              content: content as any,
+            },
+          });
+        }
+      }
+
+      return lesson;
+    });
+
+    return this.prisma.lesson.findUnique({
+        where: { id: updatedLesson.id },
+        include: { content: true }
     });
   }
 

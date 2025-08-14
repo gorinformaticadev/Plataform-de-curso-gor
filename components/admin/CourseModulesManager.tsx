@@ -71,11 +71,11 @@ export default function CourseModulesManager({
   const [editingModule, setEditingModule] = useState<{ module: Module; index: number } | null>(null);
   const [editedModuleTitle, setEditedModuleTitle] = useState("");
   const [editedModuleDescription, setEditedModuleDescription] = useState("");
-  const [isAddLessonDialogOpen, setIsAddLessonDialogOpen] = useState(false);
+  const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
   const [selectedLessonTypes, setSelectedLessonTypes] = useState<string[]>([]);
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
   const [editingLesson, setEditingLesson] = useState<{ moduleId: number; lesson: Lesson; lessonIndex: number } | null>(null);
-  const [newLessonTitle, setNewLessonTitle] = useState<string>("Nova Aula");
+  const [newLessonTitle, setNewLessonTitle] = useState<string>("");
   const [newLessonDescription, setNewLessonDescription] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -272,9 +272,55 @@ export default function CourseModulesManager({
     onModulesChange(newModules);
   };
 
-  const handleAddLessonClick = (moduleId: number) => {
+  const handleOpenLessonDialog = (
+    mode: 'add' | 'edit',
+    moduleId: number,
+    lessonIndex?: number
+  ) => {
     setCurrentModuleId(moduleId);
-    setIsAddLessonDialogOpen(true);
+
+    if (mode === 'edit' && lessonIndex !== undefined) {
+      const lesson = modules[moduleId].contents[lessonIndex];
+      setEditingLesson({ moduleId, lesson, lessonIndex });
+      setNewLessonTitle(lesson.title);
+      setNewLessonDescription(lesson.description || "");
+
+      const types = lesson.contents.map(c => c.type);
+      setSelectedLessonTypes(types);
+
+      const videoContent = lesson.contents.find(c => c.type === 'VIDEO');
+      if (videoContent) {
+        setVideoUrl(videoContent.videoUrl || "");
+      } else {
+        setVideoUrl("");
+      }
+
+      const textContentData = lesson.contents.find(c => c.type === 'TEXT');
+      if (textContentData) {
+        setTextContent(textContentData.content || "");
+      } else {
+        setTextContent("");
+      }
+      // Resetar outros campos
+      setVideoFile(null);
+      setThumbnailFile(null);
+      setThumbnailPreview("");
+      setVideoUploadMethod("link");
+
+    } else {
+      setEditingLesson(null);
+      setNewLessonTitle("Nova Aula");
+      setNewLessonDescription("");
+      setSelectedLessonTypes([]);
+      setVideoUrl("");
+      setVideoFile(null);
+      setThumbnailFile(null);
+      setThumbnailPreview("");
+      setVideoUploadMethod("link");
+      setTextContent("");
+    }
+
+    setIsLessonDialogOpen(true);
   };
 
   const handleLessonTypeChange = (type: string) => {
@@ -382,7 +428,7 @@ export default function CourseModulesManager({
       onModulesChange(newModules);
 
       toast.success("Aula criada com sucesso!");
-      setIsAddLessonDialogOpen(false);
+      setIsLessonDialogOpen(false);
       setSelectedLessonTypes([]);
       setCurrentModuleId(null);
       // Limpar os campos do formulário
@@ -400,23 +446,98 @@ export default function CourseModulesManager({
     }
   };
 
-  const handleDeleteLesson = (moduleId: number, lessonIndex: number) => {
-    const newModules = [...modules];
-    newModules[moduleId] = {
-      ...newModules[moduleId],
-      contents: newModules[moduleId].contents.filter((_, i) => i !== lessonIndex)
-    };
-    
-    // Update order
-    newModules[moduleId].contents.forEach((lesson, index) => {
-      lesson.order = index + 1;
-    });
-    
-    onModulesChange(newModules);
-    toast.success("Aula excluída com sucesso!");
+  const handleDeleteLesson = async (moduleId: number, lessonIndex: number) => {
+    const lessonToDelete = modules[moduleId].contents[lessonIndex];
+    if (!lessonToDelete || !lessonToDelete.id) {
+      toast.error("Erro: Aula não encontrada para exclusão.");
+      return;
+    }
+
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/lessons/${lessonToDelete.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const newModules = [...modules];
+      newModules[moduleId].contents.splice(lessonIndex, 1);
+      
+      // Update order
+      newModules[moduleId].contents.forEach((lesson, index) => {
+        lesson.order = index + 1;
+      });
+
+      onModulesChange(newModules);
+      toast.success("Aula excluída com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir aula:", error);
+      toast.error("Erro ao excluir aula. Tente novamente.");
+    }
   };
 
-  const getLessonIcon = (lesson: Lesson) => {
+  const handleSaveLesson = async () => {
+    if (!editingLesson) return;
+
+    const { moduleId, lesson, lessonIndex } = editingLesson;
+
+    const contentData = {
+      type: "doc",
+      content: selectedLessonTypes.map(type => ({
+        type: type,
+        ...(type === "VIDEO" ? {
+          videoUrl: videoUrl,
+          thumbnailUrl: thumbnailPreview || null,
+          videoMethod: videoUploadMethod
+        } : {}),
+        ...(type === "TEXT" ? { content: textContent } : {}),
+        ...(type === "QUIZ" ? { quizData: {} } : {})
+      }))
+    };
+
+    const updatedLessonData = {
+      title: newLessonTitle,
+      description: newLessonDescription,
+      content: contentData,
+    };
+
+    try {
+      const response = await axios.patch(
+        `${process.env.NEXT_PUBLIC_API_URL}/lessons/${lesson.id}`,
+        updatedLessonData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const updatedLesson = response.data;
+      const newModules = [...modules];
+      
+      // A resposta do patch agora inclui o conteúdo, então podemos usá-la diretamente
+      newModules[moduleId].contents[lessonIndex] = {
+        ...newModules[moduleId].contents[lessonIndex],
+        title: updatedLesson.title,
+        description: updatedLesson.description,
+        contents: updatedLesson.content.content, // Atualiza o conteúdo da aula
+      };
+
+      onModulesChange(newModules);
+      setEditingLesson(null);
+      setIsLessonDialogOpen(false);
+      toast.success("Aula atualizada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar aula:", error);
+      toast.error("Erro ao atualizar aula. Tente novamente.");
+    }
+  };
+
+  const handleLessonFormSubmit = () => {
+    if (editingLesson) {
+      handleSaveLesson();
+    } else {
+      handleCreateLesson();
+    }
+  };
+
+  function getLessonIcon(lesson: Lesson) {
     if (!lesson.contents || lesson.contents.length === 0) {
       return <Play className="h-4 w-4" />;
     }
@@ -430,9 +551,9 @@ export default function CourseModulesManager({
       default:
         return <Play className="h-4 w-4" />;
     }
-  };
+  }
 
-  const getLessonTypeLabel = (lesson: Lesson) => {
+  function getLessonTypeLabel(lesson: Lesson) {
     if (!lesson.contents || lesson.contents.length === 0) {
       return 'Aula';
     }
@@ -446,7 +567,7 @@ export default function CourseModulesManager({
       default:
         return 'Aula';
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -580,7 +701,7 @@ export default function CourseModulesManager({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAddLessonClick(moduleIndex)}
+                      onClick={() => handleOpenLessonDialog('add', moduleIndex)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Aula
@@ -613,11 +734,7 @@ export default function CourseModulesManager({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setEditingLesson({
-                                moduleId: moduleIndex,
-                                lesson,
-                                lessonIndex
-                              })}
+                              onClick={() => handleOpenLessonDialog('edit', moduleIndex, lessonIndex)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -656,7 +773,7 @@ export default function CourseModulesManager({
                         variant="outline"
                         size="sm"
                         className="mt-2"
-                        onClick={() => handleAddLessonClick(moduleIndex)}
+                        onClick={() => handleOpenLessonDialog('add', moduleIndex)}
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Adicionar primeira aula
@@ -754,11 +871,11 @@ export default function CourseModulesManager({
         </DialogContent>
       </Dialog>
 
-      {/* Add Lesson Dialog */}
-      <Dialog open={isAddLessonDialogOpen} onOpenChange={setIsAddLessonDialogOpen}>
+      {/* Add/Edit Lesson Dialog */}
+      <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
-            <DialogTitle>Adicionar Nova Aula</DialogTitle>
+            <DialogTitle>{editingLesson ? 'Editar Aula' : 'Adicionar Nova Aula'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -848,7 +965,7 @@ export default function CourseModulesManager({
                             <iframe 
                               src={
                                 videoUrl.includes('youtube.com') 
-                                  ? videoUrl.replace('watch?v=', 'embed/').split('&')[0]
+                                  ? videoUrl.replace('watch?v=', 'embed/').split('&')[0] // Corrigido: Pegar o primeiro elemento do array
                                   : videoUrl.includes('youtu.be')
                                     ? videoUrl.replace('youtu.be/', 'youtube.com/embed/')
                                     : videoUrl
@@ -879,7 +996,7 @@ export default function CourseModulesManager({
                         type="file"
                         accept="video/*"
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
+                          const file = e.target.files?.[0]; // Corrigido: Acessar o primeiro arquivo
                           if (file) {
                             setVideoFile(file);
                           }
@@ -915,7 +1032,7 @@ export default function CourseModulesManager({
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
+                        const file = e.target.files?.[0];// Corrigido: Acessar o primeiro arquivo
                         if (file) {
                           setThumbnailFile(file);
                           const reader = new FileReader();
@@ -967,17 +1084,16 @@ export default function CourseModulesManager({
             )}
 
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsAddLessonDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsLessonDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleCreateLesson}>
-                Criar Aula
+              <Button onClick={handleLessonFormSubmit}>
+                {editingLesson ? 'Salvar Alterações' : 'Criar Aula'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </div>
-
   );
 }

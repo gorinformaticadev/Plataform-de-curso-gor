@@ -223,64 +223,103 @@ export default function EditCoursePage() {
     }
   };
 
-  const saveModulesAndLessons = async (modules: any[], courseId: string) => {
+  const saveModulesAndLessons = async (updatedModules: any[], courseId: string) => {
     try {
-      // Primeiro, buscar os módulos existentes do curso
       const existingModulesResponse = await axios.get(`/api/courses/${courseId}/modules`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const existingModules = existingModulesResponse.data;
 
-      // Para cada módulo, verificar se já existe ou precisa ser criado
-      for (const module of modules) {
+      const existingModuleIds = new Set(existingModules.map((m: any) => m.id));
+      const updatedModuleIds = new Set(updatedModules.map((m: any) => m.id).filter(Boolean));
+
+      // Deletar módulos removidos
+      for (const existingModule of existingModules) {
+        if (!updatedModuleIds.has(existingModule.id)) {
+          await axios.delete(`/api/modules/${existingModule.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      }
+
+      // Criar ou atualizar módulos e suas lições
+      for (const module of updatedModules) {
         let moduleId: string;
-        
-        // Se o módulo já tem um ID, é um módulo existente
-        if (module.id) {
-          // Atualizar o módulo existente
+        let existingLessonsInModule: any[] = [];
+
+        if (module.id && existingModuleIds.has(module.id)) {
+          // Atualizar módulo existente
           await axios.patch(`/api/modules/${module.id}`, {
             title: module.name,
             description: module.description,
+            order: updatedModules.indexOf(module) + 1,
           }, {
             headers: { Authorization: `Bearer ${token}` },
           });
           moduleId = module.id;
+
+          // Buscar lições existentes para este módulo
+          const lessonsResponse = await axios.get(`/api/modules/${moduleId}/lessons`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          existingLessonsInModule = lessonsResponse.data;
         } else {
-          // Criar um novo módulo
+          // Criar novo módulo
           const moduleResponse = await axios.post('/api/modules', {
             title: module.name,
             description: module.description,
             courseId: courseId,
-            order: modules.indexOf(module) + 1,
+            order: updatedModules.indexOf(module) + 1,
           }, {
             headers: { Authorization: `Bearer ${token}` },
           });
           moduleId = moduleResponse.data.id;
         }
 
-        // Salvar as lições (conteúdos) do módulo
+        const existingLessonIds = new Set(existingLessonsInModule.map((l: any) => l.id));
+        const updatedLessonIds = new Set(module.contents.map((c: any) => c.id).filter(Boolean));
+
+        // Deletar lições removidas
+        for (const existingLesson of existingLessonsInModule) {
+          if (!updatedLessonIds.has(existingLesson.id)) {
+            await axios.delete(`/api/lessons/${existingLesson.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          }
+        }
+
+        // Criar ou atualizar lições
         if (module.contents && module.contents.length > 0) {
           for (const content of module.contents) {
-            let contentData: any = {
+            const lessonData: any = {
               title: content.title,
               moduleId: moduleId,
               order: module.contents.indexOf(content) + 1,
               type: content.type,
+              content: content.contents, // Adicionado para TiptapEditor
             };
 
             if (content.type === 'VIDEO') {
-              contentData.videoUrl = content.url;
-              contentData.videoCoverUrl = content.coverUrl;
+              lessonData.videoUrl = content.url;
+              lessonData.videoCoverUrl = content.coverUrl;
             } else if (content.type === 'PDF') {
-              contentData.pdfUrl = content.url;
+              lessonData.pdfUrl = content.url;
             } else if (content.type === 'QUIZ') {
-              contentData.quizTitle = content.quizTitle;
-              contentData.quizDescription = content.quizDescription;
+              lessonData.quizTitle = content.quizTitle;
+              lessonData.quizDescription = content.quizDescription;
             }
 
-            await axios.post('/api/lessons', contentData, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            if (content.id && existingLessonIds.has(content.id)) {
+              // Atualizar lição existente
+              await axios.patch(`/api/lessons/${content.id}`, lessonData, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+            } else {
+              // Criar nova lição
+              await axios.post('/api/lessons', lessonData, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+            }
           }
         }
       }

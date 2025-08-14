@@ -46,6 +46,9 @@ export class ModulesService {
           orderBy: {
             order: 'asc',
           },
+          include: {
+            content: true, // Incluir o conteúdo da lição
+          },
         },
       },
     });
