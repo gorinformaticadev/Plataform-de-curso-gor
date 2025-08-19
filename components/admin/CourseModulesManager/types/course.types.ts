@@ -2,6 +2,7 @@
 
 export interface Content {
   id: string;
+  lessonId: string;
   type: 'video' | 'text' | 'file' | 'quiz' | 'assignment';
   title: string;
   content?: string;
@@ -17,6 +18,7 @@ export interface Content {
 
 export interface Lesson {
   id: string;
+  moduleId: string;
   title: string;
   description?: string;
   order: number;

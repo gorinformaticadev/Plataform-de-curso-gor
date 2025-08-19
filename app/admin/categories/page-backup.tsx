@@ -32,7 +32,13 @@ export default function CategoriesPage() {
   const { data: categories = [], isLoading } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newCategory, setNewCategory] = useState({ name: "", description: "" });
+  const [newCategory, setNewCategory] = useState({ 
+    name: "", 
+    slug: "", 
+    description: "", 
+    icon: "BookOpen", 
+    isActive: true 
+  });
   
   const createCategory = useCreateCategory();
   const toggleStatus = useToggleCategoryStatus();
