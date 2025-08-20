@@ -62,6 +62,18 @@ export class LessonsService {
     return lesson;
   }
 
+  async findByModule(moduleId: string) {
+    const lessons = await this.prisma.lesson.findMany({
+      where: { moduleId },
+      include: {
+        content: true,
+      },
+      orderBy: { order: 'asc' },
+    });
+
+    return lessons;
+  }
+
   async update(id: string, updateLessonDto: UpdateLessonDto, userId: string) {
     const lessonToUpdate = await this.prisma.lesson.findUnique({
       where: { id },

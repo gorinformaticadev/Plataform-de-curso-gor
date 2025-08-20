@@ -16,12 +16,12 @@ Refatoração completa do componente CourseModulesManager para melhorar manuteni
 - [x] Criar `useDragAndDrop.ts`
 - [x] Criar `useFileUpload.ts`
 
-### 📋 Fase 3: Componentes Reutilizáveis
-- [ ] Criar `ModuleCard.tsx`
-- [ ] Criar `LessonCard.tsx`
-- [ ] Criar `ModuleForm.tsx`
-- [ ] Criar `LessonForm.tsx`
-- [ ] Criar `ContentPreview.tsx`
+### 📋 Fase 3: Componentes Reutilizáveis ✅
+- [x] Criar `ModuleCard.tsx`
+- [x] Criar `LessonCard.tsx`
+- [x] Criar `ModuleForm.tsx`
+- [x] Criar `LessonForm.tsx`
+- [x] Criar `ContentPreview.tsx`
 
 ### 📋 Fase 4: Integração e Testes
 - [ ] Refatorar componente principal
@@ -67,3 +67,10 @@ Refatoração completa do componente CourseModulesManager para melhorar manuteni
 - ✅ Criação de `useDragAndDrop.ts` - Sistema de drag and drop
 - ✅ Criação de `useFileUpload.ts` - Upload de arquivos com progresso
 - ✅ Estrutura de tipos TypeScript e schemas Zod definidos
+- ✅ **Fase 3 concluída**: Componentes reutilizáveis criados
+- ✅ Criação de `ModuleCard.tsx` - Card para exibir módulos com ações
+- ✅ Criação de `LessonCard.tsx` - Card para exibir aulas com ações
+- ✅ Criação de `ModuleForm.tsx` - Formulários completo e compacto para módulos
+- ✅ Criação de `LessonForm.tsx` - Formulários completo e compacto para aulas
+- ✅ Criação de `ContentPreview.tsx` - Preview de conteúdos e lista
+- ✅ Criação de `index.ts` - Arquivo de exportações centralizadas
