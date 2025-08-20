@@ -14,6 +14,9 @@ export { LessonForm, CompactLessonForm } from './LessonForm';
 // Componentes de Preview
 export { ContentPreview, ContentPreviewList } from './ContentPreview';
 
+// Componente principal refatorado
+export { default as CourseModulesManagerRefactored } from './CourseModulesManagerRefactored';
+
 // Re-exportar tipos para conveniência
 export type { 
   Module, 
