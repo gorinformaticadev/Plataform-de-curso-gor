@@ -12,6 +12,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 import { ModulesService } from './modules.service';
+import { LessonsService } from './lessons.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,7 +20,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @ApiTags('Módulos')
 @Controller('modules')
 export class ModulesController {
-  constructor(private readonly modulesService: ModulesService) {}
+  constructor(
+    private readonly modulesService: ModulesService,
+    private readonly lessonsService: LessonsService
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -62,5 +66,13 @@ export class ModulesController {
   @ApiResponse({ status: 403, description: 'Sem permissão para deletar' })
   remove(@Param('id') id: string, @Request() req) {
     return this.modulesService.remove(id, req.user.id);
+  }
+
+  @Get(':id/lessons')
+  @ApiOperation({ summary: 'Buscar aulas de um módulo' })
+  @ApiResponse({ status: 200, description: 'Lista de aulas do módulo' })
+  @ApiResponse({ status: 404, description: 'Módulo não encontrado' })
+  async getModuleLessons(@Param('id') moduleId: string) {
+    return this.lessonsService.findByModule(moduleId);
   }
 }
