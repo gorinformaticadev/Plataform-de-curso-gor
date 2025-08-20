@@ -11,10 +11,10 @@ Refatoração completa do componente CourseModulesManager para melhorar manuteni
 - [x] Criar schemas de validação com Zod
 
 ### 📋 Fase 2: Hooks Customizados
-- [ ] Criar `useModuleManager.ts`
-- [ ] Criar `useLessonManager.ts`
-- [ ] Criar `useDragAndDrop.ts`
-- [ ] Criar `useFileUpload.ts`
+- [x] Criar `useModuleManager.ts`
+- [x] Criar `useLessonManager.ts`
+- [x] Criar `useDragAndDrop.ts`
+- [x] Criar `useFileUpload.ts`
 
 ### 📋 Fase 3: Componentes Reutilizáveis
 - [ ] Criar `ModuleCard.tsx`
@@ -32,7 +32,7 @@ Refatoração completa do componente CourseModulesManager para melhorar manuteni
 ## Commits Realizados
 - [x] Commit 1: Criação da estrutura de pastas e tipos TypeScript
 - [x] Commit 2: Refatoração da página de categorias (arquivos simplificados)
-- [ ] Commit 3: Implementação dos hooks customizados
+- [x] Commit 3: Implementação dos hooks customizados
 - [ ] Commit 4: Criação dos componentes reutilizáveis
 - [ ] Commit 5: Refatoração do componente principal
 - [ ] Commit 6: Testes e ajustes finais
@@ -61,3 +61,9 @@ Refatoração completa do componente CourseModulesManager para melhorar manuteni
 - ✅ Simplificação do arquivo `page.tsx`
 - ✅ Remoção de código duplicado
 - ✅ Manutenção de toda funcionalidade existente
+- ✅ **Fase 2 concluída**: Hooks customizados implementados
+- ✅ Criação de `useModuleManager.ts` - Gerenciamento de módulos
+- ✅ Criação de `useLessonManager.ts` - Gerenciamento de aulas
+- ✅ Criação de `useDragAndDrop.ts` - Sistema de drag and drop
+- ✅ Criação de `useFileUpload.ts` - Upload de arquivos com progresso
+- ✅ Estrutura de tipos TypeScript e schemas Zod definidos
