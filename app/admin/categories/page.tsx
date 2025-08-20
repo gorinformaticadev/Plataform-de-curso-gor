@@ -2,58 +2,14 @@
 
 import { useState } from "react";
 import React from "react";
-import { 
-  Plus, 
-  Loader2,
-  Book,
-  Code,
-  Laptop,
-  GraduationCap,
-  Atom,
-  FlaskConical,
-  Palette,
-  Music,
-  Calculator,
-  Globe,
-  Microscope
-} from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 
-import type { LucideIcon } from "lucide-react";
-
-const iconComponents: Record<string, LucideIcon> = {
-  book: Book,
-  code: Code,
-  laptop: Laptop,
-  'graduation-cap': GraduationCap,
-  atom: Atom,
-  flask: FlaskConical,
-  palette: Palette,
-  music: Music,
-  calculator: Calculator,
-  globe: Globe,
-  microscope: Microscope
-};
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DataTable } from "@/app/admin/categories/data-table";
 import { CategoryEditModal } from "@/components/admin/category-edit-modal";
+import { CategoryAddModal } from "@/app/admin/categories/category-add-modal";
 import { columns } from "@/app/admin/categories/columns";
-import { useCategories, useCreateCategory } from "./categories.service";
-import { toast } from "sonner";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-const categorySchema = z.object({
-  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  slug: z.string().min(3, "Slug deve ter pelo menos 3 caracteres")
-    .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
-  icon: z.string().min(1, "Ícone é obrigatório"),
-  isActive: z.boolean().default(true),
-});
-
-type CategoryForm = z.infer<typeof categorySchema>;
+import { useCategories } from "./categories.service";
 
 export default function CategoriesPage() {
   const { data: categories = [], isLoading, error } = useCategories();
@@ -74,48 +30,6 @@ export default function CategoriesPage() {
       delete (window as any).setEditingCategory;
     };
   }, []);
-
-  const form = useForm<CategoryForm>({
-    resolver: zodResolver(categorySchema),
-    defaultValues: {
-      name: "",
-      slug: "",
-      description: "",
-      icon: "",
-      isActive: true
-    }
-  });
-
-  const generateSlug = (name: string) => {
-    return name
-      .trim()
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais (exceto hífens e espaços)
-      .replace(/\s+/g, '-') // Substitui espaços por hífens
-      .replace(/-+/g, '-') // Remove múltiplos hífens
-      .substring(0, 50); // Limita o tamanho máximo
-  };
-
-  const handleNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const name = e.target.value;
-    if (name) {
-      form.setValue('slug', generateSlug(name));
-    }
-  };
-
-  const createCategory = useCreateCategory();
-
-  const onSubmit = async (data: CategoryForm) => {
-    try {
-      await createCategory.mutateAsync(data);
-      toast.success("Categoria criada com sucesso!");
-      setShowAddDialog(false);
-      form.reset();
-    } catch {
-      toast.error("Erro ao criar categoria");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -145,121 +59,14 @@ export default function CategoriesPage() {
 
       <DataTable columns={columns} data={categories} />
 
-      {/* Add Category Dialog */}
-      {showAddDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Nova Categoria</h2>
-            
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label className="block mb-1">Nome</label>
-                <Input 
-                  {...form.register("name")} 
-                  onBlur={handleNameBlur}
-                />
-                {form.formState.errors.name && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {form.formState.errors.name.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block mb-1">Slug</label>
-                <Input {...form.register("slug")} />
-                {form.formState.errors.slug && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {form.formState.errors.slug.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block mb-1">Descrição</label>
-                <Input {...form.register("description")} />
-                {form.formState.errors.description && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {form.formState.errors.description.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block mb-1">Ícone</label>
-                <div className="grid grid-cols-6 gap-2">
-                  {['book', 'code', 'laptop', 'graduation-cap', 'atom', 'flask', 
-                     'palette', 'music', 'calculator', 'globe', 'microscope'].map((icon) => (
-                    <button
-                      type="button"
-                      key={icon}
-                      className={`p-2 border rounded-md ${
-                        form.watch('icon') === icon 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'hover:bg-accent'
-                      }`}
-                      onClick={() => form.setValue('icon', icon)}
-                    >
-                      {iconComponents[icon] ? (
-                        React.createElement(iconComponents[icon], { className: "w-5 h-5" })
-                      ) : (
-                        <span className="text-xs">{icon}</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <Input
-                  {...form.register("icon")}
-                  className="mt-2"
-                  placeholder="Digite o nome do ícone (ex: book, code)"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Veja todos os ícones disponíveis em:{' '}
-                  <a 
-                    href="https://lucide.dev/icons" 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    lucide.dev/icons
-                  </a>
-                </p>
-                {form.formState.errors.icon && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {form.formState.errors.icon.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  {...form.register("isActive")}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <label htmlFor="isActive" className="text-sm font-medium">
-                  Categoria ativa
-                </label>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowAddDialog(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createCategory.isPending}>
-                  {createCategory.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : "Salvar"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Add Category Modal */}
+      <CategoryAddModal
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSuccess={() => {
+          // O react-query irá automaticamente atualizar a lista
+        }}
+      />
 
       {/* Edit Category Modal */}
       {editingCategory && (
@@ -268,8 +75,7 @@ export default function CategoriesPage() {
           open={!!editingCategory}
           onOpenChange={(open) => !open && setEditingCategory(null)}
           onSuccess={() => {
-            // Atualizar a lista de categorias após edição
-            // (será tratado automaticamente pelo react-query)
+            // O react-query irá automaticamente atualizar a lista
           }}
         />
       )}
