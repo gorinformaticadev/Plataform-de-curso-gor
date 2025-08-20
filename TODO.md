@@ -1,4 +1,4 @@
-# TODO - Fase 3: Componentes Reutilizáveis
+# TODO - Refatoração CourseModulesManager
 
 ## ✅ Concluído
 - [x] Análise inicial dos arquivos de refatoração
@@ -11,31 +11,20 @@
   - [x] LessonForm.tsx - Formulário de aulas (completo + compacto)
   - [x] ContentPreview.tsx - Preview de conteúdos + lista
   - [x] index.ts - Arquivo de exportações
+- [x] **Fase 4 Completa**: Integração dos novos componentes
+  - [x] CourseModulesManagerRefactored.tsx - Versão refatorada do componente principal
+  - [x] Integração com hooks customizados
+  - [x] Uso dos novos componentes reutilizáveis
+  - [x] Atualização do index.ts com exportações
+- [x] **Correção de Bug**: Adicionado endpoint `/api/modules/:id/lessons` que estava faltando
 
 ## 🔄 Em Progresso
-- [ ] **Fase 4**: Integração dos novos componentes
-- [ ] Refatorar CourseModulesManager principal
-- [x] **Correção de Bug**: Adicionado endpoint `/api/modules/:id/lessons` que estava faltando
 - [ ] Testar funcionalidades de CRUD
+- [ ] Substituir componente original pelo refatorado
 
 ## 📋 Próximos Passos
 
-### 1. Atualizar Componentes de Módulos
-- [ ] Atualizar `CourseModulesManager.tsx` para usar novo hook
-- [ ] Atualizar `module-create-form.tsx` para novo schema
-- [ ] Atualizar `module-edit-form.tsx` para novo schema
-
-### 2. Atualizar Componentes de Aulas
-- [ ] Atualizar `LessonManager.tsx` para usar novo hook
-- [ ] Atualizar `lesson-create-form.tsx` para novo schema
-- [ ] Atualizar `lesson-edit-form.tsx` para novo schema
-
-### 3. Integração com API
-- [ ] Atualizar endpoints de módulos
-- [ ] Atualizar endpoints de aulas
-- [ ] Implementar tratamento de erros
-
-### 4. Testes e Validação
+### 1. Testes e Validação
 - [ ] Testar criação de módulos
 - [ ] Testar edição de módulos
 - [ ] Testar exclusão de módulos
@@ -44,7 +33,39 @@
 - [ ] Testar exclusão de aulas
 - [ ] Testar reordenação
 
-### 5. Documentação
+### 2. Substituição do Componente Original
+- [ ] Backup do componente original
+- [ ] Substituir CourseModulesManager.tsx pelo refatorado
+- [ ] Atualizar importações nos arquivos que usam o componente
+- [ ] Testar integração completa
+
+### 3. Documentação Final
 - [ ] Atualizar REFATORACAO_COURSE_MODULES.md
 - [ ] Documentar novos hooks
 - [ ] Documentar mudanças de API
+- [ ] Criar guia de migração
+
+## 🎯 Arquivos Criados/Modificados
+
+### Componentes Criados
+- `components/admin/CourseModulesManager/ModuleCard.tsx`
+- `components/admin/CourseModulesManager/LessonCard.tsx`
+- `components/admin/CourseModulesManager/ModuleForm.tsx`
+- `components/admin/CourseModulesManager/LessonForm.tsx`
+- `components/admin/CourseModulesManager/ContentPreview.tsx`
+- `components/admin/CourseModulesManager/CourseModulesManagerRefactored.tsx`
+- `components/admin/CourseModulesManager/index.ts`
+
+### API Modificada
+- `api/src/courses/modules.controller.ts` - Adicionado endpoint para buscar aulas
+- `api/src/courses/lessons.service.ts` - Adicionado método findByModule
+
+### Hooks Existentes (Fase 2)
+- `app/hooks/course-modules/useModuleManager.ts`
+- `app/hooks/course-modules/useLessonManager.ts`
+- `app/hooks/course-modules/useDragAndDrop.ts`
+- `app/hooks/course-modules/useFileUpload.ts`
+
+### Tipos e Schemas (Fase 1)
+- `app/types/course.ts`
+- `app/schemas/course.ts`
