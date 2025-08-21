@@ -1,4 +1,4 @@
-# TODO - Refatoração CourseModulesManager
+# TODO - Refatoração de Course Modules (Atualizado)
 
 ## ✅ Concluído
 - [x] Análise inicial dos arquivos de refatoração
@@ -17,6 +17,9 @@
   - [x] Uso dos novos componentes reutilizáveis
   - [x] Atualização do index.ts com exportações
 - [x] **Correção de Bug**: Adicionado endpoint `/api/modules/:id/lessons` que estava faltando
+- [x] **Refatoração de Componentes Existentes**:
+  - [x] ModuleList.tsx - Atualizado com SVG inline e tratamento de ID
+  - [x] ModuleForm.tsx - Refatorado com validações e melhorias
 
 ## 🔄 Em Progresso
 - [ ] Testar funcionalidades de CRUD
@@ -55,6 +58,10 @@
 - `components/admin/CourseModulesManager/ContentPreview.tsx`
 - `components/admin/CourseModulesManager/CourseModulesManagerRefactored.tsx`
 - `components/admin/CourseModulesManager/index.ts`
+
+### Componentes Atualizados
+- `src/components/modules/ModuleList.tsx` - SVG inline + tratamento de ID
+- `src/components/modules/ModuleForm.tsx` - Refatorado com validações
 
 ### API Modificada
 - `api/src/courses/modules.controller.ts` - Adicionado endpoint para buscar aulas
