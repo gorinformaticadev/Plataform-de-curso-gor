@@ -106,7 +106,7 @@ export function useCourseForm({
     } finally {
       setIsLoading(false);
     }
-  }, [courseId, form, onError]);
+  }, [courseId, onError]); // Removido 'form' das dependências
 
   // Salvar curso
   const saveCourse = useCallback(async (data: CourseFormData) => {
@@ -196,7 +196,7 @@ export function useCourseForm({
   // Carregar curso ao montar
   useEffect(() => {
     loadCourse();
-  }, [loadCourse]);
+  }, [courseId]); // Mudado de [loadCourse] para [courseId]
 
   return {
     form,
