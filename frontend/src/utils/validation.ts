@@ -9,8 +9,8 @@ export const ALLOWED_VIDEO_TYPES = [
   'video/x-matroska'
 ];
 
-// Tamanho máximo de arquivo (100MB)
-export const MAX_FILE_SIZE = 100 * 1024 * 1024;
+// Tamanho máximo de arquivo (200MB para 4K)
+export const MAX_FILE_SIZE = 200 * 1024 * 1024;
 
 // Duração máxima do vídeo (em segundos)
 export const MAX_VIDEO_DURATION = 3600; // 1 hora
@@ -46,7 +46,7 @@ export const validateFileSize = (file: File): ValidationResult => {
     const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
     return {
       isValid: false,
-      error: `Arquivo muito grande (${sizeInMB}MB). Tamanho máximo permitido: 100MB`
+      error: `Arquivo muito grande (${sizeInMB}MB). Tamanho máximo permitido: 200MB`
     };
   }
   return { isValid: true };
