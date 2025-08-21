@@ -15,7 +15,7 @@ interface FormData {
   title: string;
   description: string;
   order: number;
-  courseId?: string;
+  courseId: string;
   lessons: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt' | 'moduleId'>[];
 }
 
@@ -29,6 +29,7 @@ const ModuleForm: React.FC<ModuleFormProps> = ({
     title: '',
     description: '',
     order: 0,
+    courseId: '',
     lessons: []
   });
 
