@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Upload } from 'lucide-react';
+import { AccordionSection } from './AccordionSection';
 
 interface CourseFormProps {
   courseId: string;
@@ -67,14 +68,12 @@ export function CourseForm({ courseId }: CourseFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Informações Básicas */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações Básicas</CardTitle>
-          <CardDescription>
-            Configure as informações principais do curso
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <AccordionSection 
+        title="Informações Básicas" 
+        description="Configure as informações principais do curso"
+        defaultOpen={true}
+      >
+        <div className="space-y-4">
           <div>
             <Label htmlFor="title">Título do Curso</Label>
             <Input
@@ -186,103 +185,88 @@ export function CourseForm({ courseId }: CourseFormProps) {
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </AccordionSection>
 
       {/* Módulos */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Módulos</CardTitle>
-          <CardDescription>
-            Organize seu curso em módulos e lições
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {modules.map((module, moduleIndex) => (
-              <Card key={module.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg">Módulo {moduleIndex + 1}</CardTitle>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeModule(moduleIndex)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Input
-                      {...register(`modules.${moduleIndex}.title`)}
-                      placeholder="Título do módulo"
-                    />
-                    <Textarea
-                      {...register(`modules.${moduleIndex}.description`)}
-                      placeholder="Descrição do módulo"
-                      rows={2}
-                    />
+      <AccordionSection 
+        title="Módulos e Lições" 
+        description="Organize seu curso em módulos e lições"
+        defaultOpen={true}
+      >
+        <div className="space-y-4">
+          {modules.map((module, moduleIndex) => (
+            <AccordionSection
+              key={module.id}
+              title={`Módulo ${moduleIndex + 1}`}
+              defaultOpen={false}
+            >
+              <div className="space-y-4">
+                <Input
+                  {...register(`modules.${moduleIndex}.title`)}
+                  placeholder="Título do módulo"
+                />
+                <Textarea
+                  {...register(`modules.${moduleIndex}.description`)}
+                  placeholder="Descrição do módulo"
+                  rows={2}
+                />
 
-                    {/* Lições */}
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Lições</h4>
-                      {watch(`modules.${moduleIndex}.lessons`)?.map((lesson, lessonIndex) => (
-                        <div key={lesson.id} className="flex gap-2 items-start">
-                          <Input
-                            {...register(`modules.${moduleIndex}.lessons.${lessonIndex}.title`)}
-                            placeholder="Título da lição"
-                            className="flex-1"
-                          />
-                          <Input
-                            {...register(`modules.${moduleIndex}.lessons.${lessonIndex}.videoUrl`)}
-                            placeholder="URL do vídeo"
-                            className="flex-1"
-                          />
-                          <Input
-                            type="number"
-                            {...register(`modules.${moduleIndex}.lessons.${lessonIndex}.duration`, { valueAsNumber: true })}
-                            placeholder="Duração (min)"
-                            className="w-32"
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeLesson(moduleIndex, lessonIndex)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
+                {/* Lições */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Lições</h4>
+                  {watch(`modules.${moduleIndex}.lessons`)?.map((lesson, lessonIndex) => (
+                    <div key={lesson.id} className="flex gap-2 items-start">
+                      <Input
+                        {...register(`modules.${moduleIndex}.lessons.${lessonIndex}.title`)}
+                        placeholder="Título da lição"
+                        className="flex-1"
+                      />
+                      <Input
+                        {...register(`modules.${moduleIndex}.lessons.${lessonIndex}.videoUrl`)}
+                        placeholder="URL do vídeo"
+                        className="flex-1"
+                      />
+                      <Input
+                        type="number"
+                        {...register(`modules.${moduleIndex}.lessons.${lessonIndex}.duration`, { valueAsNumber: true })}
+                        placeholder="Duração (min)"
+                        className="w-32"
+                      />
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        onClick={() => addLesson(moduleIndex)}
+                        onClick={() => removeLesson(moduleIndex, lessonIndex)}
                       >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Adicionar Lição
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addLesson(moduleIndex)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Lição
+                  </Button>
+                </div>
+              </div>
+            </AccordionSection>
+          ))}
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addModule}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Módulo
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addModule}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Módulo
+          </Button>
+        </div>
+      </AccordionSection>
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSaving}>
