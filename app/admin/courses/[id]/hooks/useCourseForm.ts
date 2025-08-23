@@ -5,26 +5,72 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Course, Module, Lesson } from '../types/course';
 
-// Schema de validação
+// Schema de validação aprimorado
 export const courseFormSchema = z.object({
-  title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
-  description: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
-  price: z.number().min(0, 'Preço deve ser positivo'),
-  category: z.string().min(1, 'Categoria é obrigatória'),
-  image: z.string().optional(),
+  title: z.string()
+    .min(3, 'Título deve ter pelo menos 3 caracteres')
+    .max(100, 'Título deve ter no máximo 100 caracteres'),
+  description: z.string()
+    .min(10, 'Descrição deve ter pelo menos 10 caracteres')
+    .max(1000, 'Descrição deve ter no máximo 1000 caracteres'),
+  price: z.number()
+    .min(0, 'Preço deve ser positivo')
+    .max(9999.99, 'Preço máximo é R$ 9.999,99')
+    .multipleOf(0.01, 'Preço deve ter no máximo 2 casas decimais'),
+  category: z.string()
+    .min(1, 'Categoria é obrigatória')
+    .max(50, 'Categoria deve ter no máximo 50 caracteres'),
+  image: z.string()
+    .url('URL da imagem deve ser válida')
+    .refine(
+      (url) => {
+        if (!url) return true;
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        return imageExtensions.some(ext => url.toLowerCase().includes(ext));
+      },
+      { message: 'A imagem deve ter formato válido (jpg, jpeg, png, gif ou webp)' }
+    )
+    .optional()
+    .or(z.literal('')),
   published: z.boolean().default(false),
   level: z.enum(['beginner', 'intermediate', 'advanced']),
   modules: z.array(z.object({
     id: z.string(),
-    title: z.string().min(1, 'Título do módulo é obrigatório'),
-    description: z.string().optional(),
+    title: z.string()
+      .min(1, 'Título do módulo é obrigatório')
+      .max(100, 'Título do módulo deve ter no máximo 100 caracteres'),
+    description: z.string()
+      .max(500, 'Descrição do módulo deve ter no máximo 500 caracteres')
+      .optional()
+      .or(z.literal('')),
     lessons: z.array(z.object({
       id: z.string(),
-      title: z.string().min(1, 'Título da lição é obrigatória'),
-      videoUrl: z.string().optional(),
-      duration: z.number().default(0)
+      title: z.string()
+        .min(1, 'Título da lição é obrigatória')
+        .max(200, 'Título da lição deve ter no máximo 200 caracteres'),
+      videoUrl: z.string()
+        .url('URL do vídeo deve ser válida')
+        .refine(
+          (url) => {
+            if (!url) return true;
+            const videoPlatforms = ['youtube.com', 'vimeo.com', 'youtu.be'];
+            return videoPlatforms.some(platform => url.toLowerCase().includes(platform));
+          },
+          { message: 'URL deve ser do YouTube ou Vimeo' }
+        )
+        .optional()
+        .or(z.literal('')),
+      duration: z.number()
+        .min(0, 'Duração deve ser positiva')
+        .max(1440, 'Duração máxima é 24 horas (1440 minutos)')
+        .default(0)
     }))
   }))
+  .min(1, 'O curso deve ter pelo menos 1 módulo')
+  .refine(
+    (modules) => modules.every(module => module.lessons.length > 0),
+    { message: 'Cada módulo deve ter pelo menos 1 lição' }
+  )
 });
 
 export type CourseFormData = z.infer<typeof courseFormSchema>;
