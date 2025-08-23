@@ -1,78 +1,42 @@
-# TODO - Refatoração de Course Modules (Atualizado)
+# TODO - Refatoração do Hook useCourseForm
 
-## ✅ Concluído
-- [x] Análise inicial dos arquivos de refatoração
-- [x] Leitura dos hooks de gerenciamento (useModuleManager, useLessonManager)
-- [x] Identificação dos componentes que precisam ser atualizados
-- [x] **Fase 3 Completa**: Criação dos componentes reutilizáveis
-  - [x] ModuleCard.tsx - Card para exibir módulos
-  - [x] LessonCard.tsx - Card para exibir aulas
-  - [x] ModuleForm.tsx - Formulário de módulos (completo + compacto)
-  - [x] LessonForm.tsx - Formulário de aulas (completo + compacto)
-  - [x] ContentPreview.tsx - Preview de conteúdos + lista
-  - [x] index.ts - Arquivo de exportações
-- [x] **Fase 4 Completa**: Integração dos novos componentes
-  - [x] CourseModulesManagerRefactored.tsx - Versão refatorada do componente principal
-  - [x] Integração com hooks customizados
-  - [x] Uso dos novos componentes reutilizáveis
-  - [x] Atualização do index.ts com exportações
-- [x] **Correção de Bug**: Adicionado endpoint `/api/modules/:id/lessons` que estava faltando
-- [x] **Refatoração de Componentes Existentes**:
-  - [x] ModuleList.tsx - Atualizado com SVG inline e tratamento de ID
-  - [x] ModuleForm.tsx - Refatorado com validações e melhorias
+## Fase 1: Estruturação e Organização
+- [ ] Criar diretório de serviços para API calls
+- [ ] Criar diretório de hooks auxiliares
+- [ ] Criar diretório de utils para validações
+- [ ] Criar diretório de types específicos para formulário
 
-## 🔄 Em Progresso
-- [ ] Testar funcionalidades de CRUD
-- [ ] Substituir componente original pelo refatorado
+## Fase 2: Serviços de API
+- [ ] Criar serviço `courseApiService.ts`
+- [ ] Criar serviço `uploadService.ts`
+- [ ] Criar serviço `validationService.ts`
 
-## 📋 Próximos Passos
+## Fase 3: Hooks Auxiliares
+- [ ] Criar hook `useCourseState.ts`
+- [ ] Criar hook `useFormValidation.ts`
+- [ ] Criar hook `useFormCache.ts`
+- [ ] Criar hook `useUndoRedo.ts`
 
-### 1. Testes e Validação
-- [ ] Testar criação de módulos
-- [ ] Testar edição de módulos
-- [ ] Testar exclusão de módulos
-- [ ] Testar criação de aulas
-- [ ] Testar edição de aulas
-- [ ] Testar exclusão de aulas
-- [ ] Testar reordenação
+## Fase 4: Refatoração Principal
+- [ ] Refatorar `useCourseForm.ts` para usar os novos serviços
+- [ ] Implementar memoização otimizada
+- [ ] Adicionar validação em tempo real
+- [ ] Implementar cache de formulário
 
-### 2. Substituição do Componente Original
-- [ ] Backup do componente original
-- [ ] Substituir CourseModulesManager.tsx pelo refatorado
-- [ ] Atualizar importações nos arquivos que usam o componente
-- [ ] Testar integração completa
+## Fase 5: Otimizações de Performance
+- [ ] Implementar React.memo para componentes filhos
+- [ ] Otimizar re-renders com useMemo
+- [ ] Implementar lazy loading para módulos
+- [ ] Adicionar debounce para validações
 
-### 3. Documentação Final
-- [ ] Atualizar REFATORACAO_COURSE_MODULES.md
-- [ ] Documentar novos hooks
-- [ ] Documentar mudanças de API
-- [ ] Criar guia de migração
+## Fase 6: Features Avançadas
+- [ ] Implementar undo/redo
+- [ ] Adicionar auto-save
+- [ ] Implementar preview em tempo real
+- [ ] Adicionar drag & drop para reordenar
 
-## 🎯 Arquivos Criados/Modificados
-
-### Componentes Criados
-- `components/admin/CourseModulesManager/ModuleCard.tsx`
-- `components/admin/CourseModulesManager/LessonCard.tsx`
-- `components/admin/CourseModulesManager/ModuleForm.tsx`
-- `components/admin/CourseModulesManager/LessonForm.tsx`
-- `components/admin/CourseModulesManager/ContentPreview.tsx`
-- `components/admin/CourseModulesManager/CourseModulesManagerRefactored.tsx`
-- `components/admin/CourseModulesManager/index.ts`
-
-### Componentes Atualizados
-- `src/components/modules/ModuleList.tsx` - SVG inline + tratamento de ID
-- `src/components/modules/ModuleForm.tsx` - Refatorado com validações
-
-### API Modificada
-- `api/src/courses/modules.controller.ts` - Adicionado endpoint para buscar aulas
-- `api/src/courses/lessons.service.ts` - Adicionado método findByModule
-
-### Hooks Existentes (Fase 2)
-- `app/hooks/course-modules/useModuleManager.ts`
-- `app/hooks/course-modules/useLessonManager.ts`
-- `app/hooks/course-modules/useDragAndDrop.ts`
-- `app/hooks/course-modules/useFileUpload.ts`
-
-### Tipos e Schemas (Fase 1)
-- `app/types/course.ts`
-- `app/schemas/course.ts`
+## Fase 7: Testes e Documentação
+- [ ] Adicionar testes unitários
+- [ ] Criar documentação de uso
+- [ ] Adicionar exemplos de uso
+- [ ] Criar storybook para componentes
