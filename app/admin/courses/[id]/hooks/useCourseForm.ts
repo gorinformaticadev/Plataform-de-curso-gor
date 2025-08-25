@@ -33,7 +33,7 @@ export const courseFormSchema = z.object({
     .optional()
     .or(z.literal('')),
   published: z.boolean().default(false),
-  level: z.enum(['beginner', 'intermediate', 'advanced']),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
   modules: z.array(z.object({
     id: z.string(),
     title: z.string()
@@ -110,7 +110,7 @@ export function useCourseForm({
       category: '',
       image: '',
       published: false,
-      level: 'beginner',
+      level: 'BEGINNER',
       modules: []
     }
   });
@@ -128,6 +128,8 @@ export function useCourseForm({
       
       console.log('Dados retornados pela API:', course);
       console.log('Descrição do curso:', course.description);
+      console.log('Nível do curso (banco):', course.level);
+      console.log('Nível do curso (banco):', course.level);
       
       // Mapear dados do curso para o formulário
       form.reset({
@@ -137,7 +139,7 @@ export function useCourseForm({
         category: course.category?.id || '', // Usamos o ID da categoria
         image: course.thumbnail || '',
         published: course.status === 'PUBLISHED', // Mapeia status para published
-        level: (course.level?.toLowerCase() as 'beginner' | 'intermediate' | 'advanced') || 'beginner',
+        level: course.level,
         modules: course.modules?.map(module => ({
           id: module.id,
           title: module.title,
@@ -156,6 +158,7 @@ export function useCourseForm({
       setIsLoading(false);
     }
   }, [courseId, onError]); // Removido 'form' das dependências
+
 
   // Salvar curso
   const saveCourse = useCallback(async (data: CourseFormData) => {

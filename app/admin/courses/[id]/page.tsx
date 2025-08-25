@@ -920,9 +920,9 @@ function App() {
                         {...form.register('level')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="iniciante">Iniciante</option>
-                        <option value="intermediario">Intermediário</option>
-                        <option value="avancado">Avançado</option>
+                        <option value="BEGINNER">Iniciante</option>
+                        <option value="INTERMEDIATE">Intermediário</option>
+                        <option value="ADVANCED">Avançado</option>
                       </select>
                     </div>
                   </div>

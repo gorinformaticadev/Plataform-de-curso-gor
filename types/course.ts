@@ -6,7 +6,7 @@ export interface Course {
   description: string;
   price: number;
   duration: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   category: string;
   thumbnail?: string;
   modules: Module[];
@@ -52,7 +52,7 @@ export interface CourseFormData {
   description: string;
   price: number;
   duration: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   category: string;
   thumbnail?: string;
   modules: Module[];

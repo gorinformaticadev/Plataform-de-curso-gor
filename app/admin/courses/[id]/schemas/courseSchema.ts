@@ -43,7 +43,7 @@ export const courseSchema = z.object({
   image: z.string().url('URL da imagem inválida').optional().or(z.literal('')),
   thumbnail: z.string().url('URL da thumbnail inválida').optional().or(z.literal('')),
   published: z.boolean().default(false),
-  level: z.enum(['beginner', 'intermediate', 'advanced']),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
   language: z.string().default('pt-BR'),
   duration: z.number().min(0).optional(),
   modules: z.array(moduleSchema).min(1, 'O curso deve ter pelo menos um módulo'),
@@ -66,7 +66,7 @@ export const courseUpdateSchema = courseSchema.partial().extend({
 export const courseFiltersSchema = z.object({
   category: z.string().optional(),
   subcategory: z.string().optional(),
-  level: z.enum(['beginner', 'mediate', 'advanced']).optional(),
+  level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
   published: z.boolean().optional(),
   search: z.string().optional(),
   sortBy: z.enum(['createdAt', 'title', 'price', 'enrolledStudents']).optional(),

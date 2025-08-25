@@ -66,7 +66,7 @@ export interface CourseCreateInput {
   category: string;
   image?: string;
   published?: boolean;
-  level: 'beginner' | 'intermediate' | 'advanced';
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   modules: ModuleCreateInput[];
 }
 

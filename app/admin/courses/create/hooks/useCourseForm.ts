@@ -32,7 +32,7 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
     title: initialData?.title || '',
     description: initialData?.description || '',
     category: initialData?.category || '',
-    level: initialData?.level || 'beginner',
+    level: initialData?.level || 'BEGINNER',
     price: initialData?.price || 0,
     duration: initialData?.duration || '1 hora',
     thumbnail: initialData?.thumbnail || '',
