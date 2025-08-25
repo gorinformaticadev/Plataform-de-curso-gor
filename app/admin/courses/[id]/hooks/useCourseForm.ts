@@ -3,7 +3,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Course, Module, Lesson } from '../types/course';
+import { Course } from '../types/course';
+import { useCategories } from '@/app/admin/categories/categories.service';
+
+// O componente CategorySelect agora trabalha diretamente com UUIDs das categorias
+// Não é mais necessário mapear entre UUIDs e valores
 
 // Schema de validação aprimorado
 export const courseFormSchema = z.object({
@@ -18,8 +22,7 @@ export const courseFormSchema = z.object({
     .max(9999.99, 'Preço máximo é R$ 9.999,99')
     .multipleOf(0.01, 'Preço deve ter no máximo 2 casas decimais'),
   category: z.string()
-    .min(1, 'Categoria é obrigatória')
-    .uuid('Categoria deve ser um UUID válido'),
+    .min(1, 'Categoria é obrigatória'),
   image: z.string()
     .url('URL da imagem deve ser válida')
     .refine(
@@ -100,6 +103,7 @@ export function useCourseForm({
 }: UseCourseFormProps): UseCourseFormReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
 
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
@@ -129,14 +133,18 @@ export function useCourseForm({
       console.log('Dados retornados pela API:', course);
       console.log('Descrição do curso:', course.description);
       console.log('Nível do curso (banco):', course.level);
-      console.log('Nível do curso (banco):', course.level);
+      console.log('Categoria do curso:', course.category);
+      console.log('ID da categoria:', course.category?.id);
+      console.log('Nome da categoria:', course.category?.name);
+      
+      console.log('Categoria do curso (UUID):', course.category?.id);
       
       // Mapear dados do curso para o formulário
       form.reset({
         title: course.title,
         description: course.description || '',
         price: course.price || 0,
-        category: course.category?.id || '', // Usamos o ID da categoria
+        category: course.category?.id || '', // UUID diretamente
         image: course.thumbnail || '',
         published: course.status === 'PUBLISHED', // Mapeia status para published
         level: course.level,
@@ -164,6 +172,8 @@ export function useCourseForm({
   const saveCourse = useCallback(async (data: CourseFormData) => {
     setIsSaving(true);
     try {
+      console.log('Dados enviados para API:', data);
+      
       const url = courseId === 'new' ? '/api/courses' : `/api/courses/${courseId}`;
       const method = courseId === 'new' ? 'POST' : 'PUT';
       

@@ -4,6 +4,11 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import type { Course, CourseFormData } from '@/types/course'
+import { useCategories } from '@/app/admin/categories/categories.service'
+import { CourseCategory } from '@/lib/constants'
+
+// O componente CategorySelect agora trabalha diretamente com UUIDs das categorias
+// Não é mais necessário mapear valores para UUIDs
 
 // Schema de validação com Zod
 const courseSchema = z.object({
@@ -26,6 +31,7 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { data: categories = [] } = useCategories()
 
   // Estado inicial do formulário
   const [formData, setFormData] = useState<CourseFormData>({
@@ -36,7 +42,8 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
     price: initialData?.price || 0,
     duration: initialData?.duration || '1 hora',
     thumbnail: initialData?.thumbnail || '',
-    modules: initialData?.modules || []
+    modules: initialData?.modules || [],
+    published: initialData?.published || false
   })
 
   // Atualizar campo do formulário
@@ -85,6 +92,9 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
       const url = courseId ? `/api/courses/${courseId}` : '/api/courses'
       const method = courseId ? 'PUT' : 'POST'
       
+      // O CategorySelect já envia o UUID diretamente, não é necessário conversão
+      console.log('Dados enviados para API:', formData);
+      
       const response = await fetch(url, {
         method,
         headers: {
@@ -119,10 +129,13 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
     setIsLoading(true)
     
     try {
+      // Dados do rascunho (não é necessário converter categoria)
       const draftData = {
         ...formData,
         published: false
       }
+
+      console.log('Dados enviados para API (rascunho):', draftData);
 
       const url = courseId ? `/api/courses/${courseId}` : '/api/courses'
       const method = courseId ? 'PUT' : 'POST'

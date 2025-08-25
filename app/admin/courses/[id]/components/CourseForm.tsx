@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { AccordionSection } from './AccordionSection';
+import { CategorySelect } from '@/app/admin/courses/create/components/CategorySelect';
 
 interface CourseFormProps {
   courseId: string;
@@ -116,14 +117,11 @@ export function CourseForm({ courseId }: CourseFormProps) {
 
             <div>
               <Label htmlFor="category">Categoria</Label>
-              <Input
-                id="category"
-                {...register('category')}
-                placeholder="Ex: Programação, Design, Marketing"
+              <CategorySelect
+                value={watch('category')}
+                onChange={(value) => setValue('category', value)}
+                error={errors.category?.message}
               />
-              {errors.category && (
-                <p className="text-sm text-red-500">{errors.category.message}</p>
-              )}
             </div>
           </div>
 
