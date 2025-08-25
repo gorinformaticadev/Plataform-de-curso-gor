@@ -56,6 +56,7 @@ export interface CourseFormData {
   category: string;
   thumbnail?: string;
   modules: Module[];
+  published: boolean;
 }
 
 // Tipos para formulário

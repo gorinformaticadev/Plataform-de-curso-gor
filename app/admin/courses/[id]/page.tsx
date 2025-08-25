@@ -6,6 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import toast, { Toaster } from 'react-hot-toast';
 import { useCourseForm } from './hooks/useCourseForm';
+import { CategorySelect } from '@/app/admin/courses/create/components/CategorySelect';
 import {
   Plus,
   Save,
@@ -759,16 +760,6 @@ function App() {
 
   const [activeTab, setActiveTab] = useState<'course' | 'modules'>('course');
 
-  const categories = [
-    { value: 'programacao', label: 'Programação' },
-    { value: 'design', label: 'Design' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'negocios', label: 'Negócios' },
-    { value: 'idiomas', label: 'Idiomas' },
-    { value: 'musica', label: 'Música' },
-    { value: 'fotografia', label: 'Fotografia' },
-    { value: 'saude', label: 'Saúde e Bem-estar' },
-  ];
 
   const handleSave = (publish: boolean) => {
     const currentData = getValues();
@@ -932,16 +923,11 @@ function App() {
                       <Tag className="w-4 h-4" />
                       Categoria
                     </label>
-                    <select
-                      {...form.register('category')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
+                    <CategorySelect
+                      value={watch('category')}
+                      onChange={(value: string) => setValue('category', value)}
+                      error={form.formState.errors.category?.message}
+                    />
                   </div>
                 </div>
 
@@ -1031,7 +1017,7 @@ function App() {
                             R$ {(watch('price') || 0).toFixed(2)}
                           </span>
                           <span className="text-xs text-gray-500">
-                            {categories.find(c => c.value === watch('category'))?.label}
+                            {/* Removido preview estático de categoria - será exibido dinamicamente pelo CategorySelect */}
                           </span>
                         </div>
                       </div>

@@ -38,3 +38,5 @@ export function generateSlug(name: string, existingSlugs: string[] = []): string
  * @returns true se o slug é único
  */
 export function isSlugUnique(slug: string, existingSlugs: string[], excludeId?: string): boolean {
+  return !existingSlugs.includes(slug);
+}

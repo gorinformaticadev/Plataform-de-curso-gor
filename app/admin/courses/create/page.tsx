@@ -186,7 +186,6 @@ export default function CreateCoursePage() {
                   <ImageUpload
                     value={formData.thumbnail}
                     onChange={(url) => updateField('thumbnail', url)}
-                    type="course"
                   />
                 </div>
               </div>
