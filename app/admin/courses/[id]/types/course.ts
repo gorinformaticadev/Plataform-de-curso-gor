@@ -28,18 +28,35 @@ export interface Course {
   title: string;
   description: string;
   price: number;
-  category: string;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    icon?: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
   image?: string;
-  published: boolean;
-  level: 'beginner' | 'intermediate' | 'advanced';
+  thumbnail?: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  duration?: number;
   modules: Module[];
   instructorId: string;
+  instructor?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    bio?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
-  enrolledStudents: number;
-  rating: number;
-  totalLessons: number;
-  totalDuration: number; // em minutos
+  enrolledStudents?: number;
+  rating?: number;
+  totalLessons?: number;
+  totalDuration?: number; // em minutos
 }
 
 export interface CourseCreateInput {
