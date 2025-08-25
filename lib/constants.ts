@@ -27,9 +27,9 @@ export const CATEGORY_OPTIONS = [
 export type CourseCategory = typeof CATEGORY_OPTIONS[number]['value']
 
 export const DIFFICULTY_LEVELS = [
-  { value: 'beginner', label: 'Iniciante', color: 'text-green-600 bg-green-100' },
-  { value: 'intermediate', label: 'Intermediário', color: 'text-yellow-600 bg-yellow-100' },
-  { value: 'advanced', label: 'Avançado', color: 'text-red-600 bg-red-100' }
+  { value: 'BEGINNER', label: 'Iniciante', color: 'text-green-600 bg-green-100' },
+  { value: 'INTERMEDIATE', label: 'Intermediário', color: 'text-yellow-600 bg-yellow-100' },
+  { value: 'ADVANCED', label: 'Avançado', color: 'text-red-600 bg-red-100' }
 ] as const
 
 export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number]['value']

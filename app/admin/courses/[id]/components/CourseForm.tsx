@@ -138,9 +138,9 @@ export function CourseForm({ courseId }: CourseFormProps) {
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="beginner">Iniciante</SelectItem>
-                  <SelectItem value="intermediate">Intermediário</SelectItem>
-                  <SelectItem value="advanced">Avançado</SelectItem>
+                  <SelectItem value="BEGINNER">Iniciante</SelectItem>
+                  <SelectItem value="INTERMEDIATE">Intermediário</SelectItem>
+                  <SelectItem value="ADVANCED">Avançado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
