@@ -19,7 +19,7 @@ export const courseFormSchema = z.object({
     .multipleOf(0.01, 'Preço deve ter no máximo 2 casas decimais'),
   category: z.string()
     .min(1, 'Categoria é obrigatória')
-    .max(50, 'Categoria deve ter no máximo 50 caracteres'),
+    .uuid('Categoria deve ser um UUID válido'),
   image: z.string()
     .url('URL da imagem deve ser válida')
     .refine(
@@ -126,15 +126,18 @@ export function useCourseForm({
       
       const course: Course = await response.json();
       
+      console.log('Dados retornados pela API:', course);
+      console.log('Descrição do curso:', course.description);
+      
       // Mapear dados do curso para o formulário
       form.reset({
         title: course.title,
         description: course.description || '',
         price: course.price || 0,
-        category: course.category || '',
-        image: course.image || '',
-        published: course.published || false,
-        level: course.level || 'beginner',
+        category: course.category?.id || '', // Usamos o ID da categoria
+        image: course.thumbnail || '',
+        published: course.status === 'PUBLISHED', // Mapeia status para published
+        level: (course.level?.toLowerCase() as 'beginner' | 'intermediate' | 'advanced') || 'beginner',
         modules: course.modules?.map(module => ({
           id: module.id,
           title: module.title,

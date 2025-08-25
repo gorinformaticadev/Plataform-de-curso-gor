@@ -94,6 +94,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
     immediatelyRender: false,
   });
 
+  // Atualiza o conteúdo do editor quando a prop content muda
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
       <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2">
