@@ -51,7 +51,7 @@ export function CourseForm({ courseId }: CourseFormProps) {
     if (file) {
       try {
         const url = await uploadThumbnail(file);
-        setValue('image', url);
+        setValue('thumbnail', url);
       } catch (error) {
         console.error('Erro ao fazer upload:', error);
       }
@@ -174,9 +174,9 @@ export function CourseForm({ courseId }: CourseFormProps) {
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Imagem
               </Button>
-              {watch('image') && (
+              {watch('thumbnail') && (
                 <img
-                  src={watch('image')}
+                  src={watch('thumbnail')}
                   alt="Thumbnail"
                   className="w-20 h-20 object-cover rounded"
                 />

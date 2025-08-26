@@ -38,7 +38,6 @@ export interface Course {
     createdAt: Date;
     updatedAt: Date;
   };
-  image?: string;
   thumbnail?: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
@@ -64,7 +63,7 @@ export interface CourseCreateInput {
   description: string;
   price: number;
   category: string;
-  image?: string;
+  thumbnail?: string;
   published?: boolean;
   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   modules: ModuleCreateInput[];

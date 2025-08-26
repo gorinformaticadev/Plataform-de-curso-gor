@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Course } from '../types/course';
 import { useCategories } from '@/app/admin/categories/categories.service';
+import { useAuth } from '@/contexts/auth-context';
 
 // O componente CategorySelect agora trabalha diretamente com UUIDs das categorias
 // Não é mais necessário mapear entre UUIDs e valores
@@ -23,7 +24,7 @@ export const courseFormSchema = z.object({
     .multipleOf(0.01, 'Preço deve ter no máximo 2 casas decimais'),
   category: z.string()
     .min(1, 'Categoria é obrigatória'),
-  image: z.string()
+  thumbnail: z.string()
     .url('URL da imagem deve ser válida')
     .refine(
       (url) => {
@@ -104,6 +105,9 @@ export function useCourseForm({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  const { token } = useAuth();
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2/api';
 
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
@@ -112,7 +116,7 @@ export function useCourseForm({
       description: '',
       price: 0,
       category: '',
-      image: '',
+      thumbnail: '',
       published: false,
       level: 'BEGINNER',
       modules: []
@@ -125,7 +129,11 @@ export function useCourseForm({
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/courses/${courseId}`);
+      const response = await fetch(`${API_URL}/courses/${courseId}?t=${Date.now()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Erro ao carregar curso');
       
       const course: Course = await response.json();
@@ -136,16 +144,16 @@ export function useCourseForm({
       console.log('Categoria do curso:', course.category);
       console.log('ID da categoria:', course.category?.id);
       console.log('Nome da categoria:', course.category?.name);
-      
+      console.log('Thumbnail do curso (API):', course.thumbnail);
       console.log('Categoria do curso (UUID):', course.category?.id);
       
       // Mapear dados do curso para o formulário
-      form.reset({
+      const formData = {
         title: course.title,
         description: course.description || '',
         price: course.price || 0,
         category: course.category?.id || '', // UUID diretamente
-        image: course.thumbnail || '',
+        thumbnail: course.thumbnail ? `${course.thumbnail}?t=${Date.now()}` : '',
         published: course.status === 'PUBLISHED', // Mapeia status para published
         level: course.level,
         modules: course.modules?.map(module => ({
@@ -159,7 +167,12 @@ export function useCourseForm({
             duration: lesson.duration || 0
           })) || []
         })) || []
-      });
+      };
+      
+      console.log('Dados mapeados para o formulário:', formData);
+      console.log('Thumbnail no formulário:', formData.thumbnail);
+      
+      form.reset(formData);
     } catch (error) {
       onError?.(error as Error);
     } finally {
@@ -174,12 +187,15 @@ export function useCourseForm({
     try {
       console.log('Dados enviados para API:', data);
       
-      const url = courseId === 'new' ? '/api/courses' : `/api/courses/${courseId}`;
+      const url = courseId === 'new' ? `${API_URL}/courses` : `${API_URL}/courses/${courseId}`;
       const method = courseId === 'new' ? 'POST' : 'PUT';
       
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(data)
       });
 
@@ -197,10 +213,13 @@ export function useCourseForm({
   // Upload de thumbnail
   const uploadThumbnail = useCallback(async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', file);
 
-    const response = await fetch('/api/upload', {
+    const response = await fetch(`${API_URL}/uploads/course-thumbnail`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: formData
     });
 
@@ -208,7 +227,7 @@ export function useCourseForm({
     
     const { url } = await response.json();
     return url;
-  }, []);
+  }, [API_URL, token]);
 
   // Gerenciar módulos
   const addModule = useCallback(() => {

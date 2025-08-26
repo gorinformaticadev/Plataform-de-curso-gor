@@ -6,6 +6,7 @@ import { z } from 'zod'
 import type { Course, CourseFormData } from '@/types/course'
 import { useCategories } from '@/app/admin/categories/categories.service'
 import { CourseCategory } from '@/lib/constants'
+import { useAuth } from '@/contexts/auth-context'
 
 // O componente CategorySelect agora trabalha diretamente com UUIDs das categorias
 // Não é mais necessário mapear valores para UUIDs
@@ -32,6 +33,9 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const { data: categories = [] } = useCategories()
+  const { token } = useAuth()
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'
 
   // Estado inicial do formulário
   const [formData, setFormData] = useState<CourseFormData>({
@@ -89,7 +93,7 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
     setIsLoading(true)
 
     try {
-      const url = courseId ? `/api/courses/${courseId}` : '/api/courses'
+      const url = courseId ? `${API_URL}/courses/${courseId}` : `${API_URL}/courses`
       const method = courseId ? 'PUT' : 'POST'
       
       // O CategorySelect já envia o UUID diretamente, não é necessário conversão
@@ -99,6 +103,7 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
         method,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       })
@@ -137,13 +142,14 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
 
       console.log('Dados enviados para API (rascunho):', draftData);
 
-      const url = courseId ? `/api/courses/${courseId}` : '/api/courses'
+      const url = courseId ? `${API_URL}/courses/${courseId}` : `${API_URL}/courses`
       const method = courseId ? 'PUT' : 'POST'
       
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(draftData),
       })
