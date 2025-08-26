@@ -40,7 +40,6 @@ export const courseSchema = z.object({
     .min(2, 'Categoria deve ter pelo menos 2 caracteres')
     .max(50, 'Categoria não pode exceder 50 caracteres'),
   subcategory: z.string().optional(),
-  image: z.string().url('URL da imagem inválida').optional().or(z.literal('')),
   thumbnail: z.string().url('URL da thumbnail inválida').optional().or(z.literal('')),
   published: z.boolean().default(false),
   level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
@@ -205,7 +204,7 @@ export const categorySchema = z.object({
   description: z.string()
     .max(200, 'Descrição não pode exceder 200 caracteres')
     .optional(),
-  image: z.string().url('URL da imagem inválida').optional(),
+  thumbnail: z.string().url('URL da thumbnail inválida').optional(),
   courseCount: z.number().min(0).default(0),
   isActive: z.boolean().default(true)
 });

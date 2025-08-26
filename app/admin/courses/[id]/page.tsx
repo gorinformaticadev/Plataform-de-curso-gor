@@ -939,10 +939,10 @@ function App() {
                       Thumbnail do Curso
                     </label>
                     <div className="border border-gray-300 rounded-lg p-4">
-                      {watch('image') ? (
+                      {watch('thumbnail') ? (
                         <div className="relative">
                           <img
-                            src={watch('image')}
+                            src={watch('thumbnail')}
                             alt="Thumbnail do curso"
                             className="w-full h-48 object-cover rounded-lg"
                             onError={(e) => {
@@ -950,7 +950,7 @@ function App() {
                             }}
                           />
                           <button
-                            onClick={() => setValue('image', '')}
+                            onClick={() => setValue('thumbnail', '')}
                             className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -963,7 +963,7 @@ function App() {
                           <div className="space-y-2">
                             <input
                               type="url"
-                              {...form.register('image')}
+                              {...form.register('thumbnail')}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="URL da imagem"
                             />
@@ -985,9 +985,9 @@ function App() {
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Prévia do Curso</h3>
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                       <div className="aspect-video bg-gray-200 flex items-center justify-center">
-                        {watch('image') ? (
+                        {watch('thumbnail') ? (
                           <img
-                            src={watch('image')}
+                            src={watch('thumbnail')}
                             alt="Thumbnail"
                             className="w-full h-full object-cover"
                             onError={(e) => {
