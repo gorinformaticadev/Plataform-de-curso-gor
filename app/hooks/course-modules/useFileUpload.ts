@@ -26,7 +26,7 @@ interface UseFileUploadReturn {
   clearFiles: () => void;
   openFileDialog: () => void;
   getFileInputProps: () => {
-    ref: React.RefObject<HTMLInputElement>;
+    ref: React.RefObject<HTMLInputElement | null>;
     type: string;
     multiple: boolean;
     accept: string;

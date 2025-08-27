@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Course } from '../types/course';
 import { useCategories } from '@/app/admin/categories/categories.service';
 import { useAuth } from '@/contexts/auth-context';
+import { ImageUrlBuilder } from '@/lib/image-config';
 
 // O componente CategorySelect agora trabalha diretamente com UUIDs das categorias
 // Não é mais necessário mapear entre UUIDs e valores
@@ -25,14 +26,9 @@ export const courseFormSchema = z.object({
   category: z.string()
     .min(1, 'Categoria é obrigatória'),
   thumbnail: z.string()
-    .url('URL da imagem deve ser válida')
     .refine(
-      (url) => {
-        if (!url) return true;
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-        return imageExtensions.some(ext => url.toLowerCase().includes(ext));
-      },
-      { message: 'A imagem deve ter formato válido (jpg, jpeg, png, gif ou webp)' }
+      (value) => !value || ImageUrlBuilder.validateImageUrl(value),
+      'URL da imagem inválida'
     )
     .optional()
     .or(z.literal('')),
@@ -123,9 +119,22 @@ export function useCourseForm({
     }
   });
 
-  // Carregar dados do curso
+  // Carregar dados do curso com limpeza adequada
   const loadCourse = useCallback(async () => {
-    if (!courseId || courseId === 'new') return;
+    if (!courseId || courseId === 'new') {
+      // Limpar formulário para novos cursos
+      form.reset({
+        title: '',
+        description: '',
+        price: 0,
+        category: '',
+        thumbnail: '',
+        published: false,
+        level: 'BEGINNER',
+        modules: []
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -139,22 +148,17 @@ export function useCourseForm({
       const course: Course = await response.json();
       
       console.log('Dados retornados pela API:', course);
-      console.log('Descrição do curso:', course.description);
-      console.log('Nível do curso (banco):', course.level);
-      console.log('Categoria do curso:', course.category);
-      console.log('ID da categoria:', course.category?.id);
-      console.log('Nome da categoria:', course.category?.name);
+      console.log('CourseId atual:', courseId);
       console.log('Thumbnail do curso (API):', course.thumbnail);
-      console.log('Categoria do curso (UUID):', course.category?.id);
       
-      // Mapear dados do curso para o formulário
+      // Mapear dados do curso para o formulário com URLs de imagem padronizadas
       const formData = {
         title: course.title,
         description: course.description || '',
         price: course.price || 0,
-        category: course.category?.id || '', // UUID diretamente
-        thumbnail: course.thumbnail ? `${course.thumbnail}?t=${Date.now()}` : '',
-        published: course.status === 'PUBLISHED', // Mapeia status para published
+        category: course.category?.id || '',
+        thumbnail: course.thumbnail ? ImageUrlBuilder.buildImageUrl(course.thumbnail) : '',
+        published: course.status === 'PUBLISHED',
         level: course.level,
         modules: course.modules?.map(module => ({
           id: module.id,
@@ -172,13 +176,15 @@ export function useCourseForm({
       console.log('Dados mapeados para o formulário:', formData);
       console.log('Thumbnail no formulário:', formData.thumbnail);
       
+      // Reset completo do formulário com novos dados
       form.reset(formData);
     } catch (error) {
+      console.error('Erro ao carregar curso:', error);
       onError?.(error as Error);
     } finally {
       setIsLoading(false);
     }
-  }, [courseId, onError]); // Removido 'form' das dependências
+  }, [courseId, form, token, API_URL, onError]);
 
 
   // Salvar curso
@@ -210,10 +216,10 @@ export function useCourseForm({
     }
   }, [courseId, onSuccess, onError]);
 
-  // Upload de thumbnail
+  // Upload de thumbnail com validação aprimorada
   const uploadThumbnail = useCallback(async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file); // Corrigir: backend espera 'file', não 'image'
 
     const response = await fetch(`${API_URL}/uploads/course-thumbnail`, {
       method: 'POST',
@@ -226,7 +232,8 @@ export function useCourseForm({
     if (!response.ok) throw new Error('Erro ao fazer upload');
     
     const { url } = await response.json();
-    return url;
+    // Garantir que a URL seja construída corretamente
+    return ImageUrlBuilder.buildImageUrl(url) || url;
   }, [API_URL, token]);
 
   // Gerenciar módulos
@@ -274,10 +281,29 @@ export function useCourseForm({
     form.setValue('modules', newModules);
   }, [form]);
 
-  // Carregar curso ao montar
+  // Effect com dependências corretas para evitar cache
   useEffect(() => {
     loadCourse();
-  }, [courseId]); // Mudado de [loadCourse] para [courseId]
+  }, [loadCourse]);
+
+  // Cleanup ao desmontar ou mudar courseId
+  useEffect(() => {
+    return () => {
+      // Limpar formulário ao desmontar
+      if (form) {
+        form.reset({
+          title: '',
+          description: '',
+          price: 0,
+          category: '',
+          thumbnail: '',
+          published: false,
+          level: 'BEGINNER',
+          modules: []
+        });
+      }
+    };
+  }, [courseId, form]);
 
   return {
     form,

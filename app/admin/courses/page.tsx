@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CourseCreateModal } from "@/components/admin/course-create-modal";
+import { CourseThumbnail } from "@/components/ui/course-image";
 
 interface Category {
   id: string;
@@ -312,10 +313,12 @@ export default function CoursesPage() {
                 <TableRow key={course.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
-                      <Avatar>
-                        <AvatarImage src={course.thumbnail ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${course.thumbnail}` : undefined} alt={course.title} />
-                        <AvatarFallback>{course.title.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                      <CourseThumbnail
+                        src={course.thumbnail}
+                        courseTitle={course.title}
+                        size="sm"
+                        className="w-10 h-10"
+                      />
                       <div>
                         <div className="font-medium">{course.title}</div>
                         <div className="text-sm text-gray-500">

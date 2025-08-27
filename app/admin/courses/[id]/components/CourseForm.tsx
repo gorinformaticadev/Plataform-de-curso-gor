@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { AccordionSection } from './AccordionSection';
 import { CategorySelect } from '@/app/admin/courses/create/components/CategorySelect';
+import { CourseImage } from '@/components/ui/course-image';
 
 interface CourseFormProps {
   courseId: string;
@@ -158,28 +159,49 @@ export function CourseForm({ courseId }: CourseFormProps) {
 
           <div>
             <Label htmlFor="thumbnail">Thumbnail do Curso</Label>
-            <div className="flex items-center space-x-4">
-              <Input
-                id="thumbnail"
-                type="file"
-                accept="image/*"
-                onChange={handleThumbnailUpload}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => document.getElementById('thumbnail')?.click()}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Imagem
-              </Button>
-              {watch('thumbnail') && (
-                <img
-                  src={watch('thumbnail')}
-                  alt="Thumbnail"
-                  className="w-20 h-20 object-cover rounded"
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Input
+                  id="thumbnail"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbnailUpload}
+                  className="hidden"
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('thumbnail')?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Imagem
+                </Button>
+                <span className="text-sm text-gray-500">ou cole uma URL abaixo</span>
+              </div>
+              
+              <Input
+                {...register('thumbnail')}
+                placeholder="URL da imagem (opcional)"
+                type="url"
+              />
+              
+              {watch('thumbnail') && (
+                <div className="flex items-center space-x-4">
+                  <CourseImage
+                    src={watch('thumbnail')}
+                    alt="Thumbnail do curso"
+                    className="w-32 h-32 object-cover rounded-lg"
+                    onError={() => console.warn('Erro ao carregar thumbnail')}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setValue('thumbnail', '')}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </div>

@@ -7,6 +7,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import toast, { Toaster } from 'react-hot-toast';
 import { useCourseForm } from './hooks/useCourseForm';
 import { CategorySelect } from '@/app/admin/courses/create/components/CategorySelect';
+import { CourseImage } from '@/components/ui/course-image';
 import {
   Plus,
   Save,
@@ -941,13 +942,11 @@ function App() {
                     <div className="border border-gray-300 rounded-lg p-4">
                       {watch('thumbnail') ? (
                         <div className="relative">
-                          <img
+                          <CourseImage
                             src={watch('thumbnail')}
                             alt="Thumbnail do curso"
                             className="w-full h-48 object-cover rounded-lg"
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg';
-                            }}
+                            onError={() => console.warn('Erro ao carregar thumbnail')}
                           />
                           <button
                             onClick={() => setValue('thumbnail', '')}
@@ -986,13 +985,11 @@ function App() {
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                       <div className="aspect-video bg-gray-200 flex items-center justify-center">
                         {watch('thumbnail') ? (
-                          <img
+                          <CourseImage
                             src={watch('thumbnail')}
-                            alt="Thumbnail"
+                            alt="Prévia do curso"
                             className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg';
-                            }}
+                            onError={() => console.warn('Erro ao carregar thumbnail na prévia')}
                           />
                         ) : (
                           <Image className="w-16 h-16 text-gray-400" />
