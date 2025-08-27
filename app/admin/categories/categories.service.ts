@@ -18,7 +18,7 @@ export interface Category {
 
 export function useCategories() {
   const { token } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
   return useQuery<Category[]>({
     queryKey: ["categories"],
@@ -36,7 +36,7 @@ export function useCategories() {
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   const { token } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
   return useMutation({
     mutationFn: (newCategory: {
@@ -61,7 +61,7 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
   const { token } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
   return useMutation({
     mutationFn: ({ id, ...updates }: {
@@ -97,7 +97,7 @@ export function useUpdateCategory() {
 export function useToggleCategoryStatus() {
   const queryClient = useQueryClient();
   const { token } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
   return useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => {
@@ -116,7 +116,7 @@ export function useToggleCategoryStatus() {
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
   const { token } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
   
   return useMutation({
     mutationFn: (id: string) => {

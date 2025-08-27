@@ -35,7 +35,7 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
   const { data: categories = [] } = useCategories()
   const { token } = useAuth()
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
   // Estado inicial do formulário
   const [formData, setFormData] = useState<CourseFormData>({
