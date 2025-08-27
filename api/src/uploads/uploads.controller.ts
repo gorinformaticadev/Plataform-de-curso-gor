@@ -22,7 +22,7 @@ export class UploadsController {
     if (!file) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
-    const fileUrl = `/public/uploads/courses/${file.filename}`;
+    const fileUrl = `/uploads/courses/${file.filename}`;
     return res.status(201).json({ url: fileUrl });
   }
 
@@ -48,11 +48,11 @@ export class UploadsController {
     const response: { videoUrl?: string; thumbnailUrl?: string } = {};
     
     if (files.video && files.video[0]) {
-      response.videoUrl = `/public/uploads/lessons/${files.video[0].filename}`;
+      response.videoUrl = `/uploads/lessons/${files.video[0].filename}`;
     }
     
     if (files.thumbnail && files.thumbnail[0]) {
-      response.thumbnailUrl = `/public/uploads/lessons/${files.thumbnail[0].filename}`;
+      response.thumbnailUrl = `/uploads/lessons/${files.thumbnail[0].filename}`;
     }
     
     return res.status(201).json(response);

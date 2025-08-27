@@ -80,14 +80,8 @@ export class CoursesService {
       this.prisma.course.count({ where }),
     ]);
 
-    // Corrigir URLs das thumbnails
-    const correctedCourses = courses.map(course => ({
-      ...course,
-      thumbnail: this.fixThumbnailUrl(course.thumbnail),
-    }));
-
     return {
-      courses: correctedCourses,
+      courses,
       pagination: {
         page,
         limit,
@@ -157,14 +151,10 @@ export class CoursesService {
       isEnrolled = !!enrollment;
     }
 
-    // Corrigir URL da thumbnail
-    const correctedCourse = {
+    return {
       ...course,
-      thumbnail: this.fixThumbnailUrl(course.thumbnail),
       isEnrolled,
     };
-
-    return correctedCourse;
   }
 
   async findBySlug(slug: string, userId?: string) {
@@ -227,14 +217,10 @@ export class CoursesService {
       isEnrolled = !!enrollment;
     }
 
-    // Corrigir URL da thumbnail
-    const correctedCourse = {
+    return {
       ...course,
-      thumbnail: this.fixThumbnailUrl(course.thumbnail),
       isEnrolled,
     };
-
-    return correctedCourse;
   }
 
   async update(id: string, updateCourseDto: UpdateCourseDto, userId: string) {
@@ -291,7 +277,7 @@ export class CoursesService {
   }
 
   async getInstructorCourses(instructorId: string) {
-    const courses = await this.prisma.course.findMany({
+    return this.prisma.course.findMany({
       where: { instructorId },
       include: {
         category: true,
@@ -306,12 +292,6 @@ export class CoursesService {
         createdAt: 'desc',
       },
     });
-
-    // Corrigir URLs das thumbnails
-    return courses.map(course => ({
-      ...course,
-      thumbnail: this.fixThumbnailUrl(course.thumbnail),
-    }));
   }
 
   private generateSlug(title: string): string {
@@ -354,32 +334,5 @@ export class CoursesService {
         }),
       };
     });
-  }
-
-  /**
-   * Corrige URLs de thumbnails antigas para o novo formato
-   * URLs antigas: /uploads/courses/filename.jpg
-   * URLs novas: /public/uploads/courses/filename.jpg
-   */
-  private fixThumbnailUrl(thumbnail: string | null): string | null {
-    if (!thumbnail) return null;
-    
-    // Se já está no formato correto, retorna como está
-    if (thumbnail.startsWith('/public/')) {
-      return thumbnail;
-    }
-    
-    // Se começa com /uploads/, adiciona /public
-    if (thumbnail.startsWith('/uploads/')) {
-      return `/public${thumbnail}`;
-    }
-    
-    // Se é uma URL completa (http), retorna como está
-    if (thumbnail.startsWith('http')) {
-      return thumbnail;
-    }
-    
-    // Para outros casos, assume que é um caminho relativo e adiciona /public
-    return `/public${thumbnail.startsWith('/') ? '' : '/'}${thumbnail}`;
   }
 }
