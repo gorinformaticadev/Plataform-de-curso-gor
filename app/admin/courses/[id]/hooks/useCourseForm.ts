@@ -107,7 +107,7 @@ export function useCourseForm({
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const { token } = useAuth();
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
@@ -153,7 +153,7 @@ export function useCourseForm({
         description: course.description || '',
         price: course.price || 0,
         category: course.category?.id || '', // UUID diretamente
-        thumbnail: course.thumbnail ? `${course.thumbnail}?t=${Date.now()}` : '',
+        thumbnail: course.thumbnail || '',
         published: course.status === 'PUBLISHED', // Mapeia status para published
         level: course.level,
         modules: course.modules?.map(module => ({
@@ -213,7 +213,7 @@ export function useCourseForm({
   // Upload de thumbnail
   const uploadThumbnail = useCallback(async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
 
     const response = await fetch(`${API_URL}/uploads/course-thumbnail`, {
       method: 'POST',
