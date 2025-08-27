@@ -941,25 +941,14 @@ function App() {
                     <div className="border border-gray-300 rounded-lg p-4">
                       {watch('thumbnail') ? (
                         <div className="relative">
-                          <div className="relative">
-                            <img
-                              src={watch('thumbnail')}
-                              alt="Thumbnail do curso"
-                              className="w-full h-48 object-cover rounded-lg"
-                              onError={(e) => {
-                                const img = e.currentTarget;
-                                img.style.display = 'none';
-                                const errorDiv = document.createElement('div');
-                                errorDiv.className = 'w-full h-48 bg-red-50 border border-red-200 rounded-lg flex flex-col items-center justify-center p-4 text-center';
-                                errorDiv.innerHTML = `
-                                  <Image className="w-8 h-8 text-red-400 mb-2" />
-                                  <p class="text-sm text-red-600 font-medium">Imagem não carregada</p>
-                                  <p class="text-xs text-red-500 mt-1">URL: ${img.src}</p>
-                                `;
-                                img.parentNode?.insertBefore(errorDiv, img.nextSibling);
-                              }}
-                            />
-                          </div>
+                          <img
+                            src={watch('thumbnail')}
+                            alt="Thumbnail do curso"
+                            className="w-full h-48 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg';
+                            }}
+                          />
                           <button
                             onClick={() => setValue('thumbnail', '')}
                             className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
@@ -997,24 +986,14 @@ function App() {
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                       <div className="aspect-video bg-gray-200 flex items-center justify-center">
                         {watch('thumbnail') ? (
-                          <div className="relative w-full h-full">
-                            <img
-                              src={watch('thumbnail')}
-                              alt="Thumbnail"
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const img = e.currentTarget;
-                                img.style.display = 'none';
-                                const errorDiv = document.createElement('div');
-                                errorDiv.className = 'w-full h-full bg-red-50 border border-red-200 flex flex-col items-center justify-center p-2 text-center';
-                                errorDiv.innerHTML = `
-                                  <Image className="w-6 h-6 text-red-400 mb-1" />
-                                  <p class="text-xs text-red-600">Erro ao carregar</p>
-                                `;
-                                img.parentNode?.insertBefore(errorDiv, img.nextSibling);
-                              }}
-                            />
-                          </div>
+                          <img
+                            src={watch('thumbnail')}
+                            alt="Thumbnail"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.pexels.com/photos/577585/pexels-photo-577585.jpeg';
+                            }}
+                          />
                         ) : (
                           <Image className="w-16 h-16 text-gray-400" />
                         )}

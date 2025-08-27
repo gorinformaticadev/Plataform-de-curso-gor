@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from 'react'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useAuth } from '@/contexts/auth-context'
 
 interface ImageUploadProps {
   value?: string
@@ -15,9 +14,6 @@ interface ImageUploadProps {
 export function ImageUpload({ value, onChange, onRemove, className }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  const { token } = useAuth()
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
   const handleFileSelect = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -33,23 +29,24 @@ export function ImageUpload({ value, onChange, onRemove, className }: ImageUploa
     setIsUploading(true)
     
     try {
+      // Simulação de upload - em produção, usar serviço real (ex: AWS S3, Cloudinary)
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('image', file)
       
-      const response = await fetch(`${API_URL}/uploads/course-thumbnail`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData
-      })
+      // Aqui você faria o upload real para seu servidor
+      // const response = await fetch('/api/upload', {
+      //   method: 'POST',
+      //   body: formData
+      // })
+      // const data = await response.json()
+      // onChange(data.url)
       
-      if (!response.ok) {
-        throw new Error('Erro ao fazer upload da imagem')
+      // Para demonstração, criar URL temporária
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        onChange(e.target?.result as string)
       }
-      
-      const data = await response.json()
-      onChange(data.url)
+      reader.readAsDataURL(file)
       
     } catch (error) {
       console.error('Erro ao fazer upload:', error)
@@ -57,7 +54,7 @@ export function ImageUpload({ value, onChange, onRemove, className }: ImageUploa
     } finally {
       setIsUploading(false)
     }
-  }, [onChange, token, API_URL])
+  }, [onChange])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()

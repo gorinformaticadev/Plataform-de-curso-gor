@@ -101,16 +101,15 @@ export default function CoursesPage() {
 
       try {
         // Fetch Cursos
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        const coursesResponse = await axios.get(`${API_URL}/courses/my-courses`, { headers });
+        const coursesResponse = await axios.get('/api/courses/my-courses', { headers });
         setCourses(coursesResponse.data);
 
         // Fetch Categorias
-        const categoriesResponse = await axios.get(`${API_URL}/categories`, { headers });
+        const categoriesResponse = await axios.get('/api/categories', { headers });
         setCategories(categoriesResponse.data);
 
         // Fetch Instrutores
-        const instructorsResponse = await axios.get(`${API_URL}/users/instructors`, { headers });
+        const instructorsResponse = await axios.get('/api/users/instructors', { headers });
         setInstructors(instructorsResponse.data);
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -175,8 +174,7 @@ export default function CoursesPage() {
       };
 
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        const coursesResponse = await axios.get(`${API_URL}/courses/my-courses`, { headers });
+        const coursesResponse = await axios.get('/api/courses/my-courses', { headers });
         setCourses(coursesResponse.data);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -315,7 +313,7 @@ export default function CoursesPage() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar>
-                        <AvatarImage src={course.thumbnail || undefined} alt={course.title} />
+                        <AvatarImage src={course.thumbnail ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${course.thumbnail}` : undefined} alt={course.title} />
                         <AvatarFallback>{course.title.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
@@ -330,7 +328,7 @@ export default function CoursesPage() {
                     {course.instructor ? (
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={course.instructor.avatar || undefined} />
+                          <AvatarImage src={course.instructor.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${course.instructor.avatar}` : undefined} />
                           <AvatarFallback>{course.instructor.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         {course.instructor.name}
