@@ -93,7 +93,7 @@ interface UserEditFormProps {
 }
 
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
-  const { token, reloadUser } = useAuth();
+  const { token, reloadUser, user: currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null
@@ -128,67 +128,92 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log('[UserEditForm] Iniciando submit...', { userId: user.id, isCurrentUser: currentUser?.id === user.id });
     setIsSubmitting(true);
 
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    // Anexa o arquivo de avatar se existir
-    if (values.avatar) {
-      formData.append('file', values.avatar);
-    }
+      // Anexa o arquivo de avatar se existir
+      if (values.avatar) {
+        formData.append('file', values.avatar);
+      }
 
-    // Anexa outros campos de texto
-    formData.append('name', values.name);
-    formData.append('email', values.email);
-    formData.append('role', values.role);
-    
-    if (values.bio) {
-      formData.append('bio', values.bio);
-    }
+      // Anexa outros campos de texto
+      formData.append('name', values.name);
+      formData.append('email', values.email);
+      formData.append('role', values.role);
+      
+      if (values.bio) {
+        formData.append('bio', values.bio);
+      }
 
-    if (values.cpf) {
-      formData.append('cpf', values.cpf.replace(/\D/g, ''));
-    }
+      if (values.cpf) {
+        formData.append('cpf', values.cpf.replace(/\D/g, ''));
+      }
 
-    // Apenas anexa a senha se ela for fornecida
-    if (values.password) {
-      formData.append('password', values.password);
-    }
+      // Apenas anexa a senha se ela for fornecida
+      if (values.password) {
+        formData.append('password', values.password);
+      }
 
-    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/${user.id}`, {
-      method: "PATCH",
-      headers: {
-        // Não defina 'Content-Type', o navegador fará isso automaticamente para multipart/form-data
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    }).then(async (res) => {
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: 'Falha ao atualizar os dados do usuário.' }));
+      console.log('[UserEditForm] Enviando requisição para API...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/api/users/${user.id}`, {
+        method: "PATCH",
+        headers: {
+          // Não defina 'Content-Type', o navegador fará isso automaticamente para multipart/form-data
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Falha ao atualizar os dados do usuário.' }));
         throw new Error(errorData.message || 'Falha ao atualizar os dados do usuário.');
       }
-      return res.json();
-    });
 
-    toast.promise(promise, {
-      loading: "Salvando alterações...",
-      success: async () => {
+      const updatedUser = await response.json();
+      console.log('[UserEditForm] Usuário atualizado com sucesso, iniciando ações pós-sucesso...');
+      
+      // Executa ações pós-sucesso sequencialmente conforme design doc
+      toast.success("Usuário atualizado com sucesso!");
+      
+      // Primeiro: atualiza contexto se necessário (de forma síncrona)
+      if (currentUser && currentUser.id === user.id) {
+        console.log('[UserEditForm] Recarregando contexto de autenticação...');
         await reloadUser();
-        onSuccess();
-        return "Usuário atualizado com sucesso!";
-      },
-      error: (err) => {
-        form.setError("root", { message: err.message });
-        return err.message;
-      },
-      finally: () => {
-        setIsSubmitting(false);
-      },
-    });
+        console.log('[UserEditForm] Contexto de autenticação recarregado.');
+      }
+      
+      // Segundo: notifica componente pai (que pode fechar modal e atualizar dados)
+      console.log('[UserEditForm] Notificando componente pai via onSuccess...');
+      onSuccess();
+      console.log('[UserEditForm] Submit concluído com sucesso!');
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('[UserEditForm] Erro durante submit:', error);
+      form.setError("root", { message: errorMessage });
+      toast.error(errorMessage);
+    } finally {
+      console.log('[UserEditForm] Finalizando submit, resetando isSubmitting...');
+      setIsSubmitting(false);
+    }
   }
 
   return (
-    <div className="max-h-screen overflow-y-auto p-4">
+    <div className="max-h-screen overflow-y-auto p-4 relative">
+      {isSubmitting && (
+        <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-50 rounded-lg">
+          <div className="bg-white p-4 rounded-lg shadow-lg flex items-center gap-2">
+            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Salvando...</span>
+          </div>
+        </div>
+      )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full max-w-lg mx-auto">
           <FormField
@@ -353,7 +378,17 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
             Cancelar
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Salvando..." : "Salvar Alterações"}
+            {isSubmitting ? (
+              <>
+                <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Salvando...
+              </>
+            ) : (
+              "Salvar Alterações"
+            )}
           </Button>
         </div>
       </form>

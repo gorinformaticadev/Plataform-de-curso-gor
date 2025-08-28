@@ -49,6 +49,7 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[UserCreateForm] Iniciando criação de usuário...', { role: userRole });
     setIsLoading(true);
     setError(null);
 
@@ -56,8 +57,10 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
       // Usar sequencial padrão 1 já que não temos contagem
       const sequencial = 1;
       const studentCode = generateStudentCode(userRole, sequencial);
+      console.log('[UserCreateForm] Código de estudante gerado:', studentCode);
 
-      const promise = fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+      console.log('[UserCreateForm] Enviando requisição para API...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -71,38 +74,46 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
           role: userRole,
           studentCode, // Incluir o código gerado
         }),
-      }).then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: 'Falha ao criar usuário' }));
-          throw new Error(errorData.message || 'Falha ao criar usuário');
-        }
-        return res.json();
       });
 
-      toast.promise(promise, {
-        loading: "Criando usuário...",
-        success: (data) => {
-          onSuccess();
-          return `Usuário criado com sucesso! Código: ${studentCode}`;
-        },
-        error: (err) => {
-          setError(err.message);
-          return err.message;
-        },
-      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Falha ao criar usuário' }));
+        throw new Error(errorData.message || 'Falha ao criar usuário');
+      }
 
-      await promise;
+      const data = await response.json();
+      console.log('[UserCreateForm] Usuário criado com sucesso:', data.id);
+      
+      toast.success(`Usuário criado com sucesso! Código: ${studentCode}`);
+      console.log('[UserCreateForm] Notificando componente pai via onSuccess...');
+      onSuccess();
+      console.log('[UserCreateForm] Criação concluída com sucesso!');
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('[UserCreateForm] Erro durante criação:', error);
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
+      console.log('[UserCreateForm] Finalizando criação, resetando isLoading...');
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div className="relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-50 rounded-lg">
+          <div className="bg-white p-4 rounded-lg shadow-lg flex items-center gap-2">
+            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Salvando...</span>
+          </div>
+        </div>
+      )}
+      <form onSubmit={handleSubmit}>
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-4 items-center gap-4">
           <label
@@ -192,9 +203,20 @@ export function UserCreateForm({ onSuccess, onCancel }: UserCreateFormProps) {
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Salvando..." : "Salvar"}
+          {isLoading ? (
+            <>
+              <svg className="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Salvando...
+            </>
+          ) : (
+            "Salvar"
+          )}
         </Button>
       </div>
-    </form>
+      </form>
+    </div>
   );
 }

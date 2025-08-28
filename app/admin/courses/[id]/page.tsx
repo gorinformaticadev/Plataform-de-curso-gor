@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import toast, { Toaster } from 'react-hot-toast';
+import { toast } from "sonner";
 import { useCourseForm } from './hooks/useCourseForm';
 import { CategorySelect } from '@/app/admin/courses/create/components/CategorySelect';
 import { CourseImage } from '@/components/ui/course-image';

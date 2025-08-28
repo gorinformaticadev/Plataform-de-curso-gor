@@ -438,9 +438,13 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
         </DialogHeader>
         <UserEditForm
           user={user}
-          onSuccess={() => {
+          onSuccess={async () => {
+            console.log('[UserDetailsPage] Recebido onSuccess do UserEditForm...');
+            console.log('[UserDetailsPage] Fechando modal de edição...');
             setIsEditDialogOpen(false);
-            fetchUser();
+            console.log('[UserDetailsPage] Recarregando dados do usuário...');
+            await fetchUser();
+            console.log('[UserDetailsPage] Dados do usuário recarregados com sucesso!');
           }}
           onCancel={() => setIsEditDialogOpen(false)}
         />

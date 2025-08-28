@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -33,10 +33,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   const checkAuth = useCallback(async () => {
     try {
       const storedToken = localStorage.getItem('token');
@@ -58,15 +54,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         localStorage.removeItem('token');
         setToken(null);
+        setUser(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       localStorage.removeItem('token');
       setToken(null);
+      setUser(null);
     } finally {
       setLoading(false);
     }
   }, [API_URL]);
+
+  // useEffect deve vir APÓS a declaração do checkAuth
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -88,18 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(data.token);
       setUser(data.user);
       
-      toast({
-        title: 'Login realizado com sucesso!',
-        description: `Bem-vindo de volta, ${data.user.name}!`,
-      });
+      toast.success(`Bem-vindo de volta, ${data.user.name}!`);
 
       router.push('/dashboard');
     } catch (error) {
-      toast({
-        title: 'Erro no login',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
+      toast.error(error instanceof Error ? error.message : 'Erro desconhecido');
       throw error;
     }
   }, [router, API_URL]);
@@ -123,18 +119,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('token', data.token);
       setUser(data.user);
       
-      toast({
-        title: 'Conta criada com sucesso!',
-        description: `Bem-vindo, ${data.user.name}!`,
-      });
+      toast.success(`Bem-vindo, ${data.user.name}!`);
 
       router.push('/dashboard');
     } catch (error) {
-      toast({
-        title: 'Erro no cadastro',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
+      toast.error(error instanceof Error ? error.message : 'Erro desconhecido');
       throw error;
     }
   }, [router, API_URL]);
@@ -145,11 +134,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     router.push('/');
     
-    toast({
-      title: 'Logout realizado',
-      description: 'Você foi desconectado com sucesso.',
-    });
+    toast.success('Você foi desconectado com sucesso.');
   }, [router]);
+
+  // Versão segura do reloadUser que não causa problemas durante operações
+  const reloadUser = useCallback(async () => {
+    // Só recarrega se estivermos autenticados e não em processo de loading
+    if (!token || loading) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        // Só fazer logout se o token estiver realmente inválido
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          setToken(null);
+          setUser(null);
+        }
+      }
+    } catch (error) {
+      console.error('User reload failed:', error);
+      // Não fazer logout em caso de erro de rede
+    }
+  }, [token, loading, API_URL]);
 
   const value = useMemo(() => ({
     user,
@@ -159,8 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     isAuthenticated: !!user,
-    reloadUser: checkAuth,
-  }), [user, token, loading, login, register, logout, checkAuth]);
+    reloadUser,
+  }), [user, token, loading, login, register, logout, reloadUser]);
 
   return (
     <AuthContext.Provider value={value}>
