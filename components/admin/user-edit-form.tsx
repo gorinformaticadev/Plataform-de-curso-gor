@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/contexts/auth-context";
-import { toast } from "sonner";
+import { toast } from "sonner"; // Usando exclusivamente sonner conforme especificação do projeto
 
 // Function to validate CPF
 const validateCPF = (cpf: string): boolean => {
@@ -173,19 +173,25 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       }
 
       const updatedUser = await response.json();
-      console.log('[UserEditForm] Usuário atualizado com sucesso, iniciando ações pós-sucesso...');
+      console.log('[UserEditForm] Usuário atualizado com sucesso, iniciando ações pós-sucesso sequenciais...');
       
-      // Executa ações pós-sucesso sequencialmente conforme design doc
+      // Executa ações pós-sucesso sequencialmente conforme especificações do projeto
+      // para evitar conflitos de estado e congelamento de interface
+      
+      // Primeiro: notificação de sucesso
       toast.success("Usuário atualizado com sucesso!");
       
-      // Primeiro: atualiza contexto se necessário (de forma síncrona)
+      // Segundo: atualiza contexto se necessário (condicionalmente para evitar re-renders infinitos)
       if (currentUser && currentUser.id === user.id) {
-        console.log('[UserEditForm] Recarregando contexto de autenticação...');
+        console.log('[UserEditForm] Recarregando contexto de autenticação (usuário logado)...');
         await reloadUser();
         console.log('[UserEditForm] Contexto de autenticação recarregado.');
       }
       
-      // Segundo: notifica componente pai (que pode fechar modal e atualizar dados)
+      // Terceiro: aguarda um tick para garantir estabilidade do estado
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Quarto: notifica componente pai para fechamento e atualização
       console.log('[UserEditForm] Notificando componente pai via onSuccess...');
       onSuccess();
       console.log('[UserEditForm] Submit concluído com sucesso!');
@@ -193,8 +199,13 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       console.error('[UserEditForm] Erro durante submit:', error);
+      
+      // Usar apenas setError do form, evitando conflitos com toast.promise
       form.setError("root", { message: errorMessage });
+      
+      // Toast de erro usando sonner conforme especificação do projeto
       toast.error(errorMessage);
+      
     } finally {
       console.log('[UserEditForm] Finalizando submit, resetando isSubmitting...');
       setIsSubmitting(false);

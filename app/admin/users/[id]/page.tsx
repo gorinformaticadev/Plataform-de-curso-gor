@@ -8,14 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
-import {
-  Dialog,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { AccessibleDialogContent } from "@/components/ui/accessible-dialog-content";
-import { UserEditForm } from "@/components/admin/user-edit-form";
+import { RobustUserEditModal } from "@/components/admin/robust-user-edit-modal";
+import { useModalHealthMonitor } from "@/components/admin/modal-health-monitor";
 
 interface User {
   id: string;
@@ -93,6 +87,9 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // Monitor de saúde dos modais (apenas desenvolvimento)
+  const { HealthMonitorComponent } = useModalHealthMonitor();
 
   const fetchUser = async () => {
     if (!token) {
@@ -424,32 +421,30 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
       </CardContent>
     </Card>
 
-    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <AccessibleDialogContent 
-        className="sm:max-w-[625px]"
-        descriptionId="edit-user-description"
-        descriptionText="Formulário para edição de usuário"
-      >
-        <DialogHeader>
-          <DialogTitle>Editar Usuário</DialogTitle>
-          <DialogDescription>
-            Modifique as informações do usuário {user.name} conforme necessário.
-          </DialogDescription>
-        </DialogHeader>
-        <UserEditForm
-          user={user}
-          onSuccess={async () => {
-            console.log('[UserDetailsPage] Recebido onSuccess do UserEditForm...');
-            console.log('[UserDetailsPage] Fechando modal de edição...');
-            setIsEditDialogOpen(false);
-            console.log('[UserDetailsPage] Recarregando dados do usuário...');
-            await fetchUser();
-            console.log('[UserDetailsPage] Dados do usuário recarregados com sucesso!');
-          }}
-          onCancel={() => setIsEditDialogOpen(false)}
-        />
-      </AccessibleDialogContent>
-    </Dialog>
+    {/* Modal de edição robusto com proteção anti-congelamento */}
+    {user && (
+      <RobustUserEditModal
+        user={user}
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          console.log('[UserDetailsPage] Fechando modal de edição...');
+          setIsEditDialogOpen(false);
+        }}
+        onSuccess={async () => {
+          console.log('[UserDetailsPage] Sucesso na edição, fechando modal e recarregando dados...');
+          
+          // Primeiro: fechar o modal
+          setIsEditDialogOpen(false);
+          
+          // Segundo: recarregar dados do usuário
+          await fetchUser();
+          console.log('[UserDetailsPage] Dados do usuário recarregados com sucesso!');
+        }}
+      />
+    )}
+
+    {/* Monitor de saúde dos modais (apenas desenvolvimento) */}
+    <HealthMonitorComponent />
     </div>
   );
 }

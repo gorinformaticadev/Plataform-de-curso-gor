@@ -20,7 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserListTable } from "@/components/admin/user-list-table";
 import { UserCreateForm } from "@/components/admin/user-create-form";
 import { UserFilters } from "@/components/admin/user-filters";
-import { UserEditForm } from "@/components/admin/user-edit-form";
+import { RobustUserEditModal } from "@/components/admin/robust-user-edit-modal";
+import { useModalHealthMonitor } from "@/components/admin/modal-health-monitor";
 import { useUsers } from "@/hooks/use-users";
 import { useAuth } from "@/contexts/auth-context";
 import { User } from "@/types";
@@ -37,6 +38,9 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isFetchingEditUser, setIsFetchingEditUser] = useState(false);
   const { token } = useAuth();
+
+  // Monitor de saúde dos modais (apenas desenvolvimento)
+  const { HealthMonitorComponent } = useModalHealthMonitor();
 
   const fetchUsersRef = useRef(fetchUsers);
   useEffect(() => {
@@ -76,9 +80,20 @@ export default function UsersPage() {
   };
 
   const closeEditDialog = () => {
+    console.log('[UsersPage] Fechando modal de edição...');
     setIsEditDialogOpen(false);
     setSelectedUser(null);
     setEditingUser(null);
+  };
+
+  const handleEditSuccess = () => {
+    console.log('[UsersPage] Sucesso na edição, recarregando lista e fechando modal...');
+    
+    // Primeiro: fechar o modal
+    closeEditDialog();
+    
+    // Segundo: recarregar dados
+    fetchUsersRef.current(searchTerm, roleFilter, currentPage);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -175,28 +190,18 @@ export default function UsersPage() {
       </AccessibleDialogContent>
       </Dialog>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
-      <AccessibleDialogContent 
-        className="sm:max-w-[625px]"
-        descriptionId="edit-user-description"
-        descriptionText="Formulário detalhado para edição de usuário"
-      >
-          <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
-            <DialogDescription>
-              Modifique as informações do usuário {selectedUser?.name} conforme necessário.
-            </DialogDescription>
-          </DialogHeader>
-          {isFetchingEditUser && <div className="text-center">Carregando...</div>}
-          {!isFetchingEditUser && editingUser && (
-            <UserEditForm
-              user={editingUser}
-              onSuccess={handleSuccess}
-              onCancel={closeEditDialog}
-            />
-          )}
-        </AccessibleDialogContent>
-      </Dialog>
+      {/* Modal de edição robusto com proteção anti-congelamento */}
+      {editingUser && (
+        <RobustUserEditModal
+          user={editingUser}
+          isOpen={isEditDialogOpen}
+          onClose={closeEditDialog}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* Monitor de saúde dos modais (apenas desenvolvimento) */}
+      <HealthMonitorComponent />
     </div>
   );
 }
