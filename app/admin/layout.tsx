@@ -1,32 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  BookOpen, 
-  Tag, 
-  BarChart3, 
-  Settings,
-  Menu,
-  X,
-  ShieldAlert,
-  ShoppingCart,
-  FileText,
-  Gift,
-  Bookmark,
-  GraduationCap,
-  LogOut,
-  ChevronDown
-} from "lucide-react";
+import { Icons } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MenuItem {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string; // Mudou de React.ComponentType para string
   label: string;
   href: string;
   subItems?: MenuItem[];
@@ -41,31 +24,31 @@ const menuGroups: MenuGroup[] = [
   {
     label: "Administração",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
-      { icon: Users, label: "Usuários", href: "/admin/users" },
-      { icon: BarChart3, label: "Analytics", href: "/admin/analytics" },
+      { icon: "LayoutDashboard", label: "Dashboard", href: "/admin" },
+      { icon: "Users", label: "Usuários", href: "/admin/users" },
+      { icon: "BarChart3", label: "Analytics", href: "/admin/analytics" },
     ]
   },
   {
     label: "Produtos",
     items: [
       { 
-        icon: BookOpen, 
+        icon: "BookOpen", 
         label: "Cursos", 
         href: "/admin/courses",
         subItems: [
-          { icon: BookOpen, label: "Todos os Cursos", href: "/admin/courses" },
-          { icon: Tag, label: "Categorias", href: "/admin/categories" },
-          { icon: GraduationCap, label: "Aulas", href: "/admin/lessons" },
-          { icon: FileText, label: "Certificados", href: "/admin/certificates" },
+          { icon: "BookOpen", label: "Todos os Cursos", href: "/admin/courses" },
+          { icon: "Tag", label: "Categorias", href: "/admin/categories" },
+          { icon: "GraduationCap", label: "Aulas", href: "/admin/lessons" },
+          { icon: "FileText", label: "Certificados", href: "/admin/certificates" },
         ]
       },
     ]
   },
   {
     items: [
-      { icon: Settings, label: "Configurações", href: "/admin/settings" },
-      { icon: LogOut, label: "Sair", href: "/logout" },
+      { icon: "Settings", label: "Configurações", href: "/admin/settings" },
+      { icon: "LogOut", label: "Sair", href: "/logout" },
     ]
   }
 ];
@@ -106,7 +89,7 @@ export default function AdminLayout({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
-              <ShieldAlert className="h-5 w-5 animate-spin" />
+              {Icons.ShieldAlert && <Icons.ShieldAlert className="h-5 w-5 animate-spin" />}
               <span>Verificando permissões...</span>
             </div>
           </CardContent>
@@ -162,7 +145,10 @@ export default function AdminLayout({
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="ml-auto text-blue-200 hover:text-white hover:bg-blue-800"
             >
-              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              {sidebarOpen ? 
+                (Icons.X && <Icons.X size={20} />) : 
+                (Icons.Menu && <Icons.Menu size={20} />)
+              }
             </Button>
             {!sidebarOpen && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-blue-900 rounded-md text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
@@ -196,13 +182,13 @@ export default function AdminLayout({
                           onClick={() => item.subItems ? toggleSubmenu(item.label) : router.push(item.href)}
                         >
                           <div className="flex items-center justify-center w-5 h-5">
-                            <item.icon className="h-5 w-5" />
+                            {Icons[item.icon] && React.createElement(Icons[item.icon], { className: "h-5 w-5" })}
                           </div>
                           {sidebarOpen && (
                             <div className="flex items-center ml-3">
                               <span>{item.label}</span>
                               {item.subItems && (
-                                <ChevronDown className={cn(
+                                Icons.ChevronDown && <Icons.ChevronDown className={cn(
                                   "ml-2 h-4 w-4 transition-transform",
                                   openSubmenu === item.label && "rotate-180"
                                 )} />
@@ -220,7 +206,7 @@ export default function AdminLayout({
                                   onClick={() => router.push(subItem.href)}
                                 >
                                   <div className="flex items-center justify-center w-5 h-5">
-                                    <subItem.icon className="h-4 w-4" />
+                                    {Icons[subItem.icon] && React.createElement(Icons[subItem.icon], { className: "h-4 w-4" })}
                                   </div>
                                   <span className="ml-3 text-sm">
                                     {subItem.label}
