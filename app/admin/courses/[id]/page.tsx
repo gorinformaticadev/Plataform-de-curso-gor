@@ -754,7 +754,9 @@ function App() {
     form,
     isLoading,
     isSaving,
+    isTogglingStatus,
     saveCourse,
+    toggleCourseStatus,
     addModule,
     removeModule,
     addLesson,
@@ -776,9 +778,29 @@ function App() {
   const [activeTab, setActiveTab] = useState<'course' | 'modules'>('course');
 
 
-  const handleSave = (newPublishedState: boolean) => {
+  // Função para salvar dados do formulário (sem alterar status)
+  const handleSave = () => {
     const currentData = getValues();
-    saveCourse({ ...currentData, published: newPublishedState });
+    saveCourse(currentData);
+  };
+
+  // Função para alternar apenas o status do curso
+  const handleToggleStatus = () => {
+    const currentStatus = watch('published');
+    toggleCourseStatus(!currentStatus);
+  };
+
+  // Funções auxiliares para textos dos botões
+  const getSaveButtonText = () => {
+    if (isSaving) return 'Salvando...';
+    return 'Salvar Dados';
+  };
+
+  const getToggleButtonText = () => {
+    if (isTogglingStatus) {
+      return watch('published') ? 'Desativando...' : 'Publicando...';
+    }
+    return watch('published') ? 'Desativar Curso' : 'Publicar Curso';
   };
 
   const handleDragEnd = (result: any) => {
@@ -817,31 +839,30 @@ function App() {
             
             <div className="flex items-center gap-3">
               <button
-                onClick={() => handleSave(false)}
+                onClick={handleSave}
                 disabled={isSaving}
                 className="px-4 py-2 text-gray-700 hover:text-gray-900 flex items-center gap-2 disabled:opacity-50"
+                aria-label="Salvar dados do formulário"
               >
                 <Save className="w-4 h-4" />
-                {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
+                {getSaveButtonText()}
               </button>
               <button
-                onClick={() => handleSave(!watch('published'))}
-                disabled={isSaving}
+                onClick={handleToggleStatus}
+                disabled={isTogglingStatus}
                 className={`px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 ${
                   watch('published')
                     ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
+                aria-label={watch('published') ? 'Desativar curso' : 'Publicar curso'}
               >
                 {watch('published') ? (
                   <EyeOff className="w-4 h-4" />
                 ) : (
                   <Eye className="w-4 h-4" />
                 )}
-                {isSaving 
-                  ? (watch('published') ? 'Desativando...' : 'Publicando...')
-                  : (watch('published') ? 'Desativar Curso' : 'Publicar Curso')
-                }
+                {getToggleButtonText()}
               </button>
             </div>
           </div>
