@@ -100,6 +100,7 @@ export function useCourseForm({
 }: UseCourseFormProps): UseCourseFormReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const { token } = useAuth();
   
@@ -119,7 +120,7 @@ export function useCourseForm({
     }
   });
 
-  // Carregar dados do curso com limpeza adequada
+  // Carregar dados do curso com limpeza adequada - APENAS UMA VEZ
   const loadCourse = useCallback(async () => {
     if (!courseId || courseId === 'new') {
       // Limpar formulário para novos cursos
@@ -133,6 +134,7 @@ export function useCourseForm({
         level: 'BEGINNER',
         modules: []
       });
+      setIsInitialized(true);
       return;
     }
 
@@ -176,15 +178,16 @@ export function useCourseForm({
       console.log('Dados mapeados para o formulário:', formData);
       console.log('Thumbnail no formulário:', formData.thumbnail);
       
-      // Reset completo do formulário com novos dados
+      // Reset completo do formulário com novos dados APENAS na primeira vez
       form.reset(formData);
+      setIsInitialized(true);
     } catch (error) {
       console.error('Erro ao carregar curso:', error);
       onError?.(error as Error);
     } finally {
       setIsLoading(false);
     }
-  }, [courseId, form, token, API_URL, onError]);
+  }, [courseId, token, API_URL, onError]);
 
 
   // Salvar curso
@@ -281,29 +284,25 @@ export function useCourseForm({
     form.setValue('modules', newModules);
   }, [form]);
 
-  // Effect com dependências corretas para evitar cache
+  // Effect para carregar dados APENAS UMA VEZ quando courseId muda
   useEffect(() => {
-    loadCourse();
-  }, [loadCourse]);
+    if (!isInitialized && courseId) {
+      loadCourse();
+    }
+  }, [courseId, isInitialized, loadCourse]);
 
-  // Cleanup ao desmontar ou mudar courseId
+  // Reset do estado de inicialização quando courseId muda
+  useEffect(() => {
+    setIsInitialized(false);
+  }, [courseId]);
+
+  // Cleanup ao desmontar
   useEffect(() => {
     return () => {
-      // Limpar formulário ao desmontar
-      if (form) {
-        form.reset({
-          title: '',
-          description: '',
-          price: 0,
-          category: '',
-          thumbnail: '',
-          published: false,
-          level: 'BEGINNER',
-          modules: []
-        });
-      }
+      // Limpar estado de inicialização ao desmontar
+      setIsInitialized(false);
     };
-  }, [courseId, form]);
+  }, []);
 
   return {
     form,
