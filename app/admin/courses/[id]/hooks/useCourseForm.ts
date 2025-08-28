@@ -34,6 +34,11 @@ export const courseFormSchema = z.object({
     .or(z.literal('')),
   published: z.boolean().default(false),
   level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
+  duration: z.number()
+    .min(0, 'Duração deve ser positiva')
+    .max(10080, 'Duração máxima é 1 semana (10.080 minutos)')
+    .optional()
+    .or(z.literal(0)),
   modules: z.array(z.object({
     id: z.string(),
     title: z.string()
@@ -116,6 +121,7 @@ export function useCourseForm({
       thumbnail: '',
       published: false,
       level: 'BEGINNER',
+      duration: 0,
       modules: []
     }
   });
@@ -132,6 +138,7 @@ export function useCourseForm({
         thumbnail: '',
         published: false,
         level: 'BEGINNER',
+        duration: 0,
         modules: []
       });
       setIsInitialized(true);
@@ -162,6 +169,7 @@ export function useCourseForm({
         thumbnail: course.thumbnail ? ImageUrlBuilder.buildImageUrl(course.thumbnail) : '',
         published: course.status === 'PUBLISHED',
         level: course.level,
+        duration: course.duration || 0,
         modules: course.modules?.map(module => ({
           id: module.id,
           title: module.title,

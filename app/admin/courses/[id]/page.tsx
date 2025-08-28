@@ -34,6 +34,17 @@ import {
   Calendar,
 } from 'lucide-react';
 
+// Função de formatação de duração
+const formatDuration = (minutes: number): string => {
+  if (!minutes || minutes === 0) return '0 min';
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}min`;
+};
+
 // Types
 interface QuizOption {
   id: string;
@@ -912,7 +923,7 @@ function App() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                         <DollarSign className="w-4 h-4" />
@@ -940,6 +951,21 @@ function App() {
                         <option value="INTERMEDIATE">Intermediário</option>
                         <option value="ADVANCED">Avançado</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                        <Clock className="w-4 h-4" />
+                        Duração (minutos)
+                      </label>
+                      <input
+                        type="number"
+                        {...form.register('duration', { valueAsNumber: true })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        min="0"
+                        max="10080"
+                        placeholder="Ex: 120"
+                      />
                     </div>
                   </div>
 
@@ -1027,6 +1053,10 @@ function App() {
                           <span className="flex items-center gap-1">
                             <Award className="w-3 h-3" />
                             {watch('level')?.charAt(0).toUpperCase() + watch('level')?.slice(1)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatDuration(watch('duration') || 0)}
                           </span>
                           <span className="flex items-center gap-1">
                             <BookOpen className="w-3 h-3" />
