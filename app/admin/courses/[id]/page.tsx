@@ -12,6 +12,9 @@ import {
   Plus,
   Save,
   Eye,
+  EyeOff,
+  Clock,
+  CheckCircle,
   FileText,
   Video,
   HelpCircle,
@@ -762,9 +765,9 @@ function App() {
   const [activeTab, setActiveTab] = useState<'course' | 'modules'>('course');
 
 
-  const handleSave = (publish: boolean) => {
+  const handleSave = (newPublishedState: boolean) => {
     const currentData = getValues();
-    saveCourse({ ...currentData, published: publish });
+    saveCourse({ ...currentData, published: newPublishedState });
   };
 
   const handleDragEnd = (result: any) => {
@@ -782,12 +785,22 @@ function App() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-gray-900">Editor de Curso</h1>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+              <div className={`px-3 py-1 rounded-full text-sm font-medium border ${
                 !watch('published')
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-green-100 text-green-800'
+                  ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                  : 'bg-green-100 text-green-800 border-green-200'
               }`}>
-                {!watch('published') ? 'Rascunho' : 'Publicado'}
+                {!watch('published') ? (
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Rascunho
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Publicado
+                  </div>
+                )}
               </div>
             </div>
             
@@ -801,12 +814,23 @@ function App() {
                 {isSaving ? 'Salvando...' : 'Salvar Rascunho'}
               </button>
               <button
-                onClick={() => handleSave(true)}
+                onClick={() => handleSave(!watch('published'))}
                 disabled={isSaving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+                className={`px-6 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 ${
+                  watch('published')
+                    ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
-                <Eye className="w-4 h-4" />
-                {isSaving ? 'Publicando...' : 'Publicar Curso'}
+                {watch('published') ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+                {isSaving 
+                  ? (watch('published') ? 'Desativando...' : 'Publicando...')
+                  : (watch('published') ? 'Desativar Curso' : 'Publicar Curso')
+                }
               </button>
             </div>
           </div>

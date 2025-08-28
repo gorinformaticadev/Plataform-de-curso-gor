@@ -196,6 +196,15 @@ export function useCourseForm({
     try {
       console.log('Dados enviados para API:', data);
       
+      // Mapear published boolean para status enum
+      const payload = {
+        ...data,
+        status: data.published ? 'PUBLISHED' : 'DRAFT'
+      };
+      
+      // Remover o campo published do payload
+      delete (payload as any).published;
+      
       const url = courseId === 'new' ? `${API_URL}/courses` : `${API_URL}/courses/${courseId}`;
       const method = courseId === 'new' ? 'POST' : 'PUT';
       
@@ -205,7 +214,7 @@ export function useCourseForm({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error('Erro ao salvar curso');
@@ -217,7 +226,7 @@ export function useCourseForm({
     } finally {
       setIsSaving(false);
     }
-  }, [courseId, onSuccess, onError]);
+  }, [courseId, API_URL, token, onSuccess, onError]);
 
   // Upload de thumbnail com validação aprimorada
   const uploadThumbnail = useCallback(async (file: File): Promise<string> => {
