@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRobustModal } from "@/hooks/useRobustModal";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -92,19 +92,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Hook robusto para gerenciamento de modal (silencioso)
-  const modalControl = useRobustModal({
-    onOpen: () => {
-      // Modal aberto silenciosamente
-    },
-    onClose: () => {
-      // Modal fechado silenciosamente
-    },
-    autoCleanup: true,
-    cleanupDelay: 200
-  });
-
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const fetchUser = async () => {
     if (!token) {
@@ -141,8 +129,6 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     fetchUser();
   }, [token, params.id]);
-
-
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -186,9 +172,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
               <p className="text-gray-500">{user.email}</p>
             </div>
           </div>
-          <Button onClick={() => {
-            modalControl.openModal();
-          }}>
+          <Button onClick={() => setIsEditDialogOpen(true)}>
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </Button>
@@ -440,7 +424,7 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
       </CardContent>
     </Card>
 
-    <Dialog open={modalControl.isOpen} onOpenChange={modalControl.handleOpenChange}>
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
       <AccessibleDialogContent 
         className="sm:max-w-[625px]"
         descriptionId="edit-user-description"
@@ -455,12 +439,14 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
         <UserEditForm
           user={user}
           onSuccess={async () => {
-            modalControl.closeModal();
+            console.log('[UserDetailsPage] Recebido onSuccess do UserEditForm...');
+            console.log('[UserDetailsPage] Fechando modal de edição...');
+            setIsEditDialogOpen(false);
+            console.log('[UserDetailsPage] Recarregando dados do usuário...');
             await fetchUser();
+            console.log('[UserDetailsPage] Dados do usuário recarregados com sucesso!');
           }}
-          onCancel={() => {
-            modalControl.closeModal();
-          }}
+          onCancel={() => setIsEditDialogOpen(false)}
         />
       </AccessibleDialogContent>
     </Dialog>

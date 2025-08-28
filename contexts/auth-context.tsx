@@ -1,9 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useCallback, useRef } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from "sonner";
-import { useRenderMonitor } from '@/components/RenderMonitor';
 
 interface User {
   id: string;
@@ -27,48 +26,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Monitor de renders para detectar problemas de performance (silencioso)
-  const renderMonitor = useRenderMonitor('AuthProvider', {
-    maxRenders: 30,
-    timeWindow: 10000,
-    onExcessiveRenders: (stats) => {
-      // Apenas log interno, sem notificações
-      console.error('[AuthProvider] Re-renders excessivos detectados:', stats);
-    }
-  });
-  
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Memoização da URL da API para evitar re-criação de funções
-  const API_URL = useMemo(() => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api', []);
-  
-  // Ref para controlar se já há uma verificação em andamento
-  const isCheckingRef = useRef(false);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   const checkAuth = useCallback(async () => {
-    // Proteção contra múltiplas verificações simultâneas
-    if (isCheckingRef.current) {
-      console.log('[AuthContext] Verificação já em andamento, ignorando...');
-      return;
-    }
-    
-    isCheckingRef.current = true;
-    console.log('[AuthContext] Iniciando verificação de autenticação...');
-    
     try {
       const storedToken = localStorage.getItem('token');
       if (!storedToken) {
         setLoading(false);
         return;
       }
-      
-      // Apenas atualiza token se for diferente do atual
-      if (token !== storedToken) {
-        setToken(storedToken);
-      }
+      setToken(storedToken);
 
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
@@ -85,20 +57,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.error('[AuthContext] Erro na verificação de auth:', error);
+      console.error('Auth check failed:', error);
       localStorage.removeItem('token');
       setToken(null);
       setUser(null);
     } finally {
       setLoading(false);
-      isCheckingRef.current = false;
     }
-  }, [API_URL, token]); // Adicionando token como dependência para evitar loops
+  }, [API_URL]);
 
-  // useEffect deve vir APÓS a declaração do checkAuth e executa apenas uma vez na montagem
+  // useEffect deve vir APÓS a declaração do checkAuth
   useEffect(() => {
     checkAuth();
-  }, []); // Array vazio para executar apenas na montagem
+  }, [checkAuth]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -166,13 +137,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success('Você foi desconectado com sucesso.');
   }, [router]);
 
-  // Versão segura do reloadUser com proteção adicional
+  // Versão segura do reloadUser que não causa problemas durante operações
   const reloadUser = useCallback(async () => {
-    // Múltiplas proteções para evitar execuções desnecessárias
-    if (!token || loading || isCheckingRef.current) {
+    // Só recarrega se estivermos autenticados e não em processo de loading
+    if (!token || loading) {
       return;
     }
-    
+
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
@@ -192,10 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      console.error('[AuthContext] Erro ao recarregar usuário:', error);
+      console.error('User reload failed:', error);
       // Não fazer logout em caso de erro de rede
     }
-  }, [token, loading, API_URL]); // Removido isCheckingRef das dependências
+  }, [token, loading, API_URL]);
 
   const value = useMemo(() => ({
     user,
