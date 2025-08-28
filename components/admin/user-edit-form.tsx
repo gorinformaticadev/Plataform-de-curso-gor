@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/contexts/auth-context";
+import { useMemoryLeakDetector } from "@/hooks/useMemoryLeakDetector";
 import { toast } from "sonner";
 
 // Function to validate CPF
@@ -95,6 +96,7 @@ interface UserEditFormProps {
 export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
   const { token, reloadUser, user: currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitCompleted, setSubmitCompleted] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(
     user.avatar ? `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}${user.avatar}` : null
   );
@@ -128,7 +130,11 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('[UserEditForm] Iniciando submit...', { userId: user.id, isCurrentUser: currentUser?.id === user.id });
+    // Proteção contra dupla submissão
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -173,22 +179,17 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       }
 
       const updatedUser = await response.json();
-      console.log('[UserEditForm] Usuário atualizado com sucesso, iniciando ações pós-sucesso...');
       
       // Executa ações pós-sucesso sequencialmente conforme design doc
       toast.success("Usuário atualizado com sucesso!");
       
       // Primeiro: atualiza contexto se necessário (de forma síncrona)
       if (currentUser && currentUser.id === user.id) {
-        console.log('[UserEditForm] Recarregando contexto de autenticação...');
         await reloadUser();
-        console.log('[UserEditForm] Contexto de autenticação recarregado.');
       }
       
       // Segundo: notifica componente pai (que pode fechar modal e atualizar dados)
-      console.log('[UserEditForm] Notificando componente pai via onSuccess...');
       onSuccess();
-      console.log('[UserEditForm] Submit concluído com sucesso!');
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -196,7 +197,6 @@ export function UserEditForm({ user, onSuccess, onCancel }: UserEditFormProps) {
       form.setError("root", { message: errorMessage });
       toast.error(errorMessage);
     } finally {
-      console.log('[UserEditForm] Finalizando submit, resetando isSubmitting...');
       setIsSubmitting(false);
     }
   }

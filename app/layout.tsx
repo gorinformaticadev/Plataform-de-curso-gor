@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/auth-context';
 import { Providers } from './providers';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { ClientLayoutContent } from './client-layout-content';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
+
+
 export default function RootLayout({
   children,
 }: {
@@ -33,8 +36,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <Providers>
-              {children}
-              <Toaster />
+              <ClientLayoutContent>{children}</ClientLayoutContent>
             </Providers>
           </AuthProvider>
         </ErrorBoundary>
