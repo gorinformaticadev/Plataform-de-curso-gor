@@ -68,6 +68,7 @@ export default function CourseModulesManager({
   courseId 
 }: CourseModulesManagerProps) {
   const [draggedItem, setDraggedItem] = useState<{ type: 'module' | 'lesson'; moduleId: number; lessonId?: number } | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [isAddModuleDialogOpen, setIsAddModuleDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<{ module: Module; index: number } | null>(null);
@@ -98,47 +99,108 @@ export default function CourseModulesManager({
     e.dataTransfer.dropEffect = "move";
   };
 
+  // Função para obter estilos visuais durante drag
+  const getDragStyles = (isDragging: boolean) => ({
+    opacity: isDragging ? 0.5 : 1,
+    cursor: isReordering ? 'wait' : (isDragging ? 'grabbing' : 'grab'),
+    pointerEvents: isReordering ? 'none' : 'auto',
+    transform: isDragging ? 'rotate(2deg)' : 'none',
+    transition: 'all 0.2s ease-in-out'
+  });
+
   const handleDrop = async (e: React.DragEvent, targetModuleId: number, targetLessonId?: number) => {
     e.preventDefault();
     
-    if (!draggedItem) return;
+    if (!draggedItem || isReordering) return;
 
     const newModules = [...modules];
     
     if (draggedItem.type === 'module' && targetLessonId === undefined) {
+      // Verificar se houve mudança de posição
+      if (draggedItem.moduleId === targetModuleId) {
+        setDraggedItem(null);
+        return; // Não houve mudança de posição
+      }
+
+      setIsReordering(true);
+      
       // Reordering modules
       const [draggedModule] = newModules.splice(draggedItem.moduleId, 1);
       newModules.splice(targetModuleId, 0, draggedModule);
       
-      // Update order and persist changes
-      const updates = newModules.map(async (module, index) => {
-        if (module.order !== index + 1) {
-          module.order = index + 1;
-          try {
-            await axios.patch(
-              `${process.env.NEXT_PUBLIC_API_URL}/modules/${module.id}`,
-              { order: module.order },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-          } catch (error) {
-            console.error(`Erro ao atualizar o módulo ${module.id}:`, error);
-            throw error; // Re-throw to be caught by Promise.all
-          }
-        }
-      });
+      // Atualizar ordens sequencialmente
+      const reorderedModules = newModules.map((module, index) => ({
+        ...module,
+        order: index,
+      }));
+
+      // Atualização otimística do estado local
+      onModulesChange(reorderedModules);
 
       try {
-        await Promise.all(updates);
-        toast.success("Ordem dos módulos atualizada com sucesso!", {
-          duration: 3000,
-          className: 'bg-green-500 text-white',
-        });
+        // Chamar novo endpoint de reordenação atômica
+        const response = await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/modules/reorder`,
+          {
+            modules: reorderedModules.map(({ id, order }) => ({ id, order }))
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.success) {
+          // Atualizar com dados do servidor se necessário
+          if (response.data.modules) {
+            onModulesChange(response.data.modules);
+          }
+          
+          toast.success("Ordem dos módulos atualizada com sucesso!", {
+            duration: 2000,
+            style: {
+              background: '#10B981',
+              color: 'white',
+            },
+          });
+        }
       } catch (error) {
-        toast.error("Erro ao atualizar a ordem dos módulos. Tente novamente.");
+        // Em caso de erro, reverter para o estado anterior
+        onModulesChange(modules);
+        
+        console.error('Erro na reordenação:', error);
+        
+        // Feedback específico baseado no tipo de erro
+        if (axios.isAxiosError(error)) {
+          const status = error.response?.status;
+          const message = error.response?.data?.message;
+          
+          if (status === 403) {
+            toast.error('Você não tem permissão para reordenar estes módulos', {
+              duration: 4000,
+            });
+          } else if (status === 404) {
+            toast.error('Módulo não encontrado. Recarregue a página.', {
+              duration: 4000,
+            });
+          } else if (status === 400) {
+            toast.error(message || 'Dados inválidos para reordenação', {
+              duration: 4000,
+            });
+          } else {
+            toast.error('Erro ao salvar a nova ordem. Tente novamente.', {
+              duration: 3000,
+            });
+          }
+        } else {
+          toast.error('Erro ao salvar a nova ordem. Tente novamente.', {
+            duration: 3000,
+          });
+        }
+      } finally {
+        setIsReordering(false);
       }
 
     } else if (draggedItem.type === 'lesson' && draggedItem.lessonId !== undefined && targetLessonId !== undefined) {
@@ -170,19 +232,17 @@ export default function CourseModulesManager({
             }
           );
           toast.success("Ordem das aulas atualizada com sucesso!", {
-            duration: 3000,
-            className: 'bg-green-500 text-white',
+            duration: 2000,
           });
         } catch (error) {
           console.error("Erro ao atualizar a ordem das aulas:", error);
           toast.error("Erro ao atualizar a ordem das aulas. Tente novamente.");
-          // Reverter a mudança no estado local em caso de erro?
-          // Isso depende da política de tratamento de erros desejada.
+          // Reverter a mudança no estado local em caso de erro
+          onModulesChange(modules);
         }
       }
     }
     
-    onModulesChange(newModules);
     setDraggedItem(null);
   };
 
@@ -624,7 +684,15 @@ export default function CourseModulesManager({
     <div className="space-y-4">
       {/* Add Module Button */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Módulos do Curso</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Módulos do Curso</h3>
+          {isReordering && (
+            <div className="flex items-center gap-2 text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm">Salvando ordem...</span>
+            </div>
+          )}
+        </div>
         <Dialog open={isAddModuleDialogOpen} onOpenChange={setIsAddModuleDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setIsAddModuleDialogOpen(true)}>
@@ -673,9 +741,12 @@ export default function CourseModulesManager({
           >
             <Card>
               <CardHeader
-                className="pb-3 cursor-move"
-                draggable
-                onDragStart={(e) => handleDragStart(e, 'module', moduleIndex)}
+                className={`pb-3 transition-all duration-200 ${
+                  isReordering ? 'pointer-events-none' : 'cursor-move hover:bg-gray-50'
+                }`}
+                style={getDragStyles(draggedItem?.type === 'module' && draggedItem?.moduleId === moduleIndex)}
+                draggable={!isReordering}
+                onDragStart={(e) => !isReordering && handleDragStart(e, 'module', moduleIndex)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, moduleIndex)}
               >
@@ -765,9 +836,12 @@ export default function CourseModulesManager({
                       {(module.contents || []).map((lesson, lessonIndex) => (
                         <div
                           key={lessonIndex}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200"
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, 'lesson', moduleIndex, lessonIndex)}
+                          className={`flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200 transition-all duration-200 ${
+                            isReordering ? 'pointer-events-none' : 'hover:bg-gray-100'
+                          }`}
+                          style={getDragStyles(draggedItem?.type === 'lesson' && draggedItem?.moduleId === moduleIndex && draggedItem?.lessonId === lessonIndex)}
+                          draggable={!isReordering}
+                          onDragStart={(e) => !isReordering && handleDragStart(e, 'lesson', moduleIndex, lessonIndex)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, moduleIndex, lessonIndex)}
                         >

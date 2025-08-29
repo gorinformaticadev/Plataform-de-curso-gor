@@ -15,6 +15,7 @@ import { ModulesService } from './modules.service';
 import { LessonsService } from './lessons.service';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
+import { ReorderModulesDto } from './dto/reorder-module.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Módulos')
@@ -66,6 +67,40 @@ export class ModulesController {
   @ApiResponse({ status: 403, description: 'Sem permissão para deletar' })
   remove(@Param('id') id: string, @Request() req) {
     return this.modulesService.remove(id, req.user.id);
+  }
+
+  @Patch('reorder')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reordenar módulos de um curso' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Módulos reordenados com sucesso',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Módulos reordenados com sucesso' },
+        modules: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+              order: { type: 'number' },
+              courseId: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 403, description: 'Sem permissão para reordenar' })
+  @ApiResponse({ status: 400, description: 'Dados inválidos' })
+  @ApiResponse({ status: 404, description: 'Módulo não encontrado' })
+  reorder(@Body() reorderModulesDto: ReorderModulesDto, @Request() req) {
+    return this.modulesService.reorderModules(reorderModulesDto, req.user.id);
   }
 
   @Get(':id/lessons')

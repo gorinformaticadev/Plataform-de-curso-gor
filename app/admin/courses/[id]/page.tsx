@@ -3,8 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+<<<<<<< Updated upstream
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import toast, { Toaster } from 'react-hot-toast';
+=======
+import { toast } from "sonner";
+
+>>>>>>> Stashed changes
 import { useCourseForm } from './hooks/useCourseForm';
 import { CategorySelect } from '@/app/admin/courses/create/components/CategorySelect';
 import {
@@ -773,7 +778,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-right" />
+
       
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
