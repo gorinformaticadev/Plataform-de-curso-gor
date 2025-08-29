@@ -169,7 +169,26 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
               <p className="text-gray-500">{user.email}</p>
             </div>
           </div>
-          <Button onClick={() => setIsEditDialogOpen(true)}>
+          <Button onClick={() => {
+            console.log('[UserDetailsPage] Botão Editar clicado, estado atual:', { isEditDialogOpen });
+            
+            // Se o modal já está aberto, forçar fechamento e reabertura
+            if (isEditDialogOpen) {
+              console.log('[UserDetailsPage] Modal já estava aberto, forçando reset...');
+              setIsEditDialogOpen(false);
+              
+              // Aguardar próximo tick para garantir que o estado foi processado
+              setTimeout(() => {
+                console.log('[UserDetailsPage] Reabrindo modal após reset...');
+                setIsEditDialogOpen(true);
+              }, 50);
+            } else {
+              console.log('[UserDetailsPage] Abrindo modal normalmente...');
+              setIsEditDialogOpen(true);
+            }
+            
+            console.log('[UserDetailsPage] Estado será atualizado para: true');
+          }}>
             <Edit className="mr-2 h-4 w-4" />
             Editar
           </Button>
@@ -427,16 +446,21 @@ export default function UserDetailsPage({ params }: { params: { id: string } }) 
         user={user}
         isOpen={isEditDialogOpen}
         onClose={() => {
-          console.log('[UserDetailsPage] Fechando modal de edição...');
+          console.log('[UserDetailsPage] ONCLOSED CHAMADO - fechando modal de edição...');
+          console.log('[UserDetailsPage] Estado antes do fechamento:', { isEditDialogOpen });
           setIsEditDialogOpen(false);
+          console.log('[UserDetailsPage] Estado definido para: false');
         }}
         onSuccess={async () => {
-          console.log('[UserDetailsPage] Sucesso na edição, fechando modal e recarregando dados...');
+          console.log('[UserDetailsPage] ONSUCCESS CHAMADO - sucesso na edição...');
+          console.log('[UserDetailsPage] Estado antes do onSuccess:', { isEditDialogOpen });
           
           // Primeiro: fechar o modal
+          console.log('[UserDetailsPage] Fechando modal via onSuccess...');
           setIsEditDialogOpen(false);
           
           // Segundo: recarregar dados do usuário
+          console.log('[UserDetailsPage] Recarregando dados do usuário...');
           await fetchUser();
           console.log('[UserDetailsPage] Dados do usuário recarregados com sucesso!');
         }}

@@ -29,25 +29,7 @@ export const useRobustModal = (config: RobustModalConfig = {}): RobustModalRetur
   // Função segura para verificar se o componente ainda está montado
   const isMounted = useCallback(() => isMountedRef.current, []);
 
-  // Função segura para abrir modal
-  const openModal = useCallback(() => {
-    if (!isMounted()) return;
-    
-    if (config.debugMode) {
-      console.log('[useRobustModal] Abrindo modal...');
-    }
-    
-    // Reset de estados para garantir consistência
-    setIsClosing(false);
-    setIsOpen(true);
-    
-    // Garantir que não há event listeners órfãos
-    cleanupListeners();
-    
-    config.onOpen?.();
-  }, [config, isMounted]);
-
-  // Função para cleanup de listeners
+  // Função para cleanup de listeners - DEVE SER DECLARADA ANTES DE SER USADA
   const cleanupListeners = useCallback(() => {
     try {
       listenersRef.current.forEach(cleanup => {
@@ -73,12 +55,54 @@ export const useRobustModal = (config: RobustModalConfig = {}): RobustModalRetur
     }
   }, [config.debugMode]);
 
+  // Função segura para abrir modal
+  const openModal = useCallback(() => {
+    if (!isMounted()) return;
+    
+    if (config.debugMode) {
+      console.log('[useRobustModal] INICIANDO ABERTURA...', { 
+        currentIsOpen: isOpen, 
+        currentIsClosing: isClosing,
+        'pode_abrir': !isOpen && !isClosing
+      });
+    }
+    
+    // Limpar qualquer timeout pendente que possa interferir
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+      if (config.debugMode) {
+        console.log('[useRobustModal] Timeout pendente limpo');
+      }
+    }
+    
+    // Reset de estados para garantir consistência
+    setIsClosing(false);
+    setIsOpen(true);
+    
+    // Garantir que não há event listeners órfãos
+    cleanupListeners();
+    
+    config.onOpen?.();
+    
+    if (config.debugMode) {
+      console.log('[useRobustModal] MODAL ABERTO COM SUCESSO - novos estados:', {
+        isOpen: true,
+        isClosing: false
+      });
+    }
+  }, [config, isMounted, isOpen, isClosing, cleanupListeners]);
+
   // Função segura para fechar modal
   const closeModal = useCallback(() => {
     if (!isMounted()) return;
     
     if (config.debugMode) {
-      console.log('[useRobustModal] Iniciando fechamento seguro...');
+      console.log('[useRobustModal] INICIANDO FECHAMENTO...', {
+        currentIsOpen: isOpen,
+        currentIsClosing: isClosing,
+        'pode_fechar': isOpen && !isClosing
+      });
     }
     
     try {
@@ -101,13 +125,16 @@ export const useRobustModal = (config: RobustModalConfig = {}): RobustModalRetur
         config.onClose?.();
         
         if (config.debugMode) {
-          console.log('[useRobustModal] Modal fechado com sucesso.');
+          console.log('[useRobustModal] MODAL FECHADO COM SUCESSO - novos estados:', {
+            isOpen: false,
+            isClosing: false
+          });
         }
       }, 150); // Tempo suficiente para animação do Radix UI
       
     } catch (error) {
       if (config.debugMode) {
-        console.error('[useRobustModal] Erro durante fechamento:', error);
+        console.error('[useRobustModal] ERRO durante fechamento:', error);
       }
       config.onError?.(error as Error);
       
@@ -178,7 +205,7 @@ export const useRobustModal = (config: RobustModalConfig = {}): RobustModalRetur
     };
   }, [cleanupListeners]);
 
-  // Detector de estado inconsistente (apenas em desenvolvimento)
+  // Detector de estado inconsistente e auto-correção (apenas em desenvolvimento)
   useEffect(() => {
     if (config.debugMode && typeof window !== 'undefined') {
       const checkConsistency = () => {
@@ -193,6 +220,16 @@ export const useRobustModal = (config: RobustModalConfig = {}): RobustModalRetur
             console.warn('[useRobustModal] Estado inconsistente detectado, executando correção...');
             forceClose();
           }
+          
+          // Verificar se modal está "travado" aberto
+          if (isOpen && !isClosing) {
+            const modalContent = document.querySelector('[data-radix-dialog-content]');
+            if (!modalContent || window.getComputedStyle(modalContent).display === 'none') {
+              console.warn('[useRobustModal] Modal travado detectado, forçando reset...');
+              setIsOpen(false);
+              setIsClosing(false);
+            }
+          }
         } catch (error) {
           // Ignorar erros de verificação
         }
@@ -201,7 +238,7 @@ export const useRobustModal = (config: RobustModalConfig = {}): RobustModalRetur
       const interval = setInterval(checkConsistency, 2000);
       return () => clearInterval(interval);
     }
-  }, [isOpen, config.debugMode, forceClose, isMounted]);
+  }, [isOpen, isClosing, config.debugMode, forceClose, isMounted]);
 
   return {
     isOpen,

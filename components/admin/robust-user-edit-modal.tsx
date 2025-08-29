@@ -68,14 +68,28 @@ export const RobustUserEditModal: React.FC<RobustUserEditModalProps> = ({
       console.log('[RobustUserEditModal] Sincronização de estado:', {
         externalIsOpen,
         internalIsOpen,
-        isClosing
+        isClosing,
+        'vai_abrir': externalIsOpen && !internalIsOpen,
+        'vai_fechar': !externalIsOpen && internalIsOpen && !isClosing
       });
     }
     
-    if (externalIsOpen && !internalIsOpen && !isClosing) {
+    // Abrir modal: quando externo é true e interno é false
+    if (externalIsOpen && !internalIsOpen) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[RobustUserEditModal] EXECUTANDO ABERTURA - sincronização externa');
+      }
       openModal();
-    } else if (!externalIsOpen && internalIsOpen && !isClosing) {
+    } 
+    // Fechar modal: quando externo é false, interno é true e não está fechando
+    else if (!externalIsOpen && internalIsOpen && !isClosing) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[RobustUserEditModal] EXECUTANDO FECHAMENTO - sincronização externa');
+      }
       closeModal();
+    }
+    else if (process.env.NODE_ENV === 'development') {
+      console.log('[RobustUserEditModal] NENHUMA AÇÃO - condições não atendidas');
     }
   }, [externalIsOpen, internalIsOpen, isClosing, openModal, closeModal]);
 
@@ -106,14 +120,14 @@ export const RobustUserEditModal: React.FC<RobustUserEditModalProps> = ({
     } catch (error) {
       console.error('[RobustUserEditModal] Erro no onSuccess:', error);
       
-      // Em caso de erro, força fechamento para evitar travamento
+      // Em caso de erro, forçar fechamento direto
       setHasError(true);
       
-      // Auto-recovery após 3 segundos
+      // Forçar fechamento após 2 segundos
       setTimeout(() => {
         forceClose();
         setHasError(false);
-      }, 3000);
+      }, 2000);
     }
   }, [onSuccess, forceClose]);
 
