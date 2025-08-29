@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import { Course } from '../types/course';
 import { useCategories } from '@/app/admin/categories/categories.service';
 import { useAuth } from '@/contexts/auth-context';
@@ -146,6 +147,9 @@ interface UseCourseFormReturn {
   removeModule: (index: number) => void;
   addLesson: (moduleIndex: number) => void;
   removeLesson: (moduleIndex: number, lessonIndex: number) => void;
+  createModule: (moduleData: { title: string; description?: string }) => Promise<void>;
+  updateModule: (moduleId: string, moduleData: { title: string; description?: string }) => Promise<void>;
+  deleteModule: (moduleId: string) => Promise<void>;
 }
 
 export function useCourseForm({
@@ -378,6 +382,117 @@ export function useCourseForm({
     ]);
   }, [form]);
 
+  // Criar módulo via API
+  const createModule = useCallback(async (moduleData: { title: string; description?: string }) => {
+    if (courseId === 'new') {
+      toast.error('Salve o curso antes de adicionar módulos');
+      return;
+    }
+
+    try {
+      const currentModules = form.getValues('modules');
+      const order = currentModules.length + 1;
+
+      const response = await fetch(`${API_URL}/modules`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: moduleData.title,
+          description: moduleData.description || '',
+          order,
+          courseId
+        })
+      });
+
+      if (!response.ok) throw new Error('Erro ao criar módulo');
+      
+      const newModule = await response.json();
+      
+      // Adicionar o novo módulo ao formulário
+      form.setValue('modules', [
+        ...currentModules,
+        {
+          id: newModule.id,
+          title: newModule.title,
+          description: newModule.description || '',
+          lessons: []
+        }
+      ]);
+
+      toast.success('Módulo criado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar módulo:', error);
+      toast.error('Erro ao criar módulo');
+      throw error;
+    }
+  }, [courseId, API_URL, token, form]);
+
+  // Atualizar módulo via API
+  const updateModule = useCallback(async (moduleId: string, moduleData: { title: string; description?: string }) => {
+    try {
+      const response = await fetch(`${API_URL}/modules/${moduleId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: moduleData.title,
+          description: moduleData.description || ''
+        })
+      });
+
+      if (!response.ok) throw new Error('Erro ao atualizar módulo');
+      
+      const updatedModule = await response.json();
+      
+      // Atualizar o módulo no formulário
+      const currentModules = form.getValues('modules');
+      const updatedModules = currentModules.map(module => 
+        module.id === moduleId 
+          ? { ...module, title: updatedModule.title, description: updatedModule.description || '' }
+          : module
+      );
+      
+      form.setValue('modules', updatedModules);
+
+      toast.success('Módulo atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar módulo:', error);
+      toast.error('Erro ao atualizar módulo');
+      throw error;
+    }
+  }, [API_URL, token, form]);
+
+  // Deletar módulo via API
+  const deleteModule = useCallback(async (moduleId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/modules/${moduleId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      if (!response.ok) throw new Error('Erro ao deletar módulo');
+      
+      // Remover o módulo do formulário
+      const currentModules = form.getValues('modules');
+      const filteredModules = currentModules.filter(module => module.id !== moduleId);
+      
+      form.setValue('modules', filteredModules);
+
+      toast.success('Módulo deletado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar módulo:', error);
+      toast.error('Erro ao deletar módulo');
+      throw error;
+    }
+  }, [API_URL, token, form]);
+
   const removeModule = useCallback((index: number) => {
     const currentModules = form.getValues('modules');
     form.setValue('modules', currentModules.filter((_, i) => i !== index));
@@ -440,6 +555,9 @@ export function useCourseForm({
     addModule,
     removeModule,
     addLesson,
-    removeLesson
+    removeLesson,
+    createModule,
+    updateModule,
+    deleteModule
   };
 }

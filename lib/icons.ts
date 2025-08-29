@@ -43,8 +43,11 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+import React from 'react';
+import { LucideProps } from 'lucide-react';
+
 export interface IconComponent {
-  (props: { className?: string; size?: number; [key: string]: any }): JSX.Element;
+  (props: LucideProps): React.ReactNode;
 }
 
 // Mapeamento centralizado de ícones
