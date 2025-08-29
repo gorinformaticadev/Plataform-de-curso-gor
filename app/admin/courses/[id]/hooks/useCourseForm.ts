@@ -215,10 +215,6 @@ export function useCourseForm({
       
       const course: Course = await response.json();
       
-      console.log('Dados retornados pela API:', course);
-      console.log('CourseId atual:', courseId);
-      console.log('Thumbnail do curso (API):', course.thumbnail);
-      
       // Mapear dados do curso para o formulário com URLs de imagem padronizadas
       const formData = {
         title: course.title,
@@ -242,9 +238,6 @@ export function useCourseForm({
         })) || []
       };
       
-      console.log('Dados mapeados para o formulário:', formData);
-      console.log('Thumbnail no formulário:', formData.thumbnail);
-      
       // Reset completo do formulário com novos dados APENAS na primeira vez
       form.reset(formData);
       setIsInitialized(true);
@@ -265,8 +258,6 @@ export function useCourseForm({
       // Validar apenas com schema de rascunho - permite salvar com dados incompletos
       const validatedData = courseFormSchemaDraft.parse(data);
       
-      console.log('Dados validados do formulário:', validatedData);
-      
       // Mapear dados corretamente para API
       const payload = {
         title: validatedData.title,
@@ -278,8 +269,6 @@ export function useCourseForm({
         duration: validatedData.duration || 0,
         status: validatedData.published ? 'PUBLISHED' : 'DRAFT' // ✅ Mapear published -> status
       };
-      
-      console.log('Payload mapeado para API:', payload);
       
       const url = courseId === 'new' ? `${API_URL}/courses` : `${API_URL}/courses/${courseId}`;
       const method = courseId === 'new' ? 'POST' : 'PATCH';
@@ -333,7 +322,6 @@ export function useCourseForm({
       if (newStatus) {
         const currentData = form.getValues();
         const validatedData = courseFormSchemaPublished.parse(currentData);
-        console.log('Dados validados para publicação:', validatedData);
       }
       
       // Usar o endpoint PATCH normal, mas enviar apenas o status

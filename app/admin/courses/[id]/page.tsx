@@ -372,7 +372,6 @@ function App() {
                             src={watch('thumbnail')}
                             alt="Thumbnail do curso"
                             className="w-full h-48 object-cover rounded-lg"
-                            onError={() => console.warn('Erro ao carregar thumbnail')}
                           />
                           <button
                             onClick={() => setValue('thumbnail', '')}
@@ -415,7 +414,6 @@ function App() {
                             src={watch('thumbnail')}
                             alt="Prévia do curso"
                             className="w-full h-full object-cover"
-                            onError={() => console.warn('Erro ao carregar thumbnail na prévia')}
                           />
                         ) : (
                           <Image className="w-16 h-16 text-gray-400" />

@@ -96,9 +96,6 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
       const url = courseId ? `${API_URL}/courses/${courseId}` : `${API_URL}/courses`
       const method = courseId ? 'PUT' : 'POST'
       
-      // O CategorySelect já envia o UUID diretamente, não é necessário conversão
-      console.log('Dados enviados para API:', formData);
-      
       const response = await fetch(url, {
         method,
         headers: {
@@ -139,8 +136,6 @@ export function useCourseForm({ initialData, courseId }: UseCourseFormProps) {
         ...formData,
         published: false
       }
-
-      console.log('Dados enviados para API (rascunho):', draftData);
 
       const url = courseId ? `${API_URL}/courses/${courseId}` : `${API_URL}/courses`
       const method = courseId ? 'PUT' : 'POST'

@@ -29,10 +29,6 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 export function CategorySelect({ value, onChange, error }: CategorySelectProps) {
   const { data: categories = [], isLoading } = useCategories()
 
-  console.log('Categorias carregadas:', categories)
-  console.log('Valor atual:', value)
-  console.log('Categoria selecionada:', categories.find(cat => cat.id === value))
-
   const getIconComponent = (iconName: string) => {
     const IconComponent = iconMap[iconName] || BookOpen
     return <IconComponent className="w-4 h-4" />
