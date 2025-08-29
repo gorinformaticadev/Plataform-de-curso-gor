@@ -26,6 +26,10 @@ const courseFormSchemaDraft = z.object({
     .multipleOf(0.01, 'Preço deve ter no máximo 2 casas decimais')
     .optional(),
   category: z.string()
+    .refine(
+      (value) => !value || value === '' || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value),
+      'Categoria deve ser um ID válido'
+    )
     .optional()
     .or(z.literal('')),
   thumbnail: z.string()
@@ -164,7 +168,7 @@ export function useCourseForm({
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
   const { token } = useAuth();
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
@@ -246,11 +250,12 @@ export function useCourseForm({
       setIsInitialized(true);
     } catch (error) {
       console.error('Erro ao carregar curso:', error);
+      // ✅ Usar callback de erro de forma estável
       onError?.(error as Error);
     } finally {
       setIsLoading(false);
     }
-  }, [courseId, token, API_URL, onError]);
+  }, [courseId, token, API_URL]); // ✅ Remover onError das dependências
 
 
   // Salvar dados do curso (sem alterar status)
@@ -260,19 +265,24 @@ export function useCourseForm({
       // Validar apenas com schema de rascunho - permite salvar com dados incompletos
       const validatedData = courseFormSchemaDraft.parse(data);
       
-      console.log('Dados enviados para API:', validatedData);
+      console.log('Dados validados do formulário:', validatedData);
       
-      // Mapear published boolean para status enum
+      // Mapear dados corretamente para API
       const payload = {
-        ...validatedData,
-        status: validatedData.published ? 'PUBLISHED' : 'DRAFT'
+        title: validatedData.title,
+        description: validatedData.description || '',
+        price: validatedData.price || 0,
+        categoryId: validatedData.category, // ✅ Mapear category -> categoryId
+        thumbnail: validatedData.thumbnail || '',
+        level: validatedData.level,
+        duration: validatedData.duration || 0,
+        status: validatedData.published ? 'PUBLISHED' : 'DRAFT' // ✅ Mapear published -> status
       };
       
-      // Remover o campo published do payload
-      delete (payload as any).published;
+      console.log('Payload mapeado para API:', payload);
       
       const url = courseId === 'new' ? `${API_URL}/courses` : `${API_URL}/courses/${courseId}`;
-      const method = courseId === 'new' ? 'POST' : 'PUT';
+      const method = courseId === 'new' ? 'POST' : 'PATCH';
       
       const response = await fetch(url, {
         method,
@@ -283,11 +293,21 @@ export function useCourseForm({
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) throw new Error('Erro ao salvar curso');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Erro ao salvar curso');
+      }
       
       const savedCourse = await response.json();
+      
+      // ✅ Atualizar dados do formulário com resposta da API
+      if (savedCourse) {
+        form.setValue('published', savedCourse.status === 'PUBLISHED');
+      }
+      
       onSuccess?.(savedCourse);
     } catch (error) {
+      console.error('Erro detalhado ao salvar:', error);
       if (error instanceof z.ZodError) {
         // Converter erros de validação Zod em mensagem de erro amigável
         const errorMessages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
@@ -298,7 +318,7 @@ export function useCourseForm({
     } finally {
       setIsSaving(false);
     }
-  }, [courseId, API_URL, token, onSuccess, onError]);
+  }, [courseId, API_URL, token, form, onSuccess, onError]);
 
   // Alternar status do curso (publicar/despublicar)
   const toggleCourseStatus = useCallback(async (newStatus: boolean) => {
